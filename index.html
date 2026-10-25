@@ -1,0 +1,1677 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>全国房产金融 WebGIS 智能决策仿真系统</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<style>
+:root {
+  --panel-bg-color: rgba(15, 23, 42, 0.88);
+  --panel-bg-image: none;
+  --splash-bg-image: none;
+  --accent-color: #2563eb;
+  --glow-color: rgba(37, 99, 235, 0.4);
+}
+* { box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
+body { margin: 0; padding: 0; background: #0b0f19; color: #f8fafc; overflow: hidden; height: 100vh; }
+#custom-logo-box { position: absolute; bottom: 24px; left: 24px; z-index: 999; pointer-events: none; opacity: 0.85; }
+#custom-logo-box img { max-height: 50px; display: none; }
+#map { position: absolute; inset: 0; z-index: 1; background: #0f172a; }
+
+/* ========== 图层切换悬浮按钮 ========== */
+.layer-switch-btn {
+  position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
+  z-index: 998;
+  background: linear-gradient(90deg, rgba(37,99,235,0.95), rgba(124,58,237,0.95));
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border: 1.5px solid rgba(255,255,255,0.35); border-radius: 50px;
+  padding: 12px 34px; color: #fff; font-size: 15px; font-weight: 700; letter-spacing: 1px;
+  cursor: pointer;
+  box-shadow: 0 8px 28px rgba(37,99,235,0.45), inset 0 1px 0 rgba(255,255,255,0.2);
+  display: flex; align-items: center; gap: 10px;
+  transition: all 0.3s; white-space: nowrap;
+}
+.layer-switch-btn:hover {
+  transform: translateX(-50%) translateY(-2px) scale(1.04);
+  box-shadow: 0 12px 36px rgba(37,99,235,0.75);
+}
+.layer-switch-btn:active { transform: translateX(-50%) scale(0.98); }
+@media (max-width: 1500px) { .layer-switch-btn { padding: 9px 20px; font-size: 13px; } }
+@media (max-width: 900px) { .layer-switch-btn { padding: 7px 14px; font-size: 12px; top: 10px; } }
+
+/* ========== 行政边界样式 ========== */
+.china-border {
+  stroke: #00ffff; stroke-width: 1.5; stroke-opacity: 0.8; fill: none; transition: all 0.2s;
+}
+.china-border:hover {
+  stroke: #fbbf24; stroke-width: 2.5; fill: rgba(251, 191, 36, 0.15); cursor: pointer;
+}
+.leaflet-tooltip.region-tooltip {
+  background: rgba(15, 23, 42, 0.9); border: 1px solid #00ffff; 
+  color: #00ffff; font-weight: bold; font-size: 13px;
+  box-shadow: 0 2px 10px rgba(0,255,255,0.2); border-radius: 6px;
+}
+.leaflet-control-zoom a, .leaflet-control-zoom {
+  background: rgba(15, 23, 42, 0.85) !important;
+  backdrop-filter: blur(8px); color: #f8fafc !important; border: 1px solid rgba(255,255,255,0.15) !important;
+}
+
+/* ========== 屏风启动页 ========== */
+.splash-screen {
+  position: fixed; inset: 0; z-index: 10000;
+  background: var(--splash-bg-image), linear-gradient(135deg, #020617, #0f172a, #1e1b4b);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  transition: opacity 0.8s ease, visibility 0.8s;
+}
+.splash-screen.hide { opacity: 0; visibility: hidden; pointer-events: none; }
+.splash-title {
+  font-size: 3.5rem; font-weight: 800; letter-spacing: 6px; margin-bottom: 20px; text-align: center;
+  background: linear-gradient(to right, #60a5fa, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  animation: fadeInDown 1s ease;
+}
+.splash-subtitle { color: #94a3b8; font-size: 1.2rem; margin-bottom: 50px; letter-spacing: 3px; animation: fadeIn 1.5s ease; text-align: center; }
+.splash-btn {
+  padding: 16px 45px; font-size: 1.2rem; font-weight: bold; color: #fff; cursor: pointer; letter-spacing: 2px;
+  background: linear-gradient(90deg, var(--accent-color), #7c3aed); border: none; border-radius: 50px;
+  box-shadow: 0 10px 25px var(--glow-color); transition: all 0.3s; animation: pulse-btn 2s infinite;
+}
+.splash-btn:hover { transform: translateY(-3px) scale(1.05); box-shadow: 0 15px 30px var(--glow-color); }
+@keyframes fadeInDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pulse-btn { 0% { box-shadow: 0 0 0 0 var(--glow-color); } 70% { box-shadow: 0 0 0 20px rgba(0,0,0,0); } 100% { box-shadow: 0 0 0 0 rgba(0,0,0,0); } }
+
+/* ========== 面板高度与滚动条 ========== */
+.glass-panel {
+  background: var(--panel-bg-image), var(--panel-bg-color);
+  background-size: cover; background-position: center;
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+  z-index: 100;
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s ease;
+  position: absolute; top: 20px; height: calc(100vh - 40px) !important;
+  overflow-y: auto !important; overflow-x: hidden;
+  scrollbar-width: thin;
+}
+.glass-panel::-webkit-scrollbar { width: 8px; }
+.glass-panel::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); border-radius: 4px; }
+.glass-panel::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.3); border-radius: 4px; }
+.glass-panel::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.5); }
+
+#leftPanel { left: 20px; width: 380px; padding: 22px; box-sizing: border-box; transform: translateX(-120%); opacity: 0; }
+#leftPanel.show { transform: translateX(0); opacity: 1; }
+#rightPanel { right: 20px; width: 820px; padding: 22px; box-sizing: border-box; transform: translateX(120%); opacity: 0; }
+#rightPanel.show { transform: translateX(0); opacity: 1; }
+
+@media (max-width: 1200px) { #rightPanel { width: calc(100% - 440px); } }
+@media (max-width: 900px) {
+  #leftPanel, #rightPanel { position: relative; width: 100%; top: 0; left: 0; right: 0; margin-bottom: 10px; transform: none; opacity: 1; display: none; height: auto !important; max-height: 80vh; }
+  #leftPanel.show, #rightPanel.show { display: block; }
+}
+
+/* ========== 面板标题栏 + 关闭按钮 + 边缘召回按钮 ========== */
+.panel-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.panel-head h2 { margin: 0; padding: 0; border: none; font-size: 19px; }
+.panel-close {
+  width: 30px; height: 30px; flex: 0 0 auto; border-radius: 8px;
+  background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.35);
+  font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.2s;
+  display: flex; align-items: center; justify-content: center; line-height: 1;
+}
+.panel-close:hover { background: #ef4444; color: #fff; transform: rotate(90deg); }
+
+.panel-reopen {
+  position: fixed; top: 50%; transform: translateY(-50%); z-index: 999;
+  display: block;
+  background: rgba(15, 23, 42, 0.92); color: #cbd5e1;
+  border: 1px solid rgba(255,255,255,0.2); cursor: pointer;
+  padding: 16px 7px; font-size: 13px; letter-spacing: 3px;
+  writing-mode: vertical-rl; backdrop-filter: blur(10px);
+  transition: all 0.25s; font-weight: 600;
+}
+.panel-reopen:hover { background: var(--accent-color); color: #fff; border-color: var(--accent-color); }
+#reopenLeft { left: 0; border-radius: 0 10px 10px 0; }
+#reopenRight { right: 0; border-radius: 10px 0 0 10px; }
+@media (max-width: 900px) { .panel-reopen { display: none !important; } }
+
+.mobile-panel-toggle {
+  display: none; position: fixed; z-index: 999; bottom: 24px; right: 24px;
+  width: 50px; height: 50px; background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 50%;
+  font-size: 20px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.5); align-items: center; justify-content: center;
+}
+@media (max-width: 900px) { .mobile-panel-toggle { display: flex; } }
+
+.map-hint {
+  position: absolute; top: 78px; left: 50%; transform: translateX(-50%);
+  background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px);
+  color: #cbd5e1; padding: 10px 24px; border-radius: 50px;
+  font-size: 13px; border: 1px solid rgba(255,255,255,0.1);
+  z-index: 99; pointer-events: none; transition: opacity 0.5s; white-space: nowrap;
+}
+
+h2, h3 { margin-top: 0; color: #f8fafc; font-weight: 700; }
+.mode-switch { display: flex; gap: 10px; margin-bottom: 16px; background: rgba(30, 41, 59, 0.8); padding: 4px; border-radius: 30px; }
+.mode-btn { flex: 1; padding: 10px 0; border: none; border-radius: 26px; font-weight: 600; cursor: pointer; background: transparent; color: #94a3b8; transition: all 0.3s; }
+.mode-btn.active { background: var(--accent-color); color: #fff; box-shadow: 0 2px 8px var(--glow-color); }
+
+details.config-group { border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; margin-bottom: 12px; overflow: hidden; background: rgba(30, 41, 59, 0.5); }
+details.config-group summary { padding: 12px 16px; background: rgba(30, 41, 59, 0.8); font-weight: 600; color: #f1f5f9; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
+details.config-group summary::-webkit-details-marker { display: none; }
+details.config-group summary::after { content: '➕'; font-size: 11px; color: #94a3b8; transition: transform 0.3s; }
+details.config-group[open] summary::after { content: '➖'; }
+.config-body { padding: 16px; background: rgba(15, 23, 42, 0.4); }
+
+.form-item { margin-bottom: 12px; }
+label { display: block; margin-bottom: 6px; font-size: 13px; color: #cbd5e1; font-weight: 500; }
+input, select { width: 100%; padding: 10px; border: 1px solid #475569; border-radius: 8px; font-size: 14px; background: #0f172a; color: #f8fafc; transition: border 0.2s; }
+input:focus, select:focus { outline: none; border-color: var(--accent-color); background: #020617; }
+input.invalid { border-color: #ef4444 !important; background: rgba(239,68,68,0.1) !important; }
+.form-hint { font-size: 11px; color: #94a3b8; margin-top: 4px; line-height: 1.4; }
+
+button#runBtn { width: 100%; padding: 14px; background: linear-gradient(90deg, var(--accent-color), #1d4ed8); color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 10px; transition: all 0.2s; box-shadow: 0 4px 15px var(--glow-color); }
+button#runBtn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px var(--glow-color); }
+button#resetParamBtn { width: 100%; padding: 10px; background: transparent; color: #cbd5e1; border: 1px solid #475569; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; margin-top: 8px; transition: all 0.2s; }
+button#resetParamBtn:hover { background: rgba(51, 65, 85, 0.5); color: #fff; }
+
+/* ========== 五维熵权网格卡片 ========== */
+.entropy-wrapper, .assumption-wrapper { margin-bottom: 12px; }
+.toggle-block { background: rgba(30, 41, 59, 0.6); border: 1px dashed #64748b; color: #cbd5e1; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; width: 100%; transition: all 0.2s; font-weight: 500; display: flex; justify-content: space-between; align-items: center; }
+.toggle-block:hover { background: rgba(30, 41, 59, 0.9); color: #fff; border-color: #94a3b8; }
+.toggle-card { background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(255,255,255,0.1); padding: 16px; border-radius: 8px; display: none; margin-top: 10px; }
+.ew-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; text-align: center; margin-top: 12px; }
+.ew-item { background: rgba(15, 23, 42, 0.8); padding: 12px 4px; border-radius: 6px; font-size: 13px; border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+.ew-item b { color: #60a5fa; display: block; margin-bottom: 6px; font-size: 12px; }
+.ew-item span { font-weight: 700; color: #f8fafc; }
+
+.assumption-list { margin:0; padding-left:16px; font-size:12px; line-height:1.7; color:#cbd5e1; }
+
+/* ========== 视角选择条 ========== */
+.view-bar {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  margin: 4px 0 12px; padding: 12px 14px;
+  background: rgba(30, 41, 59, 0.75);
+  border: 1px solid rgba(96, 165, 250, 0.3);
+  border-radius: 12px;
+}
+.view-bar-label { font-size: 12px; font-weight: 700; color: #93c5fd; letter-spacing: 1px; margin-right: 4px; white-space: nowrap; }
+.view-bar .tab {
+  padding: 7px 14px; background: rgba(15, 23, 42, 0.8); border-radius: 20px;
+  cursor: pointer; font-size: 12.5px; font-weight: 600; color: #94a3b8;
+  transition: all 0.2s; border: 1px solid rgba(255,255,255,0.08);
+}
+.view-bar .tab:hover { background: rgba(51, 65, 85, 0.9); color: #fff; }
+.view-bar .tab.active {
+  background: var(--accent-color); color: #fff; border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.25);
+}
+
+/* ========== AI 专家智能解读卡片 ========== */
+.ai-report-card {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.98));
+  border: 1px solid rgba(96, 165, 250, 0.4);
+  border-radius: 12px; padding: 20px 24px; margin-bottom: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4); position: relative; overflow: hidden;
+  animation: fadeIn 0.5s ease-out;
+}
+@keyframes cardFlash {
+  0%   { box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
+  45%  { box-shadow: 0 0 0 4px rgba(96,165,250,0.65), 0 6px 34px rgba(59,130,246,0.7); }
+  100% { box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
+}
+.ai-report-card.flash { animation: cardFlash 1s ease; }
+
+.ai-report-card::before {
+  content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
+  background: linear-gradient(180deg, #3b82f6, #10b981);
+}
+.ai-report-header {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+  margin-bottom: 12px; border-bottom: 1px dashed rgba(255,255,255,0.2); padding-bottom: 10px;
+}
+.ai-report-title { font-size: 16px; font-weight: 700; color: #60a5fa; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ai-view-chip {
+  font-size: 11px; padding: 3px 9px; border-radius: 20px; font-weight: 700;
+  background: rgba(16, 185, 129, 0.18); color: #6ee7b7; border: 1px solid rgba(110,231,183,0.45);
+}
+.ai-report-tag {
+  font-size: 12px; padding: 4px 10px; border-radius: 20px; font-weight: 600;
+  background: rgba(59, 130, 246, 0.25); color: #93c5fd; border: 1px solid rgba(147, 197, 253, 0.4);
+}
+.ai-data-grid {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 14px 0;
+  background: rgba(15, 23, 42, 0.7); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);
+}
+.ai-data-item { text-align: center; }
+.ai-data-item .val { font-size: 14px; font-weight: 700; color: #38bdf8; margin-bottom: 2px; }
+.ai-data-item .lbl { font-size: 11px; color: #94a3b8; }
+
+.ai-jump-btn {
+  margin-top: 14px; padding: 10px 18px; width: 100%;
+  background: rgba(37, 99, 235, 0.18); color: #93c5fd;
+  border: 1px solid rgba(96,165,250,0.45); border-radius: 8px;
+  font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+}
+.ai-jump-btn:hover { background: #2563eb; color: #fff; border-color: #2563eb; }
+
+.ai-report-content { font-size: 13.5px; line-height: 1.8; color: #cbd5e1; text-align: justify; }
+.ai-report-content strong { color: #f59e0b; font-weight: 700; }
+.ai-report-content u { color: #34d399; text-decoration: none; font-weight: 700; border-bottom: 1px dashed #34d399; padding-bottom: 1px; }
+.ai-report-content .section-title { display: block; font-size: 15px; font-weight: bold; color: #e2e8f0; margin: 16px 0 8px 0; border-left: 3px solid #3b82f6; padding-left: 8px; }
+
+/* ========== 详细数据报告 弹窗样式 ========== */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(2, 6, 23, 0.85);
+  backdrop-filter: blur(8px); z-index: 10005;
+  display: none; align-items: center; justify-content: center;
+  animation: fadeIn 0.3s ease;
+}
+.modal-content {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.98), rgba(15, 23, 42, 0.98));
+  border: 1px solid rgba(96, 165, 250, 0.4); border-radius: 16px;
+  width: 90%; max-width: 800px; max-height: 85vh;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+  display: flex; flex-direction: column;
+  transform: translateY(20px); animation: slideUp 0.3s forwards;
+}
+@keyframes slideUp { to { transform: translateY(0); } }
+.modal-header {
+  padding: 16px 24px; border-bottom: 1px solid rgba(255,255,255,0.1);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.modal-title { font-size: 18px; font-weight: bold; color: #60a5fa; }
+.modal-close {
+  background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.35);
+  width: 32px; height: 32px; border-radius: 8px; font-size: 16px; font-weight: bold;
+  cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;
+}
+.modal-close:hover { background: #ef4444; color: #fff; transform: rotate(90deg); }
+.modal-body { padding: 20px 24px; overflow-y: auto; flex: 1; scrollbar-width: thin; }
+
+.dr-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+@media (max-width: 1200px) { .dr-wrap { grid-template-columns: 1fr; } }
+.dr-section {
+  background: rgba(15, 23, 42, 0.72);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 10px; padding: 14px 16px;
+}
+.dr-title {
+  font-size: 13.5px; font-weight: 700; color: #60a5fa; margin-bottom: 10px;
+  padding-bottom: 8px; border-bottom: 1px dashed rgba(255,255,255,0.12);
+}
+.dr-row {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  padding: 7px 0; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.dr-row:last-child { border-bottom: none; }
+.dr-lbl { color: #94a3b8; }
+.dr-val { color: #f8fafc; font-weight: 600; text-align: right; white-space: nowrap; }
+.dr-val.ok { color: #34d399; }
+.dr-val.warn { color: #fbbf24; }
+.dr-val.bad { color: #f87171; }
+
+/* ========== 图表区与表格 ========== */
+.chart-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; margin-top: 8px; flex-wrap: wrap; gap: 8px; }
+.chart-tabs { display: flex; gap: 10px; }
+.chart-tab { padding: 6px 12px; background: rgba(51, 65, 85, 0.8); border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 500; color: #94a3b8; transition: 0.2s;}
+.chart-tab.active { background: var(--accent-color); color: #fff; }
+.chart-save-btn { padding: 6px 12px; background: #059669; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 500; transition: 0.2s;}
+.chart-save-btn:hover { background: #047857; }
+#chartDom { height: 320px; width: 100%; }
+
+.tab-wrap { display: flex; gap: 8px; flex-wrap: wrap; margin: 16px 0 10px; }
+.tab { padding: 8px 16px; background: rgba(30, 41, 59, 0.8); border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500; color: #94a3b8; transition: all 0.2s; border: 1px solid rgba(255,255,255,0.05); }
+.tab:hover { background: rgba(51, 65, 85, 0.9); color: #fff; }
+.tab.active { background: var(--accent-color); color: #fff; border-color: var(--accent-color); }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+table { width: 100%; border-collapse: collapse; font-size: 12px; background: rgba(15, 23, 42, 0.6); color: #e2e8f0; }
+th, td { border: 1px solid rgba(255,255,255,0.08); padding: 8px 6px; text-align: center; }
+th { background: rgba(30, 41, 59, 0.9); font-weight: 600; color: #f8fafc; position: sticky; top: 0; z-index: 2; }
+tbody tr:hover { background: rgba(51, 65, 85, 0.4); }
+.table-scroll { max-height: 350px; overflow-y: auto; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); }
+.data-bar-cell { position: relative; padding: 4px 6px !important; }
+.data-bar-bg { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 2px; z-index: 0; pointer-events: none; transition: width 0.5s ease; }
+.data-bar-text { position: relative; z-index: 1; font-weight: 600; color: #f8fafc; }
+
+/* 表格行详情按钮 */
+.btn-row-detail {
+  background: rgba(37, 99, 235, 0.15); color: #60a5fa; border: 1px solid rgba(96,165,250,0.3);
+  padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; transition: all 0.2s; white-space: nowrap;
+}
+.btn-row-detail:hover { background: #2563eb; color: #fff; }
+
+.warning-box { background: rgba(239, 68, 68, 0.15); border-left: 4px solid #ef4444; padding: 10px 14px; border-radius: 4px; margin-bottom: 12px; font-size: 13px; color: #fca5a5; }
+.skip-tip { background: rgba(245, 158, 11, 0.15); border-left: 4px solid #f59e0b; padding: 8px 12px; border-radius: 4px; margin-bottom: 12px; font-size: 12px; color: #fde68a; }
+.export-wrap { margin: 12px 0; text-align: right; }
+.export-btn { padding: 8px 18px; background: #16a34a; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: 0.2s;}
+.export-btn:hover { background: #15803d; }
+
+.global-best-card { background: linear-gradient(135deg, var(--accent-color), #7c3aed); color: #fff; padding: 18px; border-radius: 12px; margin-bottom: 16px; box-shadow: 0 6px 20px var(--glow-color); }
+.global-best-card h3 { margin: 0 0 12px 0; font-size: 16px; color: #fff; border: none; padding: 0; }
+.global-best-card .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 12px; text-align: center; }
+.global-best-card .metric .val { font-size: 20px; font-weight: 800; margin-bottom: 2px; }
+.global-best-card .metric .lbl { font-size: 11px; opacity: 0.9; }
+
+.empty-state { text-align: center; padding: 40px 20px; color: #64748b; font-size: 14px; line-height: 2; }
+.empty-state .big { font-size: 40px; display: block; margin-bottom: 10px; }
+
+.toast { position: fixed; top: 24px; left: 50%; transform: translateX(-50%); background: rgba(15,23,42,0.95); color: #fff; padding: 12px 24px; border-radius: 8px; z-index: 10001; display: none; font-size: 14px; backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.1); }
+.loading-mask { position: fixed; inset: 0; background: rgba(2, 6, 23, 0.75); display: none; align-items: center; justify-content: center; z-index: 9999; backdrop-filter: blur(6px); flex-direction: column; }
+.loading-spinner { width: 50px; height: 50px; border: 4px solid rgba(255,255,255,0.1); border-top-color: var(--accent-color); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { color: #f8fafc; font-weight: 600; font-size: 16px; }
+</style>
+</head>
+<body>
+
+<div id="custom-logo-box"></div>
+
+<button class="layer-switch-btn" id="layerSwitchBtn">
+  <span id="layerIcon" style="font-size:19px;">🛰️</span>
+  <span id="layerText">当前底图：卫星影像 · 点击切换</span>
+</button>
+
+<button class="mobile-panel-toggle" id="mobileToggleBtn">☰</button>
+
+<div class="panel-reopen" id="reopenLeft">📋 参数配置</div>
+<div class="panel-reopen" id="reopenRight">📊 分析看板</div>
+
+<div class="splash-screen" id="splashScreen">
+  <h1 class="splash-title">全国房产金融决策仿真系统</h1>
+  <p class="splash-subtitle">基于 WebGIS 与多准则决策的智能推演平台</p>
+  <button class="splash-btn" onclick="enterSystem()">进入全景中国地图</button>
+</div>
+
+<div id="map"></div>
+<div class="map-hint" id="mapHint">🛰️ 初始视角为中国全境，点击城市轮廓可放大，并点击具体片区探索。</div>
+
+<div class="glass-panel" id="leftPanel">
+  <div class="panel-head">
+    <h2>仿真参数配置</h2>
+    <button class="panel-close" onclick="hidePanel('leftPanel')" title="收起面板">✕</button>
+  </div>
+
+  <div class="mode-switch">
+    <button class="mode-btn active" data-mode="relative">📍 相对推演</button>
+    <button class="mode-btn" data-mode="absolute">🎯 绝对寻优</button>
+  </div>
+
+  <details class="config-group" open>
+    <summary>核心资产配置</summary>
+    <div class="config-body">
+      <div class="form-item">
+        <label>选择片区 (可在地图点击)</label>
+        <select id="regionSel"></select>
+      </div>
+      <div class="form-item">
+        <label>房屋总价（万元）</label>
+        <input type="number" id="houseTotalWan" value="100" min="1">
+      </div>
+      <div class="form-item">
+        <label>初始自有存款（万元）</label>
+        <input type="number" id="initialSavingsWan" value="40" min="0">
+      </div>
+      <div class="form-item">
+        <label>首付比例 %（15~80）</label>
+        <input type="number" id="downRatio" value="30" min="15" max="80">
+      </div>
+    </div>
+  </details>
+
+  <details class="config-group">
+    <summary>收入与开销</summary>
+    <div class="config-body">
+      <div class="form-item">
+        <label>税后月收入（元）</label>
+        <input type="number" id="monthIncomeNet" value="6500" min="1">
+      </div>
+      <div class="form-item">
+        <label>每月基础开销（元）</label>
+        <input type="number" id="monthExp" value="2200" min="1">
+      </div>
+      <div class="form-item">
+        <label>购房后物业费（元/月）</label>
+        <input type="number" id="propertyFee" value="200" min="0">
+      </div>
+      <div class="form-item">
+        <label>公积金缴存比例 %（个人+企业合计）</label>
+        <input type="number" id="housingFundPct" value="16" min="0" max="24">
+        <div class="form-hint">买房后公积金按月进账，可直接抵扣月供。</div>
+      </div>
+    </div>
+  </details>
+
+  <details class="config-group">
+    <summary>金融与租赁假设</summary>
+    <div class="config-body">
+      <div class="form-item" id="rentBaseGroup">
+        <label>基准月租金（元）</label>
+        <input type="number" id="rentBase" value="1800" min="1">
+      </div>
+      <div class="form-item" id="rentBaseNote" style="display:none;">
+        <label style="color:#60a5fa;">✨ 系统自动搜索最优租金</label>
+      </div>
+      <div class="form-item">
+        <label>理财年化收益率 %</label>
+        <input type="number" id="investYieldPct" value="2.5" step="0.1" min="0">
+      </div>
+      <div class="form-item">
+        <label>租金年化通胀率 %</label>
+        <input type="number" id="rentInflationPct" value="2" step="0.1" min="0">
+      </div>
+      <div class="form-item">
+        <label>房贷年利率 %</label>
+        <input type="number" id="loanRatePct" value="3.9" step="0.1" min="0.1" max="20">
+      </div>
+      <div class="form-item">
+        <label>还款方式</label>
+        <select id="repayKind">
+          <option value="equal_principal_interest">等额本息</option>
+          <option value="equal_principal">等额本金</option>
+        </select>
+      </div>
+    </div>
+  </details>
+
+  <button id="runBtn">开始深度推演</button>
+  <button id="resetParamBtn">重置为默认参数</button>
+</div>
+
+<div class="glass-panel" id="rightPanel">
+  <div class="panel-head">
+    <h2>推演分析看板</h2>
+    <button class="panel-close" onclick="hidePanel('rightPanel')" title="收起面板">✕</button>
+  </div>
+
+  <div class="entropy-wrapper">
+    <button class="toggle-block" id="toggleEntropyBtn">
+      <span>📊 底层算法：五维熵权详情</span>
+      <span id="entropyArrow">▼</span>
+    </button>
+    <div class="toggle-card" id="entropyCard"></div>
+  </div>
+
+  <div class="assumption-wrapper">
+    <button class="toggle-block" id="toggleAssumptionBtn">
+      <span>📑 模型仿真假设说明</span>
+      <span id="assumptionArrow">▼</span>
+    </button>
+    <div class="toggle-card" id="assumptionCard"></div>
+  </div>
+
+  <div id="globalBestBox" style="display:none;"></div>
+
+  <div class="view-bar" id="viewBar" style="display:none;">
+    <span class="view-bar-label">🎛️ 选择决策视角</span>
+    <div class="tab-wrap" id="tabWrap" style="margin:0;"></div>
+  </div>
+
+  <div id="aiReportBox" style="display:none;"></div>
+
+  <div id="warningBox"></div>
+  <div id="skipTipBox"></div>
+
+  <div class="chart-toolbar">
+    <div class="chart-tabs">
+      <div class="chart-tab active" data-chart="bar">资产与得分 TOP10</div>
+      <div class="chart-tab" data-chart="radar">榜首能力雷达图</div>
+    </div>
+    <button class="chart-save-btn" id="saveChartBtn">💾 保存图表</button>
+  </div>
+  <div id="chartDom"></div>
+
+  <div class="export-wrap">
+    <button class="export-btn" id="exportCsvBtn">📥 导出全部方案 CSV</button>
+  </div>
+
+  <div id="tabContents"></div>
+
+  <div id="emptyState" class="empty-state">
+    <span class="big">🧭</span>
+    请先在左侧配置参数，点击「开始深度推演」<br>
+    系统将为你生成完整的五维决策分析看板
+  </div>
+</div>
+
+<!-- 全方案详情弹窗 -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">方案财务明细</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody">
+      <!-- 详情内容动态渲染 -->
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toastBox"></div>
+<div class="loading-mask" id="loadingMask">
+  <div class="loading-spinner"></div>
+  <div class="loading-text" id="loadingText">正在计算最优解...</div>
+</div>
+
+<script>
+const API_HOST = "http://127.0.0.1:8000";
+const DEFAULT_FORM = {
+  "houseTotalWan": 100, "initialSavingsWan": 40, "downRatio": 30,
+  "monthIncomeNet": 6500, "monthExp": 2200, "propertyFee": 200,
+  "housingFundPct": 16, "rentBase": 1800, "investYieldPct": 2.5,
+  "rentInflationPct": 2, "loanRatePct": 3.9, "repayKind": "equal_principal_interest"
+};
+
+// 修复后的前端兜底坐标
+const FALLBACK_REGIONS = [
+  {"name": "青秀区", "lat": 22.79, "lng": 108.38, "house_ref": 140, "rent_ref": 3000, "desc": "核心城区，配套完善，名校云集"},
+  {"name": "西乡塘区", "lat": 22.84, "lng": 108.28, "house_ref": 85, "rent_ref": 1600, "desc": "科教片区，高校林立，生活成本低"},
+  {"name": "江南区", "lat": 22.78, "lng": 108.28, "house_ref": 78, "rent_ref": 1500, "desc": "老城区，刚需友好，烟火气浓"},
+  {"name": "兴宁区", "lat": 22.85, "lng": 108.33, "house_ref": 92, "rent_ref": 1900, "desc": "老城商圈，火车站附近，交通便利"},
+  {"name": "良庆区", "lat": 22.74, "lng": 108.36, "house_ref": 110, "rent_ref": 2300, "desc": "五象新区核心地带，发展潜力大"},
+  {"name": "邕宁区", "lat": 22.76, "lng": 108.48, "house_ref": 82, "rent_ref": 1600, "desc": "五象东扩区，价格洼地，生态宜居"},
+  {"name": "武鸣区", "lat": 23.16, "lng": 108.27, "house_ref": 55, "rent_ref": 1200, "desc": "教育园区，大学城，价格极低"},
+  {"name": "五象新区", "lat": 22.72, "lng": 108.35, "house_ref": 120, "rent_ref": 2500, "desc": "自治区级重点发展新区，总部基地"}
+];
+
+let map = null;
+let chart = null;
+let regionMarkersGroup = null;
+let regionList = [];
+let calcAbortCtrl = null;
+let currentMode = "relative";
+let currentResult = null;
+let currentChartType = "bar";
+
+let isCalculating = false;
+let entropyOpen = false;
+let assumptionOpen = false;
+let allMapMarkers = [];
+let panelsRevealed = false;
+
+let isSatellite = true;
+let esriSat = null;
+let amapVector = null;
+let provinceLayer = null;
+let cityLayer = null;
+
+let currentTopItem = null;
+
+const runBtn = document.getElementById("runBtn");
+const loadingText = document.getElementById("loadingText");
+
+function formatNum(val, dec = 2) {
+  if (val === null || val === undefined || isNaN(val)) return "--";
+  return Number(val).toFixed(dec);
+}
+function nv(id) {
+  const el = document.getElementById(id);
+  return el ? (parseFloat(el.value) || 0) : 0;
+}
+function showToast(msg) {
+  const t = document.getElementById("toastBox");
+  t.textContent = msg; t.style.display = "block";
+  clearTimeout(showToast._tid);
+  showToast._tid = setTimeout(() => t.style.display = "none", 3500);
+}
+function setLoading(flag) {
+  document.getElementById("loadingMask").style.display = flag ? "flex" : "none";
+  runBtn.disabled = flag;
+}
+function escapeHtml(str) {
+  if (str == null) return '';
+  return String(str).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+function csvEscape(v) {
+  if (v == null) return '';
+  const s = String(v);
+  if (s.includes(',') || s.includes('"') || s.includes('\n')) return `"${s.replace(/"/g, '""')}"`;
+  return s;
+}
+
+/* ============ 面板显示 / 隐藏 ============ */
+function showPanel(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.add('show');
+  const reopen = document.getElementById(id === 'leftPanel' ? 'reopenLeft' : 'reopenRight');
+  if (reopen) reopen.style.display = 'none';
+  setTimeout(() => { if (map) map.invalidateSize(); }, 420);
+}
+function hidePanel(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.remove('show');
+  const reopen = document.getElementById(id === 'leftPanel' ? 'reopenLeft' : 'reopenRight');
+  if (reopen) reopen.style.display = 'block';
+  setTimeout(() => { if (map) map.invalidateSize(); }, 420);
+}
+window.showPanel = showPanel;
+window.hidePanel = hidePanel;
+
+document.getElementById('reopenLeft').onclick = () => showPanel('leftPanel');
+document.getElementById('reopenRight').onclick = () => showPanel('rightPanel');
+
+/* ============ 底图切换 ============ */
+document.getElementById("layerSwitchBtn").onclick = function() {
+  if (isSatellite) {
+    map.removeLayer(esriSat); map.addLayer(amapVector);
+    isSatellite = false;
+    document.getElementById("layerIcon").textContent = "🗺️";
+    document.getElementById("layerText").textContent = "当前底图：矢量地图 · 点击切换";
+    showToast("已切换至矢量底图");
+  } else {
+    map.removeLayer(amapVector); map.addLayer(esriSat);
+    isSatellite = true;
+    document.getElementById("layerIcon").textContent = "🛰️";
+    document.getElementById("layerText").textContent = "当前底图：卫星影像 · 点击切换";
+    showToast("已切换至高清卫星底图");
+  }
+};
+
+function enterSystem() {
+  document.getElementById('splashScreen').classList.add('hide');
+  if (map) map.setView([34.5, 108.9], 4);
+  showToast("已进入全国全景视角，点击城市轮廓或左右边缘配置参数");
+}
+
+function revealPanels() {
+  if (panelsRevealed) return;
+  panelsRevealed = true;
+  showPanel('leftPanel');
+  showPanel('rightPanel');
+  const hint = document.getElementById('mapHint');
+  if (hint) hint.style.opacity = '0';
+}
+
+document.getElementById("mobileToggleBtn").onclick = function() {
+  const left = document.getElementById('leftPanel');
+  const right = document.getElementById('rightPanel');
+  left.classList.toggle('show');
+  right.classList.toggle('show');
+  setTimeout(() => map && map.invalidateSize(), 300);
+};
+
+function initMap() {
+  map = L.map("map", { zoomControl: false, preferCanvas: true }).setView([34.5, 108.9], 4);
+
+  esriSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    attribution: '&copy; Esri', maxZoom: 18
+  });
+  amapVector = L.tileLayer('https://webrd02.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
+    attribution: '© 高德地图', maxZoom: 18
+  });
+
+  esriSat.addTo(map);
+  L.control.zoom({ position: 'bottomright' }).addTo(map);
+  L.control.scale({imperial:false, position: 'bottomleft'}).addTo(map);
+
+  regionMarkersGroup = L.layerGroup();
+
+  fetch('china-province.geojson')
+    .then(res => res.ok ? res.json() : null)
+    .then(geoData => {
+        if(!geoData) return;
+        provinceLayer = L.geoJSON(geoData, {
+            style: function(feature) { return { className: 'china-border' }; },
+            onEachFeature: function(feature, layer) {
+                const name = feature.properties.name || "未知省份";
+                layer.bindTooltip(name, { sticky: true, direction: 'top', className: 'region-tooltip' });
+                layer.on('click', () => {
+                    map.flyToBounds(layer.getBounds(), { duration: 1.2, padding: [50, 50] });
+                });
+            }
+        }).addTo(map);
+    })
+    .catch(e => console.log("未找到省级边界", e));
+
+  fetch('china-city.geojson')
+    .then(res => res.ok ? res.json() : null)
+    .then(geoData => {
+        if(!geoData) return;
+        cityLayer = L.geoJSON(geoData, {
+            style: function(feature) { return { className: 'china-border' }; },
+            onEachFeature: function(feature, layer) {
+                const name = feature.properties.name || "未知城市";
+                layer.bindTooltip(name, { sticky: true, direction: 'top', className: 'region-tooltip' });
+                layer.on('click', () => {
+                    map.flyToBounds(layer.getBounds(), { duration: 1.2, padding: [50, 50] });
+                });
+            }
+        });
+    })
+    .catch(e => console.log("未找到市级边界", e));
+
+  map.on('zoomend', function() {
+    const z = map.getZoom();
+    if (z < 6) {
+      if (cityLayer && map.hasLayer(cityLayer)) map.removeLayer(cityLayer);
+      if (provinceLayer && !map.hasLayer(provinceLayer)) map.addLayer(provinceLayer);
+    } else {
+      if (provinceLayer && map.hasLayer(provinceLayer)) map.removeLayer(provinceLayer);
+      if (cityLayer && !map.hasLayer(cityLayer)) map.addLayer(cityLayer);
+    }
+
+    if (z >= 10) {
+      if (cityLayer && map.hasLayer(cityLayer)) map.removeLayer(cityLayer);
+      if (provinceLayer && map.hasLayer(provinceLayer)) map.removeLayer(provinceLayer);
+    }
+  });
+}
+
+document.getElementById("toggleEntropyBtn").onclick = function() {
+  entropyOpen = !entropyOpen;
+  document.getElementById("entropyCard").style.display = entropyOpen ? "block" : "none";
+  document.getElementById("entropyArrow").textContent = entropyOpen ? "▲" : "▼";
+};
+document.getElementById("toggleAssumptionBtn").onclick = function() {
+  assumptionOpen = !assumptionOpen;
+  document.getElementById("assumptionCard").style.display = assumptionOpen ? "block" : "none";
+  document.getElementById("assumptionArrow").textContent = assumptionOpen ? "▲" : "▼";
+};
+document.getElementById("resetParamBtn").onclick = function() {
+  for(let key in DEFAULT_FORM) {
+    const el = document.getElementById(key);
+    if(el) el.value = DEFAULT_FORM[key];
+  }
+  showToast("参数已重置为默认值");
+  const sel = document.getElementById("regionSel");
+  if (sel && sel.value && regionList.length > 0) {
+    const find = regionList.find(x => x.name === sel.value);
+    if (find) {
+      document.getElementById("houseTotalWan").value = find.house_ref;
+      document.getElementById("rentBase").value = find.rent_ref;
+    }
+  }
+};
+
+document.getElementById("saveChartBtn").onclick = function(){
+  if(!chart) return showToast("暂无图表可下载");
+  const a = document.createElement('a'); a.href = chart.getDataURL({type:'png', pixelRatio:2}); a.download = '仿真图表.png'; a.click();
+}
+document.querySelectorAll(".chart-tab").forEach(tab => {
+  tab.onclick = () => {
+    document.querySelectorAll(".chart-tab").forEach(t => t.classList.remove("active"));
+    tab.classList.add("active");
+    currentChartType = tab.dataset.chart;
+    if (currentResult && currentResult.top_comprehensive?.length > 0) {
+      drawChart(currentResult.top_comprehensive[0], currentResult.top_comprehensive);
+    }
+  };
+});
+window.addEventListener('resize', () => { if(chart) chart.resize(); if(map) map.invalidateSize(); });
+
+document.getElementById("exportCsvBtn").onclick = function(){
+  if(!currentResult || !currentResult.all_scheme) return showToast("请先推演计算");
+  const dataList = currentResult.all_scheme;
+  if(dataList.length === 0) return showToast("无数据可导出");
+  const baseCols = [["rent_year", "租年"], ["loan_year", "贷年"], ["down_payment_wan", "首付(万)"], ["liquid_asset_end_wan", "期末资产(万)"], ["adapt_score", "稳健分"], ["comfort_score", "舒适度"], ["surplus_happiness", "幸福感"], ["time_efficiency", "时间效率"], ["suitability_score", "合适度"], ["comprehensive_score", "综合得分"]];
+  const hasRentLevel = dataList[0].rent_level !== undefined;
+  const cols = hasRentLevel ? [["rent_level", "租金档(元)"]].concat(baseCols) : baseCols;
+  let csvStr = cols.map(c=>c[1]).join(',') + '\n';
+  dataList.forEach(row=>{ csvStr += cols.map(c => csvEscape(row[c[0]])).join(',') + '\n'; });
+  const now = new Date(); const ts = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}`;
+  const blob = new Blob(['\uFEFF'+csvStr], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `房产推演_${currentMode}_${ts}.csv`; a.click();
+}
+
+document.querySelectorAll(".mode-btn").forEach(btn => {
+  btn.onclick = () => {
+    currentMode = btn.dataset.mode;
+    document.querySelectorAll(".mode-btn").forEach(b => b.classList.toggle("active", b === btn));
+    document.getElementById("rentBaseGroup").style.display = currentMode === "relative" ? "" : "none";
+    document.getElementById("rentBaseNote").style.display = currentMode === "absolute" ? "" : "none";
+
+    if (currentMode === "absolute") {
+      showToast("已切换至绝对寻优模式，系统将自动搜索最优租金档位");
+    }
+
+    clearResults();
+  };
+});
+
+function clearResults() {
+  entropyOpen = false; assumptionOpen = false;
+  currentTopItem = null;
+  document.getElementById("entropyCard").style.display = "none";
+  document.getElementById("entropyArrow").textContent = "▼";
+  document.getElementById("assumptionCard").style.display = "none";
+  document.getElementById("assumptionArrow").textContent = "▼";
+  document.getElementById("warningBox").innerHTML = "";
+  document.getElementById("skipTipBox").innerHTML = "";
+  document.getElementById("globalBestBox").style.display = "none";
+  document.getElementById("aiReportBox").style.display = "none";
+  document.getElementById("viewBar").style.display = "none";
+  document.getElementById("tabWrap").innerHTML = "";
+  document.getElementById("tabContents").innerHTML = "";
+  document.getElementById("emptyState").style.display = "block";
+  if (chart) { chart.dispose(); chart = null; }
+}
+
+/* ============ 贷款月供计算辅助 ============ */
+function calcMonthlyMortgage(principal, ratePct, years, kind) {
+  const n = years * 12;
+  if (n <= 0 || principal <= 0) return { monthly: 0, totalInterest: 0 };
+  const r = ratePct / 100 / 12;
+  if (Math.abs(r) < 1e-9) return { monthly: principal / n, totalInterest: 0 };
+  if (kind === "equal_principal_interest") {
+    const m = principal * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1);
+    return { monthly: m, totalInterest: m * n - principal };
+  } else {
+    const totalInterest = principal * r * (n + 1) / 2;
+    const avgMonthly = (principal + totalInterest) / n;
+    return { monthly: avgMonthly, totalInterest };
+  }
+}
+
+/* ============ 详情弹窗逻辑 ============ */
+function openModal(item) {
+  if (!item) return;
+  
+  const regionName = document.getElementById("regionSel").value || "目标片区";
+  const houseTotalWan = nv("houseTotalWan");
+  const downRatio = nv("downRatio");
+  const monthIncomeNet = nv("monthIncomeNet");
+  const monthExp = nv("monthExp");
+  const propertyFee = nv("propertyFee");
+  const housingFundPct = nv("housingFundPct");
+  const loanRatePct = nv("loanRatePct");
+  const repayKind = document.getElementById("repayKind").value;
+
+  const downPaymentWan = houseTotalWan * downRatio / 100;
+  const loanPrincipalWan = Math.max(0, houseTotalWan - downPaymentWan);
+  const loanYears = item.loan_year || 0;
+  const rentYears = item.rent_year || 0;
+  const rentMonthly = (typeof item.rent_level === "number") ? item.rent_level : nv("rentBase");
+
+  const calc = calcMonthlyMortgage(loanPrincipalWan * 10000, loanRatePct, loanYears, repayKind);
+  const monthlyMortgage = calc.monthly;
+  const totalInterestWan = calc.totalInterest / 10000;
+
+  const housingFundMonthly = monthIncomeNet * housingFundPct / 100;
+  const fundDeduct = Math.min(monthlyMortgage, housingFundMonthly);
+  const realSelfPay = Math.max(0, monthlyMortgage - fundDeduct);
+  const totalMonthlyOutflow = monthExp + propertyFee + realSelfPay;
+  const expenseRatio = monthIncomeNet > 0 ? totalMonthlyOutflow / monthIncomeNet * 100 : 0;
+  const remainingCash = monthIncomeNet - totalMonthlyOutflow;
+  const surplusRate = monthIncomeNet > 0 ? remainingCash / monthIncomeNet * 100 : 0;
+  const redlineMargin = monthIncomeNet * 0.70 - totalMonthlyOutflow;
+
+  const fmt = (v, d=0) => (isNaN(v) ? "--" : Number(v).toLocaleString("zh-CN", {minimumFractionDigits: d, maximumFractionDigits: d}));
+  const pctCls = (v) => v >= 50 ? "ok" : (v >= 0 ? "warn" : "bad");
+
+  const row = (label, val, cls="") => `<div class="dr-row"><span class="dr-lbl">${label}</span><span class="dr-val ${cls}">${val}</span></div>`;
+
+  const html = `
+    <div class="dr-wrap">
+      <div class="dr-section">
+        <div class="dr-title">🏠 购房与贷款</div>
+        ${row("目标片区", escapeHtml(regionName))}
+        ${row("房屋总价", `${fmt(houseTotalWan,1)} 万元`)}
+        ${row("首付比例", `${fmt(downRatio,1)} %`)}
+        ${row("首付金额", `${fmt(downPaymentWan,1)} 万元`)}
+        ${row("贷款本金", `${fmt(loanPrincipalWan,1)} 万元`)}
+        ${row("贷款年限", `${loanYears} 年`)}
+        ${row("还款方式", repayKind === "equal_principal" ? "等额本金" : "等额本息")}
+        ${row("房贷月供(均)", `${fmt(monthlyMortgage,0)} 元`)}
+        ${row("30年总利息", `${fmt(totalInterestWan,1)} 万元`, totalInterestWan > houseTotalWan*0.8 ? "warn" : "")}
+        ${row("租房过渡年限", `${rentYears} 年`)}
+        ${row("前期月租金", `${fmt(rentMonthly,0)} 元`)}
+      </div>
+      <div class="dr-section">
+        <div class="dr-title">💵 月度现金流</div>
+        ${row("税后月收入", `${fmt(monthIncomeNet,0)} 元`)}
+        ${row("公积金月入账", `${fmt(housingFundMonthly,0)} 元`)}
+        ${row("公积金抵扣月供", `${fmt(fundDeduct,0)} 元`)}
+        ${row("真实自付月供", `${fmt(realSelfPay,0)} 元`)}
+        ${row("基础生活开销", `${fmt(monthExp,0)} 元`)}
+        ${row("物业费", `${fmt(propertyFee,0)} 元`)}
+        ${row("家庭总月支出", `${fmt(totalMonthlyOutflow,0)} 元`, totalMonthlyOutflow/monthIncomeNet > 0.7 ? "bad" : "")}
+        ${row("支出占收入比", `${fmt(expenseRatio,1)} %`, expenseRatio > 70 ? "bad" : (expenseRatio > 60 ? "warn" : "ok"))}
+        ${row("距离70%红线余量", `${fmt(redlineMargin,0)} 元`, redlineMargin < 0 ? "bad" : (redlineMargin < monthIncomeNet*0.1 ? "warn" : "ok"))}
+        ${row("月度纯现金结余", `${fmt(remainingCash,0)} 元`)}
+        ${row("真实结余率", `${fmt(surplusRate,1)} %`, pctCls(surplusRate))}
+      </div>
+      <div class="dr-section" style="grid-column: 1 / -1;">
+        <div class="dr-title">📊 五维评分与资产</div>
+        <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:10px;text-align:center;">
+          <div><div style="font-size:18px;font-weight:800;color:#38bdf8;">${fmt(item.adapt_score,1)}</div><div style="font-size:11px;color:#94a3b8;">抗风险稳健</div></div>
+          <div><div style="font-size:18px;font-weight:800;color:#f59e0b;">${fmt(item.comfort_score,1)}</div><div style="font-size:11px;color:#94a3b8;">居住舒适</div></div>
+          <div><div style="font-size:18px;font-weight:800;color:#8b5cf6;">${fmt(item.surplus_happiness,1)}</div><div style="font-size:11px;color:#94a3b8;">结余幸福</div></div>
+          <div><div style="font-size:18px;font-weight:800;color:#0ea5e9;">${fmt(item.time_efficiency,1)}</div><div style="font-size:11px;color:#94a3b8;">时间效率</div></div>
+          <div><div style="font-size:18px;font-weight:800;color:#ec4899;">${fmt(item.suitability_score,1)}</div><div style="font-size:11px;color:#94a3b8;">综合合适度</div></div>
+          <div><div style="font-size:18px;font-weight:800;color:#10b981;">${fmt(item.comprehensive_score,1)}</div><div style="font-size:11px;color:#94a3b8;">熵权综合得分</div></div>
+        </div>
+        <div style="margin-top:12px;">
+          ${row("30年期末流动资产", `${fmt(item.liquid_asset_end_wan,2)} 万元`, "ok")}
+        </div>
+      </div>
+    </div>
+  `;
+  
+  document.getElementById("modalBody").innerHTML = html;
+  document.getElementById("modalTitle").innerText = `📝 方案明细 | 租 ${item.rent_year} 年 + 贷 ${item.loan_year} 年`;
+  document.getElementById("detailModal").style.display = "flex";
+}
+
+function closeModal() {
+  document.getElementById("detailModal").style.display = "none";
+}
+window.openModal = openModal;
+window.closeModal = closeModal;
+
+/* ============ 视角切换联动 ============ */
+function flashAIReport() {
+  const card = document.querySelector('#aiReportBox .ai-report-card');
+  if (!card) return;
+  card.classList.remove('flash');
+  void card.offsetWidth;
+  card.classList.add('flash');
+  const box = document.getElementById('aiReportBox');
+  if (box) {
+    try { box.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch(_) {}
+  }
+}
+
+function generateAIExpertReport(topItem, res, viewTag = "综合最优") {
+  if (!topItem) return;
+  currentTopItem = topItem;
+
+  const regionName = document.getElementById("regionSel").value || "目标片区";
+  const houseTotalWan = nv("houseTotalWan");
+  const downRatio = nv("downRatio");
+  const monthIncomeNet = nv("monthIncomeNet");
+  const monthExp = nv("monthExp");
+  const propertyFee = nv("propertyFee");
+  const housingFundPct = nv("housingFundPct");
+  const loanRatePct = nv("loanRatePct");
+  const repayKind = document.getElementById("repayKind").value;
+
+  const downPaymentWan = (houseTotalWan * downRatio) / 100;
+  const loanPrincipalWan = houseTotalWan - downPaymentWan;
+  const loanYears = topItem.loan_year;
+  const rentYears = topItem.rent_year;
+
+  const calc = calcMonthlyMortgage(loanPrincipalWan * 10000, loanRatePct, loanYears, repayKind);
+  const monthlyMortgage = calc.monthly;
+
+  const housingFundMonthly = monthIncomeNet * (housingFundPct / 100);
+  const fundDeduct = Math.min(monthlyMortgage, housingFundMonthly);
+  const actualNetMortgage = Math.max(0, monthlyMortgage - fundDeduct);
+
+  const totalMonthlyOutflow = monthExp + propertyFee + actualNetMortgage;
+  const expenseRatio = monthIncomeNet > 0 ? ((totalMonthlyOutflow / monthIncomeNet) * 100).toFixed(1) : "0.0";
+
+  const remainingCash = monthIncomeNet - totalMonthlyOutflow;
+  const surplusRate = monthIncomeNet > 0 ? ((remainingCash / monthIncomeNet) * 100).toFixed(1) : "0.0";
+  const redlineMargin = (monthIncomeNet * 0.70) - totalMonthlyOutflow;
+
+  const score = topItem.comprehensive_score;
+  const adapt = topItem.adapt_score;
+  const comfort = topItem.comfort_score;
+  const happy = topItem.surplus_happiness;
+  const time = topItem.time_efficiency;
+  const asset = formatNum(topItem.liquid_asset_end_wan, 2);
+
+  let tag = "💡 深度决策解析";
+  let text = "";
+
+  let prefix = `由于您当前正在查看<strong>【${viewTag}】</strong>视角，系统为您单独提取了此方向下的最佳代表方案。`;
+  if (viewTag === "综合最优") prefix = "基于五维数据客观赋权，系统为您推演出了全局综合表现最卓越的方案。";
+
+  if (currentMode === "absolute" && res.global_best) {
+    const gbRent = res.global_best.rent_level;
+    tag = "🎯 全局寻优至优解";
+    text = `
+      <span class="section-title">一、 空间金融与逆向寻优结论</span>
+      本报告基于全矩阵多准则决策模型（MCDM），对【${escapeHtml(regionName)}】片区进行了全约束逆向推演。系统测算出的最优租金档位为 <u>¥${gbRent} 元/月</u>。在严苛的 70% 财务红线过滤下，最佳置业轨迹为：<strong>“先过渡租房 ${rentYears} 年，随后申请 ${loanYears} 年房贷”</strong>。综合得分 <b>${score} 分</b>，实现资金转化率与生活质量的完美平衡。
+
+      <span class="section-title">二、 硬核财务数据诊断</span>
+      <strong>1. 资本与杠杆拆解：</strong>房屋总价 ${houseTotalWan} 万元，首付 <u>${downPaymentWan.toFixed(1)} 万元</u>（占 ${downRatio}%），贷款 <u>${loanPrincipalWan.toFixed(1)} 万元</u>。长贷周期被合理压缩，有效规避了长期利息成本。<br>
+      <strong>2. 现金流压强与结余小康线：</strong>购房后，每月真实自付月供为 <u>${formatNum(actualNetMortgage, 0)} 元</u>，家庭总支出 <u>${formatNum(totalMonthlyOutflow, 0)} 元</u>，占收入 <u>${expenseRatio}%</u>。<strong>每月纯现金结余达 <u>${formatNum(remainingCash, 0)} 元</u>（结余率 <u>${surplusRate}%</u>）</strong>。${parseFloat(surplusRate) >= 50 ? '远超 50% 的小康富余线，让您保有高度的独立选择权。' : '结余率虽未过半，但在安全红线内已是极限最优解。'}<br>
+      <strong>3. 财富蓄水与抗风险：</strong>得益于前期 ${rentYears} 年的理财复利，推演至 30 年期末，流动纯现金资产将达 <u>${asset} 万元</u>，抗风险稳健度得分 <u>${adapt} 分</u>。
+
+      <span class="section-title">三、 专家落地执行建议</span>
+      1. 在前 ${rentYears} 年内，将未支付首付的资金投入稳健理财，坚决吃满复利红利。<br>
+      2. 拒绝盲目加长贷款年限，把被银行吃掉的利息死死抠在自己手里，尽早无债一身轻。
+    `;
+  }
+  else if (res.warning || score < 60 || adapt < 60) {
+    if (happy < 50 || score < 50) {
+      tag = "📉 结余告急与财务紧绷警告";
+      text = `
+        <span class="section-title">一、 方案可行性与风控诊断</span>
+        ${prefix} 该方案（租 ${rentYears} 年 + 贷 ${loanYears} 年）虽然勉强避开了 70% 的破产红线（结余率 ${surplusRate}%），但综合得分仅为 ${score} 分。<b>模型发出严重警告：您正在逼近沦为“账单奴隶”的边缘，生活容错率极低！</b>
+
+        <span class="section-title">二、 结余枯竭与风险暴露</span>
+        <strong>1. 结余率严重不达标：</strong>您的税后收入 ${monthIncomeNet} 元，在支付刚性开销与真实月供（<u>${formatNum(actualNetMortgage, 0)} 元</u>）后，每月仅剩 <u>${formatNum(remainingCash, 0)} 元</u>（距离 70% 红线仅剩 <u>${formatNum(redlineMargin, 0)} 元</u> 的缓冲垫）。一旦失业或遭遇突发疾病，财务链条将瞬间崩断。<br>
+        <strong>2. 资金长期承压：</strong>为了强行上车，被迫接受较差的结余率，不仅失去了投资理财本金，更失去了应对未来风险的底气和人生自由选择权。
+
+        <span class="section-title">三、 专家纠偏建议（开源节流）</span>
+        1. 坚决推迟购房计划，或将前期租房年限延长 2-3 年，利用这段时间疯狂积蓄首付本金。<br>
+        2. 努力提升主业收入，或大幅削减非必要消费。只有当结余率真正跨过 50% 的小康线，这套房子才配得上您的生活。
+      `;
+    } else {
+      tag = "⚠️ 杠杆过高与红线预警";
+      text = `
+        <span class="section-title">一、 风控红线警报诊断</span>
+        ${prefix} <b>【⚠️ 极限杠杆警告】</b>：系统对当前组合（租 ${rentYears} 年 + 贷 ${loanYears} 年）进行了压力测试。虽然未触发 70% 的绝对红线，但<b>结余率已跌至谷底（${surplusRate}%）</b>，稳健度得分下探至 <u>${adapt} 分</u>。系统认定：您正在透支未来的生存空间来换取纸面资产。
+
+        <span class="section-title">二、 硬核数据与利息成本</span>
+        <strong>1. 沉重的利息与月供：</strong>贷款 <u>${loanPrincipalWan.toFixed(1)} 万元</u>，真实自付月供 <u>${formatNum(actualNetMortgage, 0)} 元/月</u>。月度总支出占收入的 <u>${expenseRatio}%</u>。<br>
+        <strong>2. 几乎没有抗风险能力：</strong>每月剩余 <u>${formatNum(remainingCash, 0)} 元</u>。您实际上已经失去了职业选择的自由，没有多余的资金进行自我提升或享受生活。
+
+        <span class="section-title">三、 专家纠偏与方案修正</span>
+        1. 必须降低房屋总价（建议下修 10%-15%），或大幅提高首付比例，将真实月供压下来。<br>
+        2. 坚决执行“先租后买”的蓄水策略，不要被“越早买房越好”的消费主义洗脑。
+      `;
+    }
+  }
+  else if (score >= 75 || viewTag === "综合最优") {
+    tag = "🏆 高结余与高自由度黄金方案";
+    text = `
+      <span class="section-title">一、 综合评估结论</span>
+      ${prefix} “先租房 ${rentYears} 年，随后申请 ${loanYears} 年房贷”，该方案获得 <b>${score} 分</b> 高分。它完美契合了追求高结余小康生活的底层逻辑，预计期末将沉淀 <u>${asset} 万元</u> 的纯流动资产。
+
+      <span class="section-title">二、 硬核数据验证与财务自由指数</span>
+      <strong>1. 完美踩准 50% 结余线：</strong>家庭月总支出 <u>${formatNum(totalMonthlyOutflow, 0)} 元</u>，每月纯现金结余 <u>${formatNum(remainingCash, 0)} 元</u>。<strong>结余率高达 <u>${surplusRate}%</u>（>50% 小康线）</strong>。这意味着您不仅买得起房，还能每年旅游、买喜欢的东西、随时应对突发事件，没有被房贷压垮。<br>
+      <strong>2. 健康的资本结构：</strong>首付 <u>${downPaymentWan.toFixed(1)} 万元</u>，贷款 <u>${loanPrincipalWan.toFixed(1)} 万元</u>。真实的公积金抵扣让自付月供仅为 <u>${formatNum(actualNetMortgage, 0)} 元</u>。<br>
+      <strong>3. 时间效率把控：</strong>时间效率得分 <u>${time} 分</u>，建议实际操作中，若有闲钱应优先提前还款，尽早摆脱长期的利息成本。
+
+      <span class="section-title">三、 专家落地执行建议</span>
+      1. 将前 ${rentYears} 年攒下的首付本金放入中低风险理财组合，享受时间的复利。<br>
+      2. 严格控制每月现金流，确保结余率不低于 50%，把生活的主动权牢牢抓在自己手里。
+    `;
+  }
+  else if (adapt >= 85 || viewTag === "稳健型") {
+    tag = "🛡️ 极致避险与高防御方案";
+    text = `
+      <span class="section-title">一、 评估背景与风控导向</span>
+      ${prefix} 如果您极度厌恶风险，这个“先租 ${rentYears} 年 + 贷 ${loanYears} 年”的方案（综合得分 ${score} 分）绝对不容错过。在 70% 破产红线的边缘疯狂试探，不是您的风格，<b>稳健度高达 <u>${adapt} 分</u></b>，全周期资金链固若金汤。
+
+      <span class="section-title">二、 硬核数据佐证与现金流防线</span>
+      <strong>1. 绝对安全垫：</strong>每月纯现金结余 <u>${formatNum(remainingCash, 0)} 元</u>（结余率 <u>${surplusRate}%</u>），距离 70% 的高压红线有高达 <u>${formatNum(redlineMargin, 0)} 元</u> 的安全余量。即使发生短暂失业，也绝不至于断供。<br>
+      <strong>2. 真实的财务解压：</strong>相比于立刻买房，前 ${rentYears} 年的低租金让您避免了首付瞬间抽干积蓄的恐慌，公积金与理财收益的配合让您后期的自付月供仅为 <u>${formatNum(actualNetMortgage, 0)} 元</u>。<br>
+      <strong>3. 远期财富：</strong>期末流动资产稳稳锁定在 <u>${asset} 万元</u>，实现了“低风险”与“稳财富”的兼收。
+
+      <span class="section-title">三、 专家落地执行建议</span>
+      1. 保持充足的紧急避险金（6个月生活费），不盲目加高杠杆。<br>
+      2. 坚持长租过渡策略，等待房地产市场回归理性后再出手。
+    `;
+  }
+  else if (happy >= 80 || viewTag === "舒适度TOP" || viewTag === "平衡型") {
+    tag = "🥳 拒绝内卷的享受型方案";
+    text = `
+      <span class="section-title">一、 方案定位与幸福度评估</span>
+      ${prefix} “租房 ${rentYears} 年 + 贷款 ${loanYears} 年”的组合以幸福感 <b>${happy} 分</b> 脱颖而出（综合得分 ${score} 分）。这证明您拒绝了“砸锅卖铁做房奴”的路线，选择了保留当下生活品质的聪明活法。
+
+      <span class="section-title">二、 硬核现金流与自由生活分析</span>
+      <strong>1. 充沛的弹性资金：</strong>在购房期，您的真实自付月供仅为 <u>${formatNum(actualNetMortgage, 0)} 元</u>，家庭月度总支出占收入的 <u>${expenseRatio}%</u>。每月可自由支配的高达 <u>${formatNum(remainingCash, 0)} 元</u>（结余率 <u>${surplusRate}%</u>）。<br>
+      <strong>2. 灵活的空间选择：</strong>舒适度 <u>${comfort} 分</u>，前 ${rentYears} 年租房让您通勤更近、住得更宽敞，不需要为了凑月供而牺牲地段。<br>
+      <strong>3. 资产未被侵蚀：</strong>利用公积金和前期理财，30年后依然拥有 <u>${asset} 万元</u> 的现金底气。
+
+      <span class="section-title">三、 专家落地执行建议</span>
+      1. 既然结余资金充裕，建议将每月剩余资金的 30% 进行强制储蓄或基金定投。<br>
+      2. 租房期间选择品质较好的小区，提升生活幸福感，毕竟人生不只有砖头，还有诗和远方。
+    `;
+  }
+  else if (topItem.liquid_asset_end_wan > 200 || viewTag === "资产积蓄TOP" || viewTag === "进取型" || time > 80) {
+    tag = "🚀 资本滚雪球极客方案";
+    text = `
+      <span class="section-title">一、 核心诉求与资本测算</span>
+      ${prefix} “租房 ${rentYears} 年 + 贷款 ${loanYears} 年”是资产积累的最优解。该方案期末流动资产达 <b>${asset} 万元</b>（综合得分 ${score} 分），将资本的时间复利发挥到了极致。
+
+      <span class="section-title">二、 硬核财富裂变逻辑</span>
+      <strong>1. 杠杆与复利的魔术：</strong>如果您立刻买房，<u>${downPaymentWan.toFixed(1)} 万元</u> 的首付将被彻底冻结。而选择先租后买，这笔巨款在理财账户中滚动了 ${rentYears} 年，赚取的利差远超房租通胀。<br>
+      <strong>2. 少给银行交利息：</strong>时间效率得分 <u>${time} 分</u>。您通过缩短贷款年限，大幅砍掉了银行的利息抽成。<br>
+      <strong>3. 极具底气的结余：</strong>结余率 <u>${surplusRate}%</u>，每月剩下 <u>${formatNum(remainingCash, 0)} 元</u> 的现金流，抗风险稳健度达 <u>${adapt} 分</u>。
+
+      <span class="section-title">三、 专家落地执行建议</span>
+      1. 确保前期理财年化收益达标，严控投资风险，保住本金。<br>
+      2. 尽早清空贷款，无债一身轻才是真正的财富自由。
+    `;
+  }
+  else {
+    tag = "⏳ 稳扎稳打过渡型方案";
+    text = `
+      <span class="section-title">一、 方案推演结论</span>
+      ${prefix} 拉长租房过渡期至 ${rentYears} 年，随后进行 ${loanYears} 年的短中期贷款。该方案以 <b>${score} 分</b> 获得高分，期末沉淀流动资产高达 <u>${asset} 万元</u>。
+
+      <span class="section-title">二、 硬核数据优势拆解</span>
+      <strong>1. 用时间换空间：</strong>长达 ${rentYears} 年的蓄水期让您的首付资金充分膨胀，入市时财务压力骤减。<br>
+      <strong>2. 触及小康线：</strong>家庭月度结余 <u>${formatNum(remainingCash, 0)} 元</u>，结余率 <u>${surplusRate}%</u>，完美守住了 70% 的生存红线，手中有粮，心中不慌。<br>
+      <strong>3. 抗风险能力：</strong>稳健度 <u>${adapt} 分</u>，舒适度 <u>${comfort} 分</u>，各项指标均衡，毫无短板。
+
+      <span class="section-title">三、 专家落地执行建议</span>
+      1. 按部就班执行，不受外界市场焦虑情绪干扰。<br>
+      2. 每年利用系统重新评估一次，动态微调入市节点。
+    `;
+  }
+
+  const reportBox = document.getElementById("aiReportBox");
+  reportBox.style.display = "block";
+  reportBox.innerHTML = `
+    <div class="ai-report-card" id="aiReportCard">
+      <div class="ai-report-header">
+        <div class="ai-report-title">
+          💡 智能置业多维决策报告
+          <span class="ai-view-chip">当前视角：${escapeHtml(viewTag)}</span>
+        </div>
+        <div class="ai-report-tag">${tag}</div>
+      </div>
+
+      <div class="ai-data-grid">
+        <div class="ai-data-item">
+          <div class="val">${formatNum(remainingCash, 0)}元</div>
+          <div class="lbl">月度纯现金结余</div>
+        </div>
+        <div class="ai-data-item">
+          <div class="val" style="color:${parseFloat(surplusRate) >= 50 ? '#34d399' : '#f87171'};">${surplusRate}%</div>
+          <div class="lbl">真实结余率(小康线50%)</div>
+        </div>
+        <div class="ai-data-item">
+          <div class="val" style="color:${parseFloat(redlineMargin) < 0 ? '#f87171' : '#38bdf8'};">${formatNum(redlineMargin, 0)}元</div>
+          <div class="lbl">距离70%红线余量</div>
+        </div>
+        <div class="ai-data-item">
+          <div class="val">${formatNum(actualNetMortgage, 0)}元</div>
+          <div class="lbl">实际自付月供</div>
+        </div>
+        <div class="ai-data-item">
+          <div class="val">${formatNum(totalMonthlyOutflow, 0)}元</div>
+          <div class="lbl">家庭月度总支出</div>
+        </div>
+      </div>
+
+      <div class="ai-report-content">${text}</div>
+
+      <button class="ai-jump-btn" onclick="openModal(currentTopItem)">📋 查看该方案完整财务明细（月供 / 收支 / 占比 / 利息）</button>
+    </div>
+  `;
+}
+
+const BASE_COLUMNS = [
+  { key: "rent_year", label: "租年", dec: 0 },
+  { key: "loan_year", label: "贷年", dec: 0 },
+  { key: "liquid_asset_end_wan", label: "资产(万)", dec: 2, barMax: 300, color: "rgba(59,130,246,0.3)" },
+  { key: "adapt_score", label: "稳健", dec: 2, barMax: 100, color: "rgba(16,185,129,0.3)" },
+  { key: "comfort_score", label: "舒适", dec: 2, barMax: 100, color: "rgba(245,158,11,0.3)" },
+  { key: "surplus_happiness", label: "幸福", dec: 2, barMax: 100, color: "rgba(139,92,246,0.3)" },
+  { key: "time_efficiency", label: "时间", dec: 2, barMax: 100, color: "rgba(14,165,233,0.3)" },
+  { key: "suitability_score", label: "合适", dec: 2, barMax: 100, color: "rgba(236,72,153,0.3)" },
+  { key: "comprehensive_score", label: "综合", dec: 2, barMax: 100, color: "rgba(37,99,235,0.4)" },
+];
+
+function renderTableInto(container, arr) {
+  container.innerHTML = "";
+  if (!arr || arr.length === 0) {
+    container.innerHTML = '<p style="text-align:center;color:#94a3b8;padding:20px;">暂无可行方案数据</p>';
+    return;
+  }
+  const cols = [...BASE_COLUMNS];
+  if (arr[0].rent_level !== undefined) {
+    cols.unshift({ key: "rent_level", label: "租金档(元)", dec: 0 });
+  }
+  cols.push({ key: "action", label: "操作", isAction: true });
+
+  const wrap = document.createElement("div"); wrap.className = "table-scroll";
+  const table = document.createElement("table");
+  const trh = document.createElement("tr");
+  cols.forEach(c => { const th = document.createElement("th"); th.textContent = c.label; trh.appendChild(th); });
+  const thead = document.createElement("thead"); thead.appendChild(trh); table.appendChild(thead);
+
+  const tbody = document.createElement("tbody");
+  arr.forEach(item => {
+    const tr = document.createElement("tr");
+    cols.forEach(c => {
+      const td = document.createElement("td");
+      const raw = item[c.key];
+      
+      if (c.isAction) {
+        const btn = document.createElement("button");
+        btn.className = "btn-row-detail";
+        btn.textContent = "📋 详情";
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          openModal(item);
+        };
+        td.appendChild(btn);
+      } else if (c.barMax) {
+        td.className = "data-bar-cell";
+        const pct = Math.max(0, Math.min(100, (raw / c.barMax) * 100));
+        td.innerHTML = `<div class="data-bar-bg" style="width: ${pct}%; background: ${c.color};"></div><span class="data-bar-text">${formatNum(raw, c.dec)}</span>`;
+      } else {
+        td.textContent = formatNum(raw, c.dec);
+      }
+      if (typeof raw === "number" && raw < 0) td.style.color = "#f87171";
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody); wrap.appendChild(table); container.appendChild(wrap);
+}
+
+function drawChart(topItem, topArr) {
+  const dom = document.getElementById("chartDom");
+  if (!chart) chart = echarts.init(dom);
+
+  if (currentChartType === "bar") {
+    if (!topArr || topArr.length === 0) return;
+    const top10 = topArr.slice(0, 10);
+    const assetData = top10.map(i => i.liquid_asset_end_wan);
+    const scoreData = top10.map(i => i.comprehensive_score);
+
+    let chartWarning = "";
+
+    const assetMax = Math.max(...assetData);
+    const assetMin = Math.min(...assetData);
+    let assetYAxisMin = 0;
+    let assetYAxisMax = 0;
+    let assetInterval = 0;
+
+    if (assetMax > 0 && (assetMax - assetMin) < assetMax * 0.25) {
+      assetInterval = Math.max(1, Math.ceil((assetMax - assetMin) / 6));
+      assetYAxisMin = Math.max(0, Math.floor(assetMin / assetInterval) * assetInterval - assetInterval);
+      assetYAxisMax = assetYAxisMin + assetInterval * 6;
+      while (assetYAxisMax < assetMax) assetYAxisMax += assetInterval;
+      chartWarning = "※ 资产轴非0起始，为放大微小差异";
+    } else {
+      assetYAxisMin = 0;
+      assetInterval = Math.max(1, Math.ceil(assetMax / 6));
+      assetYAxisMax = assetInterval * 6;
+      while (assetYAxisMax < assetMax) assetYAxisMax += assetInterval;
+    }
+
+    const scoreMax = Math.max(...scoreData);
+    const scoreMin = Math.min(...scoreData);
+    const scoreInterval = Math.max(1, Math.ceil((scoreMax - scoreMin) / 6));
+    let scoreAxisMin = Math.max(0, Math.floor(scoreMin / scoreInterval) * scoreInterval);
+    let scoreAxisMax = scoreAxisMin + scoreInterval * 6;
+    while (scoreAxisMax < scoreMax) scoreAxisMax += scoreInterval;
+    if (scoreAxisMax > 100) {
+      scoreAxisMax = 100;
+      scoreAxisMin = Math.max(0, scoreAxisMax - scoreInterval * 6);
+    }
+    chartWarning += (chartWarning ? "，" : "") + "评分轴按 (最大值-最小值)/6 均分";
+
+    const opt = {
+      title: {
+        subtext: chartWarning,
+        subtextStyle: { color: '#f59e0b', fontSize: 11 },
+        left: 'center'
+      },
+      tooltip: { trigger: "axis", formatter: function(params) {
+          let res = params[0].name + '<br/>';
+          params.forEach(item => {
+            const unit = item.seriesName === "期末资产(万)" ? " 万" : " 分";
+            res += `${item.marker} ${item.seriesName}: <b>${item.value}${unit}</b><br/>`;
+          });
+          return res;
+      }},
+      legend: { data: ["期末资产(万)", "综合得分"], bottom: 0, textStyle: { color: '#cbd5e1' } },
+      grid: { left: "8%", right: "8%", bottom: "15%", top: "20%" },
+      xAxis: { type: "category", data: top10.map(i => {
+        const prefix = i.rent_level !== undefined ? `¥${i.rent_level}/` : "";
+        return `${prefix}租${i.rent_year}贷${i.loan_year}`;
+      }), axisLabel: { color: '#94a3b8' } },
+      yAxis: [
+        {
+          type: "value", name: "资产(万)",
+          min: assetYAxisMin,
+          max: assetYAxisMax,
+          interval: assetInterval,
+          axisLabel: { color: '#94a3b8' },
+          splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)' } }
+        },
+        {
+          type: "value", name: "得分",
+          min: scoreAxisMin,
+          max: scoreAxisMax,
+          interval: scoreInterval,
+          axisLabel: { color: '#94a3b8' },
+          splitLine: { show: false }
+        }
+      ],
+      series: [
+        { name: "期末资产(万)", type: "bar", data: assetData, itemStyle: { color: "#3b82f6", borderRadius: [4,4,0,0] } },
+        { name: "综合得分", type: "line", yAxisIndex: 1, data: scoreData, itemStyle: { color: "#10b981" }, smooth: true }
+      ]
+    };
+    chart.setOption(opt, true);
+  } else {
+    if (!topItem) {
+      chart.clear(); chart.setOption({title:{text:"暂无数据", left:"center", top:"center", textStyle:{color:"#94a3b8"}}}, true); return;
+    }
+    const maxAsset = topArr && topArr.length > 0 ? Math.max(...topArr.map(x=>x.liquid_asset_end_wan), 1) : 300;
+    const dataArr = [
+      Math.min(100, Math.max(0, (topItem.liquid_asset_end_wan / maxAsset) * 100)),
+      topItem.adapt_score, topItem.comfort_score, topItem.surplus_happiness, topItem.time_efficiency
+    ];
+    const opt = {
+      title: { text: `榜首方案能力雷达图`, left: 'center', textStyle: { fontSize: 13, color: '#f8fafc' } },
+      radar: { indicator: [{ name: '资产积累', max: 100 }, { name: '抗风险', max: 100 }, { name: '居住舒适', max: 100 }, { name: '结余幸福', max: 100 }, { name: '时间效率', max: 100 }], radius: '62%', splitArea: { areaStyle: { color: ['rgba(30,41,59,0.5)', 'rgba(15,23,42,0.5)'] } }, axisLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } }, splitLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } } },
+      series: [{ type: 'radar', data: [{ value: dataArr, name: '方案能力', areaStyle: { color: 'rgba(37, 99, 235, 0.35)' }, lineStyle: { color: '#3b82f6', width: 2 }, itemStyle: { color: '#3b82f6' } }] }]
+    };
+    chart.setOption(opt, true);
+  }
+}
+
+function renderResult(res) {
+  document.getElementById("emptyState").style.display = "none";
+
+  if (res.entropy_result) renderEntropy(res.entropy_result);
+
+  if(res.assumptions && Array.isArray(res.assumptions)){
+    let liHtml = res.assumptions.map(item=>`<li>${escapeHtml(item)}</li>`).join("");
+    document.getElementById("assumptionCard").innerHTML = `<ul class="assumption-list">${liHtml}</ul>`;
+  }
+
+  if (entropyOpen) document.getElementById("entropyCard").style.display = "block";
+  if (assumptionOpen) document.getElementById("assumptionCard").style.display = "block";
+
+  if (res.warning) document.getElementById("warningBox").innerHTML = `<div class="warning-box">⚠️ ${escapeHtml(res.warning)}</div>`;
+  if (res.skipped) {
+    document.getElementById("skipTipBox").innerHTML = `<div class="skip-tip">📌 共尝试 ${res.skipped.total_attempted} 个组合，剔除 ${res.skipped.by_downpay + res.skipped.by_loan_overrun} 个不可行解。</div>`;
+  }
+
+  const gbBox = document.getElementById("globalBestBox");
+  if (res.global_best && typeof res.global_best.rent_level === "number") {
+    const gb = res.global_best;
+    gbBox.style.display = "block";
+    gbBox.innerHTML = `
+      <div class="global-best-card">
+        <h3>🏆 智能寻优：全局最优推荐方案</h3>
+        <div class="metrics">
+          <div class="metric"><div class="val">¥${formatNum(gb.rent_level, 0)}</div><div class="lbl">推荐月租</div></div>
+          <div class="metric"><div class="val">${gb.rent_year} 年</div><div class="lbl">租房年限</div></div>
+          <div class="metric"><div class="val">${gb.loan_year} 年</div><div class="lbl">贷款年限</div></div>
+          <div class="metric"><div class="val">${formatNum(gb.comprehensive_score, 2)}</div><div class="lbl">综合得分</div></div>
+          <div class="metric"><div class="val">${formatNum(gb.liquid_asset_end_wan, 2)}万</div><div class="lbl">期末资产</div></div>
+        </div>
+      </div>`;
+  } else {
+    gbBox.style.display = "none";
+  }
+
+  const topArr = res.top_comprehensive ?? [];
+  if (topArr.length > 0) {
+    drawChart(topArr[0], topArr);
+    generateAIExpertReport(topArr[0], res, "综合最优");
+  }
+
+  const allScheme = res.all_scheme ?? [];
+  const topAsset = res.top_asset ?? [...allScheme].sort((a,b)=>b.liquid_asset_end_wan - a.liquid_asset_end_wan).slice(0, 20);
+  const topComfort = [...allScheme].sort((a,b)=>b.comfort_score - a.comfort_score).slice(0, 20);
+
+  const style = res.style_boards ?? {};
+  const styleSteady = style["稳健型"] ?? [];
+  const styleBalance = style["平衡型"] ?? [];
+  const styleAggressive = style["进取型"] ?? [];
+
+  const viewBar = document.getElementById("viewBar");
+  viewBar.style.display = "flex";
+  buildTabs([
+    { id: "tab-comp", label: "🏆 综合最优", render: el => renderTableInto(el, topArr), list: topArr, tag: "综合最优" },
+    { id: "tab-comfort", label: "舒适度TOP", render: el => renderTableInto(el, topComfort), list: topComfort, tag: "舒适度TOP" },
+    { id: "tab-wealth", label: "资产积蓄TOP", render: el => renderTableInto(el, topAsset), list: topAsset, tag: "资产积蓄TOP" },
+    { id: "tab-steady", label: "🛡️稳健型", render: el => renderTableInto(el, styleSteady), list: styleSteady, tag: "稳健型" },
+    { id: "tab-balance", label: "⚖️平衡型", render: el => renderTableInto(el, styleBalance), list: styleBalance, tag: "平衡型" },
+    { id: "tab-aggressive", label: "🚀进取型", render: el => renderTableInto(el, styleAggressive), list: styleAggressive, tag: "进取型" },
+    { id: "tab-all", label: "全部方案", render: el => renderTableInto(el, allScheme), list: allScheme, tag: "全部方案" }
+  ]);
+
+  showPanel('rightPanel');
+}
+
+function renderEntropy(ew) {
+  const labels = { asset: "期末资产", adapt: "抗风险", comfort: "舒适度", happiness: "幸福感", time: "时间效率" };
+  let html = `<div style="font-weight:600;color:#60a5fa;margin-bottom:12px;font-size:13px;">熵权法自动计算出的五维指标权重</div><div class="ew-grid">`;
+  Object.keys(labels).forEach(k => {
+    let w = typeof ew[`weight_${k}`] !== "undefined" ? ew[`weight_${k}`] : 0;
+    html += `<div class="ew-item"><b>${labels[k]}</b><span>${(w*100).toFixed(1)}%</span></div>`;
+  });
+  html += `</div>`;
+  document.getElementById("entropyCard").innerHTML = html;
+}
+
+function buildTabs(tabDefs) {
+  const tabWrap = document.getElementById("tabWrap");
+  const tabContents = document.getElementById("tabContents");
+  tabWrap.innerHTML = ""; tabContents.innerHTML = "";
+  tabDefs.forEach((t, idx) => {
+    const btn = document.createElement("div");
+    btn.className = "tab" + (idx === 0 ? " active" : "");
+    btn.textContent = t.label;
+    btn.onclick = () => {
+      tabWrap.querySelectorAll(".tab").forEach(x => x.classList.toggle("active", x === btn));
+      tabContents.querySelectorAll(".tab-content").forEach(x => x.classList.toggle("active", x.id === t.id));
+
+      if (t.list && t.list.length > 0 && t.tag) {
+        generateAIExpertReport(t.list[0], currentResult, t.tag);
+        flashAIReport();
+      }
+    };
+    tabWrap.appendChild(btn);
+
+    const content = document.createElement("div");
+    content.className = "tab-content" + (idx === 0 ? " active" : "");
+    content.id = t.id;
+    tabContents.appendChild(content);
+    try { t.render(content); } catch (e) { content.innerHTML = `<p style="color:#ef4444;padding:15px;">表格渲染异常</p>`; }
+  });
+}
+
+async function loadRegion() {
+  try {
+    regionMarkersGroup.clearLayers();
+    allMapMarkers = [];
+    
+    try {
+      const res = await fetch(`${API_HOST}/api/gis/regions`);
+      if (!res.ok) throw new Error("后端API不可用");
+      const json = await res.json();
+      if (!json.data || json.data.length === 0) throw new Error("后端返回空数据");
+      regionList = json.data;
+    } catch (err) {
+      console.warn("⚠️ 后端片区数据加载失败，已启用前端本地兜底数据。", err);
+      regionList = FALLBACK_REGIONS;
+    }
+
+    const sel = document.getElementById("regionSel");
+    sel.innerHTML = "";
+
+    regionList.forEach((r) => {
+      sel.appendChild(new Option(r.name, r.name));
+
+      const m = L.circleMarker([r.lat, r.lng], {
+        radius: 6, color: '#60a5fa', fillColor: '#3b82f6', fillOpacity: 0.9, weight: 2
+      });
+
+      const popupDom = document.createElement('div');
+      popupDom.style.cssText = "color:#1e293b; font-size:13px;";
+      popupDom.innerHTML = `<b>📍 ${escapeHtml(r.name)}</b><br>
+        参考房价: <b>${r.house_ref}万元</b><br>
+        参考租金: <b>${r.rent_ref}元/月</b><br>
+        <i>${escapeHtml(r.desc)}</i><br>`;
+
+      const btn = document.createElement("button");
+      btn.textContent = "以此片区推演";
+      btn.style.cssText = "margin-top:6px; background:#2563eb; color:#fff; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;";
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        selectAndFly(r.name, r.lat, r.lng);
+        m.closePopup();
+      };
+      popupDom.appendChild(btn);
+
+      m.bindPopup(popupDom);
+      m.on("click", () => {
+        sel.value = r.name;
+        sel.onchange();
+      });
+
+      regionMarkersGroup.addLayer(m);
+      allMapMarkers.push({ marker: m, name: r.name });
+    });
+
+    regionMarkersGroup.addTo(map);
+
+    runBtn.disabled = false;
+    if (regionList.length > 0) sel.selectedIndex = 0;
+  } catch (e) {
+    showToast("片区数据加载失败，请确保后端已启动");
+    runBtn.disabled = true;
+  }
+}
+
+function selectAndFly(name, lat, lng) {
+  document.getElementById("regionSel").value = name;
+  document.getElementById("regionSel").onchange();
+
+  allMapMarkers.forEach(item => item.marker.setStyle({ radius: 6, color: '#60a5fa', fillColor: '#3b82f6' }));
+  const active = allMapMarkers.find(x => x.name === name);
+  if (active) active.marker.setStyle({ radius: 9, color: '#f87171', fillColor: '#ef4444' });
+
+  map.flyTo([lat, lng], 12, { duration: 1.2 });
+  revealPanels();
+  showToast(`已切换至【${name}】进行空间决策`);
+}
+
+document.getElementById("regionSel").onchange = function () {
+  const find = regionList.find(x => x.name === this.value);
+  if (find) {
+    document.getElementById("houseTotalWan").value = find.house_ref;
+    document.getElementById("rentBase").value = find.rent_ref;
+
+    revealPanels();
+    allMapMarkers.forEach(item => item.marker.setStyle({ radius: 6, color: '#60a5fa', fillColor: '#3b82f6' }));
+    const active = allMapMarkers.find(x => x.name === find.name);
+    if (active) active.marker.setStyle({ radius: 9, color: '#f87171', fillColor: '#ef4444' });
+
+    map.flyTo([find.lat, find.lng], 12, { duration: 1.2 });
+  }
+};
+
+document.getElementById("leftPanel").addEventListener("keydown", (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    runBtn.click();
+  }
+});
+
+runBtn.onclick = async function () {
+  if (isCalculating) return;
+
+  const inputs = [
+    { id: "monthIncomeNet", label: "税后月收入" }, { id: "monthExp", label: "每月开销" },
+    { id: "downRatio", label: "首付比例" }, { id: "houseTotalWan", label: "房屋总价" },
+    { id: "initialSavingsWan", label: "初始存款" }, { id: "housingFundPct", label: "公积金比例" },
+    { id: "investYieldPct", label: "理财收益" }, { id: "rentInflationPct", label: "租金通胀" },
+    { id: "loanRatePct", label: "房贷利率" }
+  ];
+  if (currentMode === "relative") inputs.push({ id: "rentBase", label: "基准月租金" });
+
+  for (let item of inputs) {
+    const el = document.getElementById(item.id);
+    const val = parseFloat(el.value);
+    if (isNaN(val) || val < 0) { el.classList.add("invalid"); return showToast(`【${item.label}】必须是大于等于0的数字`); }
+    else { el.classList.remove("invalid"); }
+  }
+
+  const downRatio = parseFloat(document.getElementById("downRatio").value);
+  if (downRatio < 15 || downRatio > 80) return showToast("首付比例必须在 15~80 之间");
+
+  const monthIn = parseFloat(document.getElementById("monthIncomeNet").value);
+  const monthEx = parseFloat(document.getElementById("monthExp").value);
+  if (monthIn <= monthEx) return showToast("税后月收入必须大于基础生活开销");
+
+  if (calcAbortCtrl) calcAbortCtrl.abort();
+  calcAbortCtrl = new AbortController();
+  isCalculating = true;
+  loadingText.textContent = currentMode === "relative" ? "正在推演全组合租贷矩阵..." : "正在执行全档位矩阵寻优...";
+  setLoading(true);
+
+  const payload = {
+    house_total_wan: parseFloat(document.getElementById("houseTotalWan").value),
+    initial_savings_wan: parseFloat(document.getElementById("initialSavingsWan").value),
+    down_payment_ratio: downRatio,
+    monthly_income_net: monthIn,
+    monthly_expense: monthEx,
+    property_fee_monthly: parseFloat(document.getElementById("propertyFee").value),
+    housing_fund_pct: parseFloat(document.getElementById("housingFundPct").value),
+    invest_annual_yield_pct: parseFloat(document.getElementById("investYieldPct").value),
+    rent_inflation_year_pct: parseFloat(document.getElementById("rentInflationPct").value),
+    loan_annual_rate_pct: parseFloat(document.getElementById("loanRatePct").value),
+    repay_kind: document.getElementById("repayKind").value,
+  };
+  if (currentMode === "relative") payload.rent_monthly_base = parseFloat(document.getElementById("rentBase").value);
+
+  const endpoint = currentMode === "relative" ? "/api/simulate" : "/api/simulate/absolute";
+
+  try {
+    const res = await fetch(`${API_HOST}${endpoint}`, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload), signal: calcAbortCtrl.signal
+    });
+    if (!res.ok) {
+      let msg = "请求失败";
+      try {
+        const errJson = await res.json();
+        if (res.status === 422) {
+           msg = "数据校验未通过: " + JSON.stringify(errJson.detail);
+        } else if (errJson.detail) {
+           msg = errJson.detail;
+        }
+      } catch(_) {}
+      throw new Error(msg);
+    }
+    const result = await res.json();
+    currentResult = result;
+    clearResults();
+    renderResult(result);
+    showToast("推演计算完成！");
+
+    if (window.innerWidth <= 900) {
+      document.getElementById('leftPanel').classList.remove('show');
+      document.getElementById('rightPanel').classList.add('show');
+      setTimeout(() => { if(map) map.invalidateSize(); }, 500);
+    }
+
+  } catch (err) {
+    if (err.name !== "AbortError") {
+      if (String(err).includes("CORS") || String(err).includes("Failed to fetch")) showToast("❌ 网络异常或跨域拦截，请确保后端已启动且允许CORS");
+      else showToast(`请求失败：${err.message}`);
+    }
+  } finally {
+    setLoading(false);
+    calcAbortCtrl = null;
+    isCalculating = false;
+  }
+};
+
+window.onload = () => {
+  initMap();
+  loadRegion();
+
+  const inputList = [
+    "monthIncomeNet", "monthExp", "downRatio", "houseTotalWan", "initialSavingsWan",
+    "housingFundPct", "rentBase", "investYieldPct", "rentInflationPct", "loanRatePct"
+  ];
+  inputList.forEach(id => {
+    const inp = document.getElementById(id);
+    if (!inp) return;
+    inp.addEventListener("input", function() {
+      const val = parseFloat(this.value);
+      if (isNaN(val) || val < 0) this.classList.add("invalid");
+      else this.classList.remove("invalid");
+    });
+  });
+};
+</script>
+</body>
+</html>
