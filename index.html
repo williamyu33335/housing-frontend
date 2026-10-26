@@ -7,6 +7,12 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
 <style>
+  /* ========== 全屏撒花特效 ========== */
+#confettiCanvas {
+  position: fixed; inset: 0; z-index: 999999; /* 确保在所有面板之上 */
+  pointer-events: none; /* 确保不影响鼠标点击 */
+  display: none;
+}
 :root {
   --panel-bg-color: rgba(15, 23, 42, 0.88);
   --panel-bg-image: none;
@@ -1052,7 +1058,7 @@ function generateAIExpertReport(topItem, res, viewTag = "综合最优") {
   const repayKind = document.getElementById("repayKind").value;
   const rentMonthly = (typeof topItem.rent_level === "number") ? topItem.rent_level : nv("rentBase");
 
-  // 🌟 核心修改：优先读取后端算出的真实首付和贷款金额
+  // 优先读取后端算出的真实首付和贷款金额
   const downPaymentWan = topItem.down_payment_wan !== undefined ? topItem.down_payment_wan : (houseTotalWan * nv("downRatio") / 100);
   const loanPrincipalWan = topItem.loan_principal_wan !== undefined ? topItem.loan_principal_wan : (houseTotalWan - downPaymentWan);
   
@@ -1090,17 +1096,14 @@ function generateAIExpertReport(topItem, res, viewTag = "综合最优") {
   const cRed = 'color:#f87171;font-weight:700;';   // 高压/代价数据
   const cBlue = 'color:#60a5fa;font-weight:700;';  // 中性数据
 
-  // 1. 利息评价
-  let interestText, interestHtml;
+  // 1. 利息评价（统一为纯名词短语，避免和前面的动词冲突）
+  let interestPhrase;
   if (totalInterestWan > 50) {
-      interestText = `高达 <span style="${cRed}">${totalInterestWan.toFixed(1)} 万元</span> 的惊人利息`;
-      interestHtml = `支付给银行 <span style="${cRed}">${totalInterestWan.toFixed(1)} 万元</span> 的利息代价`;
+      interestPhrase = `高达 <span style="${cRed}">${totalInterestWan.toFixed(1)} 万元</span> 的惊人利息`;
   } else if (totalInterestWan > 30) {
-      interestText = ` <span style="${cBlue}">${totalInterestWan.toFixed(1)} 万元</span> 的不菲利息`;
-      interestHtml = `产生 <span style="${cBlue}">${totalInterestWan.toFixed(1)} 万元</span> 的利息`;
+      interestPhrase = `<span style="${cBlue}">${totalInterestWan.toFixed(1)} 万元</span> 的不菲利息`;
   } else {
-      interestText = `仅 <span style="${cGreen}">${totalInterestWan.toFixed(1)} 万元</span> 的极低利息`;
-      interestHtml = `成功将利息压缩至 <span style="${cGreen}">${totalInterestWan.toFixed(1)} 万元</span>`;
+      interestPhrase = `仅 <span style="${cGreen}">${totalInterestWan.toFixed(1)} 万元</span> 的极低利息`;
   }
 
   // 2. 支出占比评价
@@ -1179,7 +1182,7 @@ function generateAIExpertReport(topItem, res, viewTag = "综合最优") {
         亲爱的朋友，在这个连呼吸都带着KPI考核味道的时代，买房似乎成了悬在所有年轻人头顶的达摩克利斯之剑。但这套为你算出的【综合最优】方案，并不是一碗只讲情怀的迷魂汤。它总价 ${houseTotalWan} 万，首付 <span style="${cBlue}">${downPaymentWan.toFixed(1)} 万</span>，租房过渡 <span style="${cBlue}">${rentYears} 年</span>，贷款 <span style="${cBlue}">${loanYears} 年</span>。这不仅是一串数字，更是你真实的人生轨迹。${dsDesc} ${triggerLoanShort} 它懂得你深夜加班后渴望有一盏归家明灯，也明白你不愿被沉重的账单剥夺周末喝一杯手冲咖啡的自由。数据是冰冷的，但生活有温度；这套在严苛矩阵中斩获 <span style="${cGreen}">${score} 分</span> 的方案，正是用理性的克制，为你书写的一封情书。${healthDesc}
         
         <span class="section-title">二、 听听数据背后的心声</span>
-        <strong>1. 资本与杠杆的共舞：</strong>这套避风港总价值 <span style="${cBlue}">${houseTotalWan} 万元</span>，你将用 <span style="${cBlue}">${downPaymentWan.toFixed(1)} 万元</span> 首付敲开大门。剩下的 <span style="${cBlue}">${loanPrincipalWan.toFixed(1)} 万元</span> 贷款，通过${repayKind === "equal_principal" ? "等额本金" : "等额本息"}方式在 ${loanYears} 年中偿还，虽然要承担${interestHtml}，但这是跨越阶层的必经之路。<br>
+        <strong>1. 资本与杠杆的共舞：</strong>这套避风港总价值 <span style="${cBlue}">${houseTotalWan} 万元</span>，你将用 <span style="${cBlue}">${downPaymentWan.toFixed(1)} 万元</span> 首付敲开大门。剩下的 <span style="${cBlue}">${loanPrincipalWan.toFixed(1)} 万元</span> 贷款，通过${repayKind === "equal_principal" ? "等额本金" : "等额本息"}方式在 ${loanYears} 年中偿还。虽然需要背负${interestPhrase}，但这是跨越阶层的必经之路。<br>
         <strong>2. 现金流的呼吸感：</strong>公积金的进账（约 <span style="${cBlue}">${formatNum(housingFundMonthly, 0)} 元</span>）如同温柔的缓冲垫，让真实的自付月供降至 <span style="${cBlue}">${formatNum(actualNetMortgage, 0)} 元</span>。${expenseHtml}。<br>
         <strong>3. 抵御风险的温柔铠甲：</strong>每月还能剩下 <span style="${cBlue}">${formatNum(remainingCash, 0)} 元</span> 纯现金，${surplusHtml}。你距离残酷的 70% 破产红线，还有 <span style="${redlineMargin > 0 ? cGreen : cRed}">${formatNum(redlineMargin, 0)} 元</span> 的安全余量。<br>
         <strong>4. 时间的玫瑰：</strong>30 年后，当你彻底卸下债务，手里将握着 ${assetText}，那是时间与复利给你的最高奖赏。
@@ -1212,10 +1215,10 @@ function generateAIExpertReport(topItem, res, viewTag = "综合最优") {
   else if (viewTag === "资产积蓄TOP") {
       text = `
         <span class="section-title">一、 拒绝为盲目跟风买单，用绝对理性的极客复利让资本打工</span>
-        嘿，极客朋友，如果你骨子里流淌着对数学之美的崇拜，那么这套【资产积蓄TOP】方案绝对会让你会心一笑。但请注意，这世上没有免费的午餐，这套方案不是只有光鲜亮丽的数字。${dsDesc} 并在漫长岁月中支付${interestText}。它的底层逻辑冷酷得像一把手术刀：将现金尽可能留在理财账户里野蛮生长，同时用长达 ${loanYears} 年的杠杆去换取现金流的喘息空间。这是一个将金融杠杆玩弄于股掌之间的艺术，它冷酷、精准，不带一丝情绪化冲动。到了30年后，你将手握 ${assetText}，完成了普通人几代人都难以逾越的资本原始积累。这不仅是买房，更是一场资本运作的沙盘演练。
+        嘿，极客朋友，如果你骨子里流淌着对数学之美的崇拜，那么这套【资产积蓄TOP】方案绝对会让你会心一笑。但请注意，这世上没有免费的午餐，这套方案不是只有光鲜亮丽的数字。${dsDesc} 并在漫长岁月中支付了${interestPhrase}。它的底层逻辑冷酷得像一把手术刀：将现金尽可能留在理财账户里野蛮生长，同时用长达 ${loanYears} 年的杠杆去换取现金流的喘息空间。这是一个将金融杠杆玩弄于股掌之间的艺术，它冷酷、精准，不带一丝情绪化冲动。到了30年后，你将手握 ${assetText}，完成了普通人几代人都难以逾越的资本原始积累。这不仅是买房，更是一场资本运作的沙盘演练。
         
         <span class="section-title">二、 金钱永不眠，时间看得见</span>
-        <strong>1. 极客的算盘：</strong>房屋总价 ${houseTotalWan} 万，你选择了 ${loanYears} 年的贷款期限，${interestHtml}。这看似是一笔沉重的买路钱，但它是你撬动未来资产的支点。<br>
+        <strong>1. 极客的算盘：</strong>房屋总价 ${houseTotalWan} 万，你选择了 ${loanYears} 年的贷款期限，产生了${interestPhrase}。这看似是一笔沉重的买路钱，但它是你撬动未来资产的支点。<br>
         <strong>2. 极致的资产冲刺：</strong>30 年后，当你彻底卸下债务，手里将握着 ${assetText}，那是资本为你疯狂打工的最强核武器。<br>
         <strong>3. 现金流的代价：</strong>想要在30年后拥有惊人的财富，就必须在当下承受压力。你的真实月供为 <span style="${cBlue}">${formatNum(actualNetMortgage, 0)} 元</span>，红线上方仅剩 <span style="${redlineMargin > 0 ? cGreen : cRed}">${formatNum(redlineMargin, 0)} 元</span> 的缓冲。${expenseHtml}。<br>
         <strong>4. 战略性的蛰伏：</strong>${triggerRentShort} 这种用时间换取空间的战术，让时间效率得分达到了 ${timeText}。
@@ -1233,7 +1236,7 @@ function generateAIExpertReport(topItem, res, viewTag = "综合最优") {
         在这个充满不确定性的疯狂世界里，真正成熟的成年人从来不屑于去玩一荣俱荣的豪赌游戏。这套【稳健型】方案以惊人的 <span style="${cGreen}">${adapt} 分</span> 稳健评分傲视群雄。它用 ${houseTotalWan} 万总价、${dsText} 的 ${downPaymentWan.toFixed(1)} 万，向你证明了一个真理：活得安稳，本身就是一种胜利。它通过极其宽裕的现金流安全垫，将每月开销死死压在安全地带。哪怕明天职场面临优化裁员，你依然可以端起茶杯，心里默念一句：“没关系，我的备用金还能撑很久。”这种泰山崩于前而色不变的底气，才是千金难买的人生顶级奢侈品。成年人的体面，是银行卡里永远有一笔能应对变故的“Fuck You Money”。
         
         <span class="section-title">二、 数据背后的踏实安稳</span>
-        <strong>1. 拒做账单奴隶：</strong>为了这份安全感，你选择了租 ${rentYears} 年、贷 ${loanYears} 年的组合。虽然产生了${interestHtml}，但这换来的是极致的从容。<br>
+        <strong>1. 拒做账单奴隶：</strong>为了这份安全感，你选择了租 ${rentYears} 年、贷 ${loanYears} 年的组合。虽然在这个过程中产生了${interestPhrase}，但这换来的是极致的从容。<br>
         <strong>2. 极致的冗余：</strong>${expenseHtml}，距离那条残酷的 70% 破产红线，你拥有高达 <span style="${cGreen}">${formatNum(redlineMargin, 0)} 元</span> 的免死金牌。<br>
         <strong>3. 现金的厚度：</strong>每月结余 <span style="${cGreen}">${formatNum(remainingCash, 0)} 元</span>，${surplusHtml}。这种宽裕，是你面对生活刁难时最坚硬的盾牌。<br>
         <strong>4. 必然的妥协：</strong>30年后你将拥有 ${assetText}。虽然稳健的策略可能让你错失了一些激进加杠杆的机会，但在这个比烂的时代，活下去本身就是巨大的胜利。
@@ -1251,7 +1254,7 @@ function generateAIExpertReport(topItem, res, viewTag = "综合最优") {
         世人总爱走极端，要么内卷苦行，要么月光享乐。而你，我的朋友，却在这套【平衡型】方案中展现了大师级的平衡美学。以 <span style="${cGreen}">${score} 分</span> 优雅落地的它，没有让你在前期 ${rentYears} 年的租房中流浪，也没有让你在后期 ${loanYears} 年的还贷中窒息。面对 ${houseTotalWan} 万总价的房子，${dsDesc} 在资产增值、抗险防线、居住舒适、幸福指数四个维度上，勾勒出了近乎完美的正六边形。它像一首平仄极其工整的十四行诗，这就是属于普通人的最高级生活艺术——左手烟火，右手远方，在世俗的泥泞中踩出一条优雅的康庄大道。生活不需要你每次都拿满分，但每个维度都拿 80 分，就已经超越了 90% 的人。
         
         <span class="section-title">二、 圆满数据的全景扫描</span>
-        <strong>1. 完美的黄金分割：</strong>首付 ${downPaymentWan.toFixed(1)} 万，贷 ${loanPrincipalWan.toFixed(1)} 万。${triggerLoanShort} 期间你需要承担${interestHtml}。<br>
+        <strong>1. 完美的黄金分割：</strong>首付 ${downPaymentWan.toFixed(1)} 万，贷 ${loanPrincipalWan.toFixed(1)} 万。${triggerLoanShort} 期间你需要承担${interestPhrase}。<br>
         <strong>2. 现金流与抗风险的握手：</strong>${expenseHtml}。你不会因为还贷而连一顿外卖都不敢点。<br>
         <strong>3. 毫无短板的舒适：</strong>每月结余 <span style="${cBlue}">${formatNum(remainingCash, 0)} 元</span>，${surplusHtml}。30年后还有 ${assetText} 撑腰。<br>
         <strong>4. 时间的魔法：</strong>${triggerRentShort} 这套方案没有哪个维度是突兀的，它能稳稳地运行30年，保护你的生活不被任何中等风险击穿。
@@ -1266,7 +1269,7 @@ function generateAIExpertReport(topItem, res, viewTag = "综合最优") {
   else if (viewTag === "进取型") {
       text = `
         <span class="section-title">一、 敢叫日月换新天的破局者：用摧枯拉朽的姿态撞开命运的大门</span>
-        平庸是温水煮青蛙的毒药，而真正的勇士敢于迎着惊涛骇浪扬帆起航！这套【进取型】方案是专属于你热血基因的赞歌。它以极具侵略性的高效率（综合得分 <span style="${cGreen}">${score} 分</span>），面对 ${houseTotalWan} 万的资产，${dsDesc} 用最快的速度在城市核心打下属于自己的烙印。这是一场充满荷尔蒙的勇敢者游戏，它要求你在职场披荆斩棘、用未来的成长速度去碾压眼前的障碍。虽然过程伴随着紧绷，虽然你需要支付${interestText}，但当你看到期末那串数字时，所有的汗水都会化作骄傲。人生短短数十载，如果连做梦都不敢最大胆一点，那和咸鱼有什么分别？
+        平庸是温水煮青蛙的毒药，而真正的勇士敢于迎着惊涛骇浪扬帆起航！这套【进取型】方案是专属于你热血基因的赞歌。它以极具侵略性的高效率（综合得分 <span style="${cGreen}">${score} 分</span>），面对 ${houseTotalWan} 万的资产，${dsDesc} 用最快的速度在城市核心打下属于自己的烙印。这是一场充满荷尔蒙的勇敢者游戏，它要求你在职场披荆斩棘、用未来的成长速度去碾压眼前的障碍。虽然过程伴随着紧绷，虽然你需要支付${interestPhrase}，但当你看到期末那串数字时，所有的汗水都会化作骄傲。人生短短数十载，如果连做梦都不敢最大胆一点，那和咸鱼有什么分别？
         
         <span class="section-title">二、 锋芒毕露的数据解剖</span>
         <strong>1. 雷霆万钧的杠杆：</strong>总价 ${houseTotalWan} 万，贷款 ${loanPrincipalWan.toFixed(1)} 万。你几乎没有犹豫，极短的租房期后直接拿下红本。<br>
@@ -1284,7 +1287,7 @@ function generateAIExpertReport(topItem, res, viewTag = "综合最优") {
   else {
       text = `
         <span class="section-title">一、 为你量身定制的宏大推演画卷，在不确定的时代锚定确定的幸福</span>
-        系统针对您的严格要求，对【${escapeHtml(regionName)}】片区进行了像素级的深度解构。这套方案（租 ${rentYears} 年 + 贷 ${loanYears} 年）在严苛的风控红线过滤下成功突出重围。${dsDesc} 并承担${interestText}。${healthDesc}这不仅是一场关于金钱流向的推演，更是一面映照你内心渴望的镜子。买房不是终点，好好生活才是。无论你选择了怎样的租贷组合，都是在用当下的克制，去换取未来的从容。生活就像这不断变动的周期，我们无法预测明天的风雨，但可以通过精密的计算，为自己在狂风暴雨中建造一座坚固的灯塔。
+        系统针对您的严格要求，对【${escapeHtml(regionName)}】片区进行了像素级的深度解构。这套方案（租 ${rentYears} 年 + 贷 ${loanYears} 年）在严苛的风控红线过滤下成功突出重围。${dsDesc} 并承担${interestPhrase}。${healthDesc}这不仅是一场关于金钱流向的推演，更是一面映照你内心渴望的镜子。买房不是终点，好好生活才是。无论你选择了怎样的租贷组合，都是在用当下的克制，去换取未来的从容。生活就像这不断变动的周期，我们无法预测明天的风雨，但可以通过精密的计算，为自己在狂风暴雨中建造一座坚固的灯塔。
         
         <span class="section-title">二、 数据背后的心声</span>
         <strong>1. 坚实的财务地基：</strong>首付支出 ${downPaymentWan.toFixed(1)} 万，贷款本金 ${loanPrincipalWan.toFixed(1)} 万。<br>
@@ -1797,6 +1800,10 @@ runBtn.onclick = async function () {
     const result = await res.json();
     currentResult = result;
     clearResults();
+
+    // 🎉 触发满屏撒花特效（完美覆盖 DOM 渲染卡顿）
+    window.triggerConfetti(); 
+
     renderResult(result);
     showToast("推演计算完成！");
 
@@ -1836,6 +1843,122 @@ window.onload = () => {
     });
   });
 };
+/* ============ 🎉 全局满屏撒花特效引擎 ============ */
+window.triggerConfetti = function() {
+  const canvas = document.getElementById('confettiCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  
+  canvas.style.display = 'block';
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const particles = [];
+  const colors = ['#f87171', '#fbbf24', '#34d399', '#60a5fa', '#a78bfa', '#f472b6']; // 喜庆配色
+  const emojis = ['🌸', '🎉', '✨', '🎊'];
+  
+  // 1. 生成底部的礼花（向上喷射）
+  for (let i = 0; i < 80; i++) {
+    particles.push({
+      x: window.innerWidth / 2,
+      y: window.innerHeight + 20,
+      vx: (Math.random() - 0.5) * 25, // 向四周散开
+      vy: (Math.random() - 1) * 25,   // 向上喷射
+      size: Math.random() * 8 + 6,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      type: 'rect',
+      rotation: Math.random() * Math.PI * 2,
+      rotSpeed: (Math.random() - 0.5) * 0.3,
+      opacity: 1
+    });
+  }
+
+  // 2. 生成顶部满屏飘落的花瓣（从左、中、右三个位置落下）
+  for (let i = 0; i < 60; i++) {
+    particles.push({
+      x: Math.random() * window.innerWidth,
+      y: -Math.random() * window.innerHeight * 0.5 - 20,
+      vx: (Math.random() - 0.5) * 4,
+      vy: Math.random() * 3 + 2,
+      size: Math.random() * 16 + 14,
+      color: '#fff',
+      type: 'emoji',
+      char: emojis[Math.floor(Math.random() * emojis.length)],
+      rotation: Math.random() * Math.PI * 2,
+      rotSpeed: (Math.random() - 0.5) * 0.1,
+      opacity: 1
+    });
+  }
+
+  let animationFrame;
+  const startTime = Date.now();
+
+  function render() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    let activeParticles = 0;
+
+    particles.forEach(p => {
+      // 重力与空气阻力
+      p.vy += 0.4; 
+      p.vx *= 0.98;
+      p.vy *= 0.98;
+      
+      p.x += p.vx;
+      p.y += p.vy;
+      p.rotation += p.rotSpeed;
+
+      // 针对飘落花瓣的特殊摇摆
+      if (p.type === 'emoji') {
+        p.x += Math.sin(p.y / 30) * 1.5; 
+      }
+
+      // 快结束时的淡出效果
+      const elapsed = Date.now() - startTime;
+      if (elapsed > 2000) {
+        p.opacity -= 0.02;
+      }
+
+      if (p.opacity > 0 && p.y < canvas.height + 50) {
+        activeParticles++;
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, p.opacity);
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rotation);
+
+        if (p.type === 'rect') {
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+        } else if (p.type === 'emoji') {
+          ctx.font = `${p.size}px Arial`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(p.char, 0, 0);
+        }
+        ctx.restore();
+      }
+    });
+
+    if (activeParticles > 0) {
+      animationFrame = requestAnimationFrame(render);
+    } else {
+      cancelAnimationFrame(animationFrame);
+      canvas.style.display = 'none'; // 粒子没了就隐藏画布
+    }
+  }
+
+  render();
+};
+
+// 窗口大小改变时重置画布
+window.addEventListener('resize', () => {
+  const canvas = document.getElementById('confettiCanvas');
+  if (canvas && canvas.style.display === 'block') {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+});
 </script>
+<!-- 撒花特效画布 -->
+<canvas id="confettiCanvas"></canvas>
 </body>
 </html>
