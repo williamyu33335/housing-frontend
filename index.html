@@ -41,14 +41,15 @@ body { margin: 0; padding: 0; background: #0b0f19; color: #f8fafc; overflow: hid
 @media (max-width: 1500px) { .layer-switch-btn { padding: 9px 20px; font-size: 13px; } }
 @media (max-width: 900px) { .layer-switch-btn { padding: 7px 14px; font-size: 12px; top: 10px; } }
 
-/* ========== 行政边界样式（修复滤镜挡图钉） ========== */
+/* ========== 行政边界样式 ========== */
 .china-border {
   stroke: #00ffff; stroke-width: 1.5; stroke-opacity: 0.8; fill: none; transition: all 0.2s;
-  /* 核心修复：让填充区域不拦截鼠标事件，只有描边能响应点击 */
+  /* 核心修复 1：让鼠标事件穿透空白区域，只有边线才响应点击，且不再依赖 Canvas */
   pointer-events: visibleStroke; 
 }
 .china-border:hover {
   stroke: #fbbf24; stroke-width: 2.5; fill: rgba(251, 191, 36, 0.15); cursor: pointer;
+  pointer-events: visibleStroke;
 }
 .leaflet-tooltip.region-tooltip {
   background: rgba(15, 23, 42, 0.9); border: 1px solid #00ffff; 
@@ -108,26 +109,27 @@ body { margin: 0; padding: 0; background: #0b0f19; color: #f8fafc; overflow: hid
 #rightPanel.show { transform: translateX(0); opacity: 1; }
 
 @media (max-width: 1200px) { #rightPanel { width: calc(100% - 440px); } }
+
+/* 核心修复 2：手机端与横屏自适应优化 */
 @media (max-width: 900px) {
   #leftPanel, #rightPanel { position: relative; width: 100%; top: 0; left: 0; right: 0; margin-bottom: 10px; transform: none; opacity: 1; display: none; height: auto !important; max-height: 80vh; }
   #leftPanel.show, #rightPanel.show { display: block; }
 }
 
-/* ========== 核心修复：手机横屏特殊适配 ========== */
 @media (max-height: 550px) and (orientation: landscape) {
-  /* 横屏时高度不够，强制面板全屏浮层，防止挤压 */
+  /* 横屏时高度不够，强制面板浮层化，防止挤压地图 */
   #leftPanel, #rightPanel {
     position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    width: 100vw !important;
-    height: 100vh !important;
-    max-height: 100vh !important;
-    margin: 0 !important;
-    border-radius: 0 !important;
+    top: 10px !important;
+    bottom: 10px !important;
+    width: 45vw !important;
+    height: auto !important;
     z-index: 9999 !important;
   }
+  #leftPanel { left: 10px !important; transform: translateX(0); }
+  #rightPanel { right: 10px !important; transform: translateX(0); }
+  #leftPanel:not(.show), #rightPanel:not(.show) { display: none; }
+  
   .layer-switch-btn { top: 10px; padding: 6px 12px; font-size: 12px; }
   .map-hint { display: none; }
 }
@@ -719,7 +721,13 @@ document.getElementById("mobileToggleBtn").onclick = function() {
 };
 
 function initMap() {
-  map = L.map("map", { zoomControl: false, preferCanvas: true }).setView([34.5, 108.9], 4);
+  // 核心修复 3：移除 preferCanvas: true，改用 SVG 渲染，彻底解决线宽随缩放变粗以及遮挡点击的问题
+  map = L.map("map", { zoomControl: false }).setView([34.5, 108.9], 4);
+
+  // 核心修复 4：创建专属的高层级 Pane 放置图钉，保证永远不会被多边形盖住
+  map.createPane('markers');
+  map.getPane('markers').style.zIndex = 650;
+  map.getPane('markers').style.pointerEvents = 'none'; // 让鼠标穿透 pane 本身
 
   esriSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
     attribution: '&copy; Esri', maxZoom: 18
@@ -784,11 +792,6 @@ function initMap() {
       if (cityLayer && map.hasLayer(cityLayer)) map.removeLayer(cityLayer);
       if (provinceLayer && map.hasLayer(provinceLayer)) map.removeLayer(provinceLayer);
     }
-
-    // 核心修复：每次缩放结束后，强制把图钉组提到最前面，避免被行政边界挡住
-    if (map.hasLayer(regionMarkersGroup)) {
-      regionMarkersGroup.bringToFront();
-    }
   });
 }
 
@@ -832,7 +835,12 @@ document.querySelectorAll(".chart-tab").forEach(tab => {
     }
   };
 });
+
+// 核心修复 5：增加 orientationchange 监听，解决手机横屏拉伸变形问题
 window.addEventListener('resize', () => { if(chart) chart.resize(); if(map) map.invalidateSize(); });
+window.addEventListener('orientationchange', () => {
+  setTimeout(() => { if(chart) chart.resize(); if(map) map.invalidateSize(); }, 300);
+});
 
 document.getElementById("exportCsvBtn").onclick = function(){
   if(!currentResult || !currentResult.all_scheme) return showToast("请先推演计算");
@@ -1513,13 +1521,14 @@ async function loadRegion() {
     const sel = document.getElementById("regionSel");
     sel.innerHTML = "";
     
-    // 手机端加大图钉尺寸
     const isMobile = window.innerWidth <= 900;
 
     regionList.forEach((r) => {
       sel.appendChild(new Option(r.name, r.name));
 
+      // 核心修复 6：将图钉放入专属的高层级 Pane
       const m = L.circleMarker([r.lat, r.lng], {
+        pane: 'markers',
         radius: isMobile ? 9 : 6, 
         color: '#60a5fa', fillColor: '#3b82f6', fillOpacity: 0.9, weight: 2
       });
@@ -1543,7 +1552,6 @@ async function loadRegion() {
       popupDom.appendChild(btn);
 
       m.bindPopup(popupDom);
-      // 阻止事件冒泡，防止触发地图其他点击
       m.on("click", (e) => { 
         L.DomEvent.stopPropagation(e);
         sel.value = r.name; 
@@ -1555,8 +1563,6 @@ async function loadRegion() {
     });
 
     regionMarkersGroup.addTo(map);
-    // 强制把图钉组提到最前面
-    regionMarkersGroup.bringToFront();
 
     runBtn.disabled = false;
     if (regionList.length > 0) sel.selectedIndex = 0;
