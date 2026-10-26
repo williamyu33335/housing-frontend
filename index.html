@@ -1306,48 +1306,6 @@ function generateAIExpertReport(topItem, res, viewTag = "综合最优") {
   `;
 }
 
-  const reportBox = document.getElementById("aiReportBox");
-  reportBox.style.display = "block";
-  reportBox.innerHTML = `
-    <div class="ai-report-card" id="aiReportCard">
-      <div class="ai-report-header">
-        <div class="ai-report-title">
-          💡 智能置业多维决策报告
-          <span class="ai-view-chip">当前视角：${escapeHtml(viewTag)}</span>
-        </div>
-        <div class="ai-report-tag">${tag}</div>
-      </div>
-
-      <div class="ai-data-grid">
-        <div class="ai-data-item">
-          <div class="val">${formatNum(remainingCash, 0)}元</div>
-          <div class="lbl">月度纯现金结余</div>
-        </div>
-        <div class="ai-data-item">
-          <div class="val" style="color:${parseFloat(surplusRate) >= 50 ? '#34d399' : '#f87171'};">${surplusRate}%</div>
-          <div class="lbl">真实结余率(小康线50%)</div>
-        </div>
-        <div class="ai-data-item">
-          <div class="val" style="color:${parseFloat(redlineMargin) < 0 ? '#f87171' : '#38bdf8'};">${formatNum(redlineMargin, 0)}元</div>
-          <div class="lbl">距离70%红线余量</div>
-        </div>
-        <div class="ai-data-item">
-          <div class="val">${formatNum(actualNetMortgage, 0)}元</div>
-          <div class="lbl">实际自付月供</div>
-        </div>
-        <div class="ai-data-item">
-          <div class="val">${formatNum(totalMonthlyOutflow, 0)}元</div>
-          <div class="lbl">家庭月度总支出</div>
-        </div>
-      </div>
-
-      <div class="ai-report-content">${text}</div>
-
-      <button class="ai-jump-btn" onclick="openModal(currentTopItem)">📋 查看该方案完整财务明细（月供 / 收支 / 占比 / 利息）</button>
-    </div>
-  `;
-}
-
 const BASE_COLUMNS = [
   { key: "rent_year", label: "租年", dec: 0 },
   { key: "loan_year", label: "贷年", dec: 0 },
