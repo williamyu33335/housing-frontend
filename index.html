@@ -7,6 +7,59 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
 <style>
+  /* ========== 无方案激励弹窗 ========== */
+#failModal .modal-content {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.98), rgba(139, 92, 246, 0.15));
+  border: 1px solid rgba(244, 114, 182, 0.4);
+  text-align: center;
+  max-width: 500px;
+}
+#failModal .modal-header {
+  justify-content: center;
+  border-bottom: 1px dashed rgba(244, 114, 182, 0.2);
+}
+#failModal .modal-title {
+  color: #f472b6;
+  font-size: 20px;
+}
+.fail-icon {
+  font-size: 50px;
+  margin-bottom: 10px;
+  animation: heartbeat 1.5s infinite;
+}
+@keyframes heartbeat {
+  0% { transform: scale(1); }
+  14% { transform: scale(1.1); }
+  28% { transform: scale(1); }
+  42% { transform: scale(1.1); }
+  70% { transform: scale(1); }
+}
+.fail-quote {
+  font-size: 18px;
+  font-weight: 700;
+  color: #f8fafc;
+  margin: 15px 0;
+  background: linear-gradient(to right, #f472b6, #a78bfa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: 2px;
+}
+.fail-desc {
+  font-size: 14px;
+  color: #cbd5e1;
+  line-height: 1.8;
+  margin-bottom: 20px;
+}
+.fail-reason {
+  background: rgba(239, 68, 68, 0.1);
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  color: #fca5a5;
+  margin-bottom: 20px;
+  border-left: 3px solid #ef4444;
+  text-align: left;
+}
   /* ========== 全屏撒花特效 ========== */
 #confettiCanvas {
   position: fixed; inset: 0; z-index: 999999; /* 确保在所有面板之上 */
@@ -570,6 +623,30 @@ tbody tr:hover { background: rgba(51, 65, 85, 0.4); }
 </div>
 
 <!-- 全方案详情弹窗 -->
+ <!-- 无方案激励弹窗 -->
+<div class="modal-overlay" id="failModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div class="modal-title">✨ 乾坤未定，你我皆是黑马 ✨</div>
+    </div>
+    <div class="modal-body">
+      <div class="fail-icon">💖🏇💖</div>
+      <div class="fail-quote">“只要路是对的，就不怕路远。”</div>
+      <div class="fail-desc">
+        亲爱的朋友，在当前的参数下，系统跑遍了所有组合，却无奈地发现：<br>
+        <b>以我们目前的薪资与现金流，还不足以轻松拿下这套梦想中的房子。</b><br><br>
+        但请不要灰心，更不要觉得是被系统卡住了。这只是现实在温柔地提醒我们：<br>
+        梦想的果实有些昂贵，需要我们再拼搏一把。不妨先调低一下目标房屋的总价，或者给未来的自己一点涨薪的空间。只要你不放弃向上攀登，我们终会在这座城市点亮属于你的那盏灯！
+      </div>
+      <div class="fail-reason" id="failReasonBox">
+        <!-- 这里动态填入后台的报错原因 -->
+      </div>
+      <button class="splash-btn" style="width: 100%; padding: 12px; font-size: 16px; margin-top: 10px;" onclick="closeFailModal()">
+        我明白了，继续奋斗！🚀
+      </button>
+    </div>
+  </div>
+</div>
 <div class="modal-overlay" id="detailModal">
   <div class="modal-content">
     <div class="modal-header">
@@ -1785,6 +1862,7 @@ runBtn.onclick = async function () {
     const res = await fetch(`${API_HOST}${endpoint}`, {
       method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload), signal: calcAbortCtrl.signal
     });
+    
     if (!res.ok) {
       let msg = "请求失败";
       try {
@@ -1795,15 +1873,25 @@ runBtn.onclick = async function () {
            msg = errJson.detail;
         }
       } catch(_) {}
+      
+      // 🌟 核心判断：如果是无可行方案，弹出黑马激励窗口，不报错
+      if (msg.includes("无可行方案") || msg.includes("均无可行方案")) {
+        document.getElementById('failReasonBox').innerText = `💡 算法推演提示：${msg}`;
+        document.getElementById('failModal').style.display = "flex";
+        return; // 终止当前函数，不执行后面的报错和渲染
+      }
+      
       throw new Error(msg);
     }
+    
     const result = await res.json();
     currentResult = result;
     clearResults();
 
-    // 🎉 触发满屏撒花特效（完美覆盖 DOM 渲染卡顿）
+    // 🎉 触发满屏撒花特效
     window.triggerConfetti(); 
-
+    
+    // 渲染表格与分析
     renderResult(result);
     showToast("推演计算完成！");
 
@@ -1957,6 +2045,10 @@ window.addEventListener('resize', () => {
     canvas.height = window.innerHeight;
   }
 });
+// 关闭激励弹窗
+window.closeFailModal = function() {
+  document.getElementById("failModal").style.display = "none";
+};
 </script>
 <!-- 撒花特效画布 -->
 <canvas id="confettiCanvas"></canvas>
