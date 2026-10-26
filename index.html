@@ -1042,6 +1042,7 @@ function generateAIExpertReport(topItem, res, viewTag = "综合最优") {
 
   const calc = calcMonthlyMortgage(loanPrincipalWan * 10000, loanRatePct, loanYears, repayKind);
   const monthlyMortgage = calc.monthly;
+  const totalInterestWan = calc.totalInterest / 10000;
 
   const housingFundMonthly = monthIncomeNet * (housingFundPct / 100);
   const fundDeduct = Math.min(monthlyMortgage, housingFundMonthly);
@@ -1064,47 +1065,73 @@ function generateAIExpertReport(topItem, res, viewTag = "综合最优") {
   const asset = formatNum(topItem.liquid_asset_end_wan, 2);
 
   // ==========================================
-  // 🌟 动态话术触发引擎 (判定器)
+  // 🌟 颜色标记与数据评价引擎
   // ==========================================
-  
-  // 1. 租房年限判定
-  const triggerRent = rentYears > 0 
-    ? `前 ${rentYears} 年的蛰伏期里，你并没有把青春白白上交给银行，而是把首付款安放在理财账户里，让复利的雪球在岁月中默默壮大。` 
-    : `直接买房的果断，让你立刻终结了颠沛流离的搬家之苦，获得了满满的安全感与归属感。`;
+  const cGreen = 'color:#34d399;font-weight:700;'; // 理想数据
+  const cRed = 'color:#f87171;font-weight:700;';   // 高压/代价数据
+  const cBlue = 'color:#60a5fa;font-weight:700;';  // 中性数据
 
-  // 2. 贷款年限判定 (解决“29年却没说没背30年房贷”的别扭)
-  const triggerLoan = loanYears <= 27 
-    ? `它没有强迫你在“立刻背上30年房贷”的焦虑中砸锅卖铁，也没有让你在“永远租房”的漂泊中失去归属，而是用一种温和而坚定的节奏，为你铺就了一条通往从容的阶梯。`
-    : `虽然它要求你较快地承担起长达 ${loanYears} 年的长期贷款，看似压力如山，但它用极高的资产积累效率，给了你直面人生风雨的底气。`;
+  // 1. 利息评价
+  let interestText, interestHtml;
+  if (totalInterestWan > 50) {
+      interestText = `高达 <span style="${cRed}">${totalInterestWan.toFixed(1)} 万元</span> 的惊人利息`;
+      interestHtml = `支付给银行 <span style="${cRed}">${totalInterestWan.toFixed(1)} 万元</span> 的利息代价`;
+  } else if (totalInterestWan > 30) {
+      interestText = ` <span style="${cBlue}">${totalInterestWan.toFixed(1)} 万元</span> 的不菲利息`;
+      interestHtml = `产生 <span style="${cBlue}">${totalInterestWan.toFixed(1)} 万元</span> 的利息`;
+  } else {
+      interestText = `仅 <span style="${cGreen}">${totalInterestWan.toFixed(1)} 万元</span> 的极低利息`;
+      interestHtml = `成功将利息压缩至 <span style="${cGreen}">${totalInterestWan.toFixed(1)} 万元</span>`;
+  }
 
-  // 3. 支出紧绷度判定 (直面缺点，展现立体感)
-  const triggerExpense = expenseRatioNum > 60 
-    ? `必须坦诚的是，每月支出占收入比达到了 ${expenseRatio}%，现金流的紧绷感确实存在，这就像拉满的弓弦，逼迫着你在职场上披荆斩棘、不断突破。`
-    : `每月支出占比仅 ${expenseRatio}%，现金流的呼吸感极佳，你不用把有限的青春悉数上交给冷冰冰的利息账单。`;
+  // 2. 支出占比评价
+  let expenseText, expenseHtml;
+  if (expenseRatioNum > 60) {
+      expenseText = `高达 <span style="${cRed}">${expenseRatio}%</span> 的支出占比`;
+      expenseHtml = `每月支出占比达到高压的 <span style="${cRed}">${expenseRatio}%</span>，逼迫你必须在职场不断突破`;
+  } else if (expenseRatioNum > 40) {
+      expenseText = `<span style="${cBlue}">${expenseRatio}%</span> 的支出占比`;
+      expenseHtml = `每月支出占比控制在合理的 <span style="${cBlue}">${expenseRatio}%</span>`;
+  } else {
+      expenseText = `仅 <span style="${cGreen}">${expenseRatio}%</span> 的极低支出占比`;
+      expenseHtml = `每月支出占比仅 <span style="${cGreen}">${expenseRatio}%</span>，现金流的呼吸感极佳`;
+  }
 
-  // 4. 结余率与幸福感判定
-  const triggerSurplus = surplusRateNum >= 50 
-    ? `每月还能剩下 ${formatNum(remainingCash, 0)} 元的纯现金结余，真实结余率稳居 ${surplusRate}% 的小康线之上，抗风险能力如同磐石般坚定。`
-    : `虽然 ${surplusRate}% 的真实结余率尚未突破 50% 的小康线，但这是一种为了长远资产跨越而采取的战术性紧缩，充满破釜沉舟的勇气。`;
+  // 3. 结余率评价
+  let surplusText, surplusHtml;
+  if (surplusRateNum >= 50) {
+      surplusText = `高达 <span style="${cGreen}">${surplusRate}%</span> 的真实结余率`;
+      surplusHtml = `真实结余率稳居 <span style="${cGreen}">${surplusRate}%</span> 的小康线之上，抗风险能力如同磐石般坚定`;
+  } else if (surplusRateNum >= 20) {
+      surplusText = `<span style="${cBlue}">${surplusRate}%</span> 的结余率`;
+      surplusHtml = `保持了 <span style="${cBlue}">${surplusRate}%</span> 的真实结余率，虽不宽裕但也游刃有余`;
+  } else {
+      surplusText = `不足 <span style="${cRed}">${surplusRate}%</span> 的紧绷结余率`;
+      surplusHtml = `仅 <span style="${cRed}">${surplusRate}%</span> 的结余率，是一种为了长远资产跨越而采取的战术性紧缩`;
+  }
 
-  // 5. 资产极客判定
-  const triggerAsset = topItem.liquid_asset_end_wan > 200 
-    ? `30 年后，当你彻底卸下债务，手里将握着高达 ${asset} 万元的纯流动资产，那是资本为你疯狂打工的最强核武器。`
-    : `虽然期末 ${asset} 万元的流动资产并非天文数字，但你把绝大部分资金都化为了坚固的砖石，为你和家人遮风挡雨，这本身就是一种朴素的伟大。`;
+  // 4. 期末资产评价
+  let assetText = topItem.liquid_asset_end_wan > 100 
+      ? `高达 <span style="${cGreen}">${asset} 万元</span> 的流动现金`
+      : `<span style="${cBlue}">${asset} 万元</span> 的流动现金`;
 
-  // 6. 风险红线判定
-  const triggerMargin = redlineMargin > 0 
-    ? `更重要的是，你距离那条残酷的 70% 破产红线，还保留着 ${formatNum(redlineMargin, 0)} 元的安全余量，这是你抵御未知黑天鹅的铠甲。`
-    : `需要警惕的是，你已经逼近甚至触碰了 70% 的财务红线，这要求你必须保持强健的现金流，切勿裸辞。`;
+  // 5. 租房年限与贷款年限的过渡语
+  const triggerRentShort = rentYears > 0 
+    ? `前 ${rentYears} 年的蛰伏期里，你没有把青春白白上交给银行，而是把首付款安放在理财账户中让复利翻滚。` 
+    : `直接买房的果断，让你立刻终结了颠沛流离的搬家之苦，获得了满满的归属感。`;
+
+  const triggerLoanShort = loanYears <= 27 
+    ? `它没有强迫你在“立刻背上30年房贷”的焦虑中砸锅卖铁，而是用 ${loanYears} 年的温和节奏为你铺就了从容的阶梯。`
+    : `它要求你直面长达 ${loanYears} 年的长期贷款，用未来的汗水去置换当下的确定性。`;
 
   let healthTag = "💡 深度解析";
   let healthDesc = "该组合在财务压力与生活品质之间找到了奇妙的平衡点。";
   if (res.warning || score < 60 || adapt < 60) {
       healthTag = "⚠️ 风险警示";
-      healthDesc = "该方案触发了财务紧绷警告，现金流的安全垫相对薄弱，需要你有强大的抗压能力。";
+      healthDesc = "该方案触发了财务紧绷警告，现金流的安全垫相对薄弱。";
   } else if (score >= 85 && happy >= 80) {
       healthTag = "🏆 黄金方案";
-      healthDesc = "该方案不仅实现了极高的资产沉淀，还保留了极佳的生活品质与抗风险能力。";
+      healthDesc = "该方案不仅实现了极高的资产沉淀，还保留了极佳的生活品质。";
   }
 
   let tag = healthTag;
@@ -1113,129 +1140,171 @@ function generateAIExpertReport(topItem, res, viewTag = "综合最优") {
   // ==================== 维度1：综合最优 ====================
   if (viewTag === "综合最优") {
       text = `
-        <span class="section-title">一、 生活不是非黑即白，我们在柴米油盐的缝隙里拥抱浪漫</span>
-        亲爱的朋友，在这个连爱情都可以被明码标价、连呼吸都似乎带着KPI考核味道的时代里，我们总是被各种宏大的焦虑推着向前走。买房，似乎成了悬在所有年轻人头顶的达摩克利斯之剑，仿佛没有那一纸红色的房产证，我们的灵魂就永远只能在世界边缘流浪。但请等一等，我的朋友，让我们先深吸一口气，去看看这套被算法千锤百炼、最终为你呈上的【综合最优】方案。冰冷的数据向来不会对谁嘘寒问暖，但生活却常常在最局促的角落里开出意想不到的花。这套在严苛的熵权矩阵中稳稳斩获了 <b>${score} 分</b> 的方案（租 ${rentYears} 年 + 贷 ${loanYears} 年），绝非那种高高在上、脱离实际的空中楼阁。生活从来不是一道非黑即白的单选题，并不是只有“立刻砸锅卖铁当房奴”和“永远无根漂泊”这两个极端。它就像是一位阅尽千帆的智者，懂得你深夜加班后渴望有一盏归家明灯，也明白你不愿被沉重的月供剥夺周末去看一场电影的自由。它拒绝让你在狂热的跟风中迷失，也没有让你在拖延中错失上车的机会。它以极具前瞻性的温柔，将前期的资本滚雪球与后期的资产安全锚定完美编织。正如海明威所说，生活总是让我们遍体鳞伤，但后来，那些受伤的地方一定会变成我们最强壮的地方。${healthDesc}它不仅是一串数学符号的排列，更是你在这个狂热时代里，写给自己的一封充满理性与克制的情书。
+        <span class="section-title">一、 生活不是非黑即白，在柴米油盐的数据里拥抱真实</span>
+        亲爱的朋友，在这个连呼吸都带着KPI考核味道的时代，买房似乎成了悬在所有年轻人头顶的达摩克利斯之剑。但这套为你算出的【综合最优】方案，并不是一碗只讲情怀的迷魂汤。它总价 ${houseTotalWan} 万，首付 <span style="${cBlue}">${downPaymentWan.toFixed(1)} 万</span>，租房过渡 <span style="${cBlue}">${rentYears} 年</span>，贷款 <span style="${cBlue}">${loanYears} 年</span>。这不仅是一串数字，更是你真实的人生轨迹。${triggerRentShort} ${triggerLoanShort} 它懂得你深夜加班后渴望有一盏归家明灯，也明白你不愿被沉重的账单剥夺周末喝一杯手冲咖啡的自由。数据是冰冷的，但生活有温度；这套在严苛矩阵中斩获 <span style="${cGreen}">${score} 分</span> 的方案，正是用理性的克制，为你书写的一封情书。${healthDesc}
         
         <span class="section-title">二、 听听数据背后的心声</span>
-        <strong>1. 资本与杠杆的共舞：</strong>这套价值 ${houseTotalWan} 万元的避风港，你将用 <u>${downPaymentWan.toFixed(1)} 万元</u> 的积蓄作为首付敲开大门。剩下的 <u>${loanPrincipalWan.toFixed(1)} 万元</u> 贷款，通过${repayKind === "equal_principal" ? "等额本金" : "等额本息"}的方式在 ${loanYears} 年中慢慢偿还，总利息达 <u>${(calc.totalInterest / 10000).toFixed(1)} 万元</u>。<br>
-        <strong>2. 现金流的呼吸感：</strong>公积金的进账（约 ${formatNum(housingFundMonthly, 0)} 元）像一个温柔的缓冲垫，让真实的掏腰包月供降至 <u>${formatNum(actualNetMortgage, 0)} 元</u>。${triggerExpense}<br>
-        <strong>3. 抵御风险的温柔铠甲：</strong>${triggerSurplus}${triggerMargin}<br>
-        <strong>4. 时间的玫瑰：</strong>${triggerRent}${triggerLoan}${triggerAsset}
+        <strong>1. 资本与杠杆的共舞：</strong>这套避风港总价值 <span style="${cBlue}">${houseTotalWan} 万元</span>，你将用 <span style="${cBlue}">${downPaymentWan.toFixed(1)} 万元</span> 首付敲开大门。剩下的 <span style="${cBlue}">${loanPrincipalWan.toFixed(1)} 万元</span> 贷款，通过${repayKind === "equal_principal" ? "等额本金" : "等额本息"}方式在 ${loanYears} 年中偿还，虽然要承担${interestHtml}，但这是跨越阶层的必经之路。<br>
+        <strong>2. 现金流的呼吸感：</strong>公积金的进账（约 <span style="${cBlue}">${formatNum(housingFundMonthly, 0)} 元</span>）如同温柔的缓冲垫，让真实的自付月供降至 <span style="${cBlue}">${formatNum(actualNetMortgage, 0)} 元</span>。${expenseHtml}。<br>
+        <strong>3. 抵御风险的温柔铠甲：</strong>每月还能剩下 <span style="${cBlue}">${formatNum(remainingCash, 0)} 元</span> 纯现金，${surplusHtml}。你距离残酷的 70% 破产红线，还有 <span style="${redlineMargin > 0 ? cGreen : cRed}">${formatNum(redlineMargin, 0)} 元</span> 的安全余量。<br>
+        <strong>4. 时间的玫瑰：</strong>30 年后，当你彻底卸下债务，手里将握着 ${assetText}，那是时间与复利给你的最高奖赏。
         
         <span class="section-title">三、 写给你的生活指南</span>
-        1. <strong>给蓄水期一点耐心：</strong>如果你选了长租房期，别去眼红别人的红本本。把首付资金稳妥安放，复利的力量就像春天的种子，终会破土而出。<br>
-        2. <strong>写给未来的提前还贷信：</strong>如果在第 5-10 年事业迎来小高峰，手里有了闲钱，请毫不犹豫去银行申请缩短年限。这不仅是省利息，更是向自由迈出的一大步。<br>
-        3. <strong>为爱筑起防线：</strong>每月健康的结余率就是最大的底气。拿出一部分为你和爱人买一份重疾险，这是你在风雨来临时，依然能护家人周全的温柔承诺。
+        1. <strong>给蓄水期一点耐心：</strong>如果你选了长租房期，别去眼红别人的红本本。把首付资金稳妥安放，复利的力量终会破土而出。<br>
+        2. <strong>写给未来的提前还贷信：</strong>如果在第 5-10 年事业迎来小高峰，手里有了闲钱，请毫不犹豫去银行申请缩短年限。早日卸下债务包袱。<br>
+        3. <strong>为爱筑起防线：</strong>每月健康的结余就是最大的底气。拿出一部分买好重疾险，这是你在风雨来临时，护家人周全的温柔承诺。
       `;
   }
   // ==================== 维度2：舒适度TOP ====================
   else if (viewTag === "舒适度TOP") {
       text = `
-        <span class="section-title">一、 拼命赚钱的终极奥义，究竟是为了买下一套水泥钢筋，还是买下自由呼吸的灵魂？</span>
-        我的朋友，当你点开这个【舒适度TOP】标签时，空气里仿佛都弥漫着手冲咖啡豆刚磨开时的香气。这套方案以 <b>${happy} 分的幸福感</b> 和 <u>${comfort} 分的舒适度</u> 登顶，它是一场对沉重消费主义赤裸裸的浪漫反叛。在这个人人都在鼓吹“早买早安心”的浮躁社会里，你却像一个冷眼旁观的智者，轻声对银行经理说：“不，我的生活品质绝对不打折。”在 ${rentYears} 年的租房过渡期里，你大可以住在离公司步行五分钟、窗外正对着梧桐树荫的精致公寓里，不用每天清晨五点半爬起来去挤早高峰那令人窒息的地铁，不用把有限的青春全部出卖给冷冰冰的利息。这是一种极其奢侈的精神松弛感，它把“家”的定义从一张写着你名字的购房合同，温柔地还原成了每一个疲惫夜晚能卸下防备的柔软角落。生活不是一场比谁背负债务更重的苦行僧竞赛，而是一段应该被温柔以待的旅程。
+        <span class="section-title">一、 拼命赚钱的终极奥义，是买下自由呼吸的灵魂</span>
+        我的朋友，当你点开这个【舒适度TOP】标签时，空气里仿佛都弥漫着咖啡豆的香气。这套方案以 <span style="${cGreen}">${happy} 分</span> 的幸福感和 <span style="${cGreen}">${comfort} 分</span> 的舒适度登顶，它是一场对沉重消费主义的浪漫反叛。在这个人人都在鼓吹“早买早安心”的浮躁社会里，它让你在长达 <span style="${cBlue}">${rentYears} 年</span> 的过渡期里，依然能住在离公司步行五分钟的精致公寓，不用把有限青春出卖给地铁。它用 ${houseTotalWan} 万总价的期望，搭配 ${downPaymentWan.toFixed(1)} 万首付，没有榨干你最后的一滴血。这是一种极其奢侈的精神松弛感，它把“家”温柔地还原成了卸下防备的柔软角落。生活不是苦行僧的竞赛，而是一段应该被温柔以待的旅程。
         
         <span class="section-title">二、 自由，是最高级的财富</span>
-        <strong>1. 杠杆的温柔面：</strong>虽然房屋总价高达 ${houseTotalWan} 万，但通过长达 ${rentYears} 年的精明蓄水，你将用 ${downPaymentWan.toFixed(1)} 万元首付轻松上车，避免了砸锅卖铁的窘境。<br>
-        <strong>2. 毫无压迫的月度账单：</strong>每月总支出仅占收入的 <u>${expenseRatio}%</u>，${triggerExpense}<br>
-        <strong>3. 留住的不是钱，是光：</strong>${triggerSurplus} 每月 ${formatNum(remainingCash, 0)} 元的纯现金流，是你随时可以辞职去看看世界的底气。<br>
-        <strong>4. 必然的取舍：</strong>${triggerLoan} 虽然这份舒适可能让你在时间效率上（${time}分）或者资产积累上（${asset}万）做出了一点让步，但谁在乎呢？你过得开心，才是对这个残酷世界最漂亮的反击。
+        <strong>1. 杠杆的温柔面：</strong>虽然房屋总价高达 ${houseTotalWan} 万，但通过精明的蓄水，你只需 <span style="${cBlue}">${downPaymentWan.toFixed(1)} 万元</span> 首付即可上车，避免了砸锅卖铁的窘境。<br>
+        <strong>2. 毫无压迫的月度账单：</strong>${expenseHtml}，你不用把有限的青春悉数上交给冷冰冰的利息账单。<br>
+        <strong>3. 留住的不是钱，是光：</strong>每月 <span style="${cGreen}">${formatNum(remainingCash, 0)} 元</span> 的纯现金流，是随时可以辞职看世界的底气。${surplusHtml}。<br>
+        <strong>4. 必然的取舍：</strong>虽然这份舒适可能让你在时间效率（${time}分）或资产积累（${asset}万）上做出让步，但谁在乎呢？你过得开心，才是对这个世界最漂亮的反击。
         
         <span class="section-title">三、 写给你的生活指南</span>
-        1. <strong>把租房当成生活美学：</strong>花心思布置租来的家，买最好的床垫，买一束鲜艳的花。房子是别人的，但在其中度过的岁月是你自己的。<br>
-        2. <strong>设立“浪费”基金：</strong>既然结余这么多，每月拿出 30% 去“浪费”吧！去买一张机票，去听一场演唱会，为无用的美好买单，这是对未来漫长还贷期的情绪补偿。<br>
-        3. <strong>警惕温水煮青蛙：</strong>舒适不等于停滞。长租期意味着你需要极强的自律，确保首付款不被消费主义吞噬。资金必须锁死在低风险理财中，否则未来的买房梦将化为泡影。
+        1. <strong>把租房当成生活美学：</strong>花心思布置租来的家，买最好的床垫，买一束鲜艳的花。房子是别人的，但岁月是你自己的。<br>
+        2. <strong>设立“浪费”基金：</strong>既然结余这么多，每月拿出 30% 去“浪费”吧！去听一场演唱会，为无用的美好买单，这是对未来漫长岁月的情绪补偿。<br>
+        3. <strong>警惕温水煮青蛙：</strong>长租期意味着你需要极强的自律，确保首付款不被消费主义吞噬，资金必须锁死在低风险理财中。
       `;
   }
   // ==================== 维度3：资产积蓄TOP ====================
   else if (viewTag === "资产积蓄TOP") {
       text = `
-        <span class="section-title">一、 拒绝为盲目跟风买单，用绝对理性的极客复利让资本为你疯狂打工</span>
-        嘿，极客朋友，如果你骨子里流淌着对数学之美的崇拜和对现金流的极致掌控，那么这套【资产积蓄TOP】方案绝对会让你在深夜的屏幕前露出会心的微笑。期末高达 <b>${asset} 万元</b> 的纯流动资产，就是你对抗这片周期迷雾的最强护城河！它的底层推演逻辑冷酷得像一把手术刀：将首付款死死按在年化收益稳健的理财账户里，任由它在时间的复利魔术中野蛮生长。与此同时，通过巧妙压缩贷款年限，你成功从老谋深算的金融机构嘴里虎口夺食，省下了巨额利息。这是一个将金融杠杆玩弄于股掌之间的降维打击艺术，它冷酷、精准、高效，不带一丝情绪化冲动，却在无声无息中完成了普通人几代人都难以逾越的资本原始积累狂欢。这不仅是一套买房计划，更是一场资本运作的沙盘演练。
+        <span class="section-title">一、 拒绝为盲目跟风买单，用绝对理性的极客复利让资本打工</span>
+        嘿，极客朋友，如果你骨子里流淌着对数学之美的崇拜，那么这套【资产积蓄TOP】方案绝对会让你会心一笑。但请注意，这世上没有免费的午餐，这套方案不是只有光鲜亮丽的数字。它需要你掏出 ${downPaymentWan.toFixed(1)} 万首付，背上 ${loanPrincipalWan.toFixed(1)} 万的贷款，并在漫长岁月中支付${interestText}。它的底层逻辑冷酷得像一把手术刀：将首付款死死按在理财账户里野蛮生长，同时用长达 ${loanYears} 年的杠杆去换取现金流的喘息空间。这是一个将金融杠杆玩弄于股掌之间的艺术，它冷酷、精准，不带一丝情绪化冲动。到了30年后，你将手握 ${assetText}，完成了普通人几代人都难以逾越的资本原始积累。这不仅是买房，更是一场资本运作的沙盘演练。
         
         <span class="section-title">二、 金钱永不眠，时间看得见</span>
-        <strong>1. 极客的算盘：</strong>房屋总价 ${houseTotalWan} 万，首付 ${downPaymentWan.toFixed(1)} 万，贷款 ${loanPrincipalWan.toFixed(1)} 万。你选择了 ${loanYears} 年的贷款期限，总利息仅 <u>${(calc.totalInterest / 10000).toFixed(1)} 万元</u>，被压榨到了极限。<br>
-        <strong>2. 极致的资产冲刺：</strong>${triggerAsset}<br>
-        <strong>3. 现金流的代价：</strong>${triggerExpense} 想要在30年后拥有惊人的财富，就必须在当下承受一定的压力。你的真实月供为 <u>${formatNum(actualNetMortgage, 0)} 元</u>，红线上方仅剩 ${formatNum(redlineMargin, 0)} 元的缓冲。<br>
-        <strong>4. 战略性的蛰伏：</strong>${triggerRent} 这种用时间换取空间的战术，让时间效率得分达到了 <u>${time} 分</u>，这是对时间价值的最崇高赞美。
+        <strong>1. 极客的算盘：</strong>房屋总价 ${houseTotalWan} 万，你选择了 ${loanYears} 年的贷款期限，${interestHtml}。这看似是一笔沉重的买路钱，但它是你撬动未来资产的支点。<br>
+        <strong>2. 极致的资产冲刺：</strong>30 年后，当你彻底卸下债务，手里将握着 ${assetText}，那是资本为你疯狂打工的最强核武器。<br>
+        <strong>3. 现金流的代价：</strong>想要在30年后拥有惊人的财富，就必须在当下承受压力。你的真实月供为 <span style="${cBlue}">${formatNum(actualNetMortgage, 0)} 元</span>，红线上方仅剩 <span style="${redlineMargin > 0 ? cGreen : cRed}">${formatNum(redlineMargin, 0)} 元</span> 的缓冲。${expenseHtml}。<br>
+        <strong>4. 战略性的蛰伏：</strong>${triggerRentShort} 这种用时间换取空间的战术，让时间效率得分达到了 <span style="${cBlue}">${time} 分</span>。
         
         <span class="section-title">三、 写给你的生活指南</span>
-        1. <strong>做金钱的执剑人：</strong>守住你的本金！把首付投入到年化收益能跑赢房贷利率的稳健基金或大额存单里，去吃市场的无风险利差。<br>
-        2. <strong>早日赎回自由：</strong>尽早清空房贷。当你拿到那张贷款结清证明时，你会发现，那种无债一身轻的快乐，比任何物质消费都来得极致。<br>
-        3. <strong>警惕黑天鹅：</strong>由于你的支出可能处于高位，必须保留至少 12 个月的月供作为紧急备用金。一旦职场发生动荡，不要让这精妙的复利模型因为断供而瞬间崩塌。
+        1. <strong>做金钱的执剑人：</strong>守住你的本金！把首付投入到年化收益能跑赢房贷利率的稳健基金里，去吃市场的无风险利差。<br>
+        2. <strong>早日赎回自由：</strong>尽早清空房贷。当你拿到那张贷款结清证明时，无债一身轻的快乐比任何消费都来得极致。<br>
+        3. <strong>警惕黑天鹅：</strong>${expenseRatioNum > 60 ? '<span style="color:#f87171">你的支出处于极高位，</span>' : ''}必须保留至少 12 个月的月供作为紧急备用金，不要让精妙的复利模型因为断供而瞬间崩塌。
       `;
   }
   // ==================== 维度4：稳健型 ====================
   else if (viewTag === "稳健型") {
       text = `
-        <span class="section-title">一、 在黑天鹅满天飞的时代里，把稳稳的安全感织成刀枪不入的黄金铠甲</span>
-        在这个充满不确定性与宏观周期波动的疯狂世界里，真正成熟的成年人从来不屑于去玩那种一荣俱荣、一损俱损的豪赌游戏。这套【稳健型】方案以惊人的 <b>${adapt} 分</b> 稳健评分傲视群雄，它不求能在牛市里赚得盆满钵满，但求在任何暴风雨呼啸而至的深夜里，全家人都能安安稳稳地睡上一个踏实的好觉。它的设计哲学简直到达了化境：通过极其宽裕的现金流安全垫，将每个月的房贷与生活开销死死压在安全地带。哪怕明天大环境发生剧烈波动，哪怕职场上面临突如其来的优化裁员，你依然可以端起茶杯，看着窗外的云卷云舒，心里默念一句：“没关系，我的备用金还能撑很久。”这种泰山崩于前而色不变的底气，才是千金难买的人生顶级奢侈品。成年人的体面，不是开多好的车，而是银行卡里永远有一笔能随时应对变故的“Fuck You Money”。
+        <span class="section-title">一、 在黑天鹅满天飞的时代里，把安全感织成黄金铠甲</span>
+        在这个充满不确定性的疯狂世界里，真正成熟的成年人从来不屑于去玩一荣俱荣的豪赌游戏。这套【稳健型】方案以惊人的 <span style="${cGreen}">${adapt} 分</span> 稳健评分傲视群雄。它用 ${houseTotalWan} 万总价、首付 ${downPaymentWan.toFixed(1)} 万、贷款 ${loanPrincipalWan.toFixed(1)} 万的数据底座，向你证明了一个真理：活得安稳，本身就是一种胜利。它通过极其宽裕的现金流安全垫，将每月开销死死压在安全地带。哪怕明天职场面临优化裁员，你依然可以端起茶杯，心里默念一句：“没关系，我的备用金还能撑很久。”这种泰山崩于前而色不变的底气，才是千金难买的人生顶级奢侈品。成年人的体面，是银行卡里永远有一笔能应对变故的“Fuck You Money”。
         
         <span class="section-title">二、 数据背后的踏实安稳</span>
-        <strong>1. 拒做账单奴隶：</strong>为了这份安全感，你选择了租 ${rentYears} 年、贷 ${loanYears} 年的组合。首付 ${downPaymentWan.toFixed(1)} 万，贷款 ${loanPrincipalWan.toFixed(1)} 万。<br>
-        <strong>2. 极致的冗余：</strong>每月支出仅占收入的 <u>${expenseRatio}%</u>，${triggerMargin}<br>
-        <strong>3. 现金的厚度：</strong>${triggerSurplus} 这种宽裕的结余，是你面对生活刁难时最坚硬的盾牌。<br>
-        <strong>4. 必然的妥协：</strong>${triggerAsset} 虽然稳健的策略可能让你错失了一些激进加杠杆的机会，但在这个比烂的时代，活下去、活得安稳，本身就是一种巨大的胜利。
+        <strong>1. 拒做账单奴隶：</strong>为了这份安全感，你选择了租 ${rentYears} 年、贷 ${loanYears} 年的组合。虽然产生了${interestHtml}，但这换来的是极致的从容。<br>
+        <strong>2. 极致的冗余：</strong>${expenseHtml}，距离那条残酷的 70% 破产红线，你拥有高达 <span style="${cGreen}">${formatNum(redlineMargin, 0)} 元</span> 的免死金牌。<br>
+        <strong>3. 现金的厚度：</strong>每月结余 <span style="${cGreen}">${formatNum(remainingCash, 0)} 元</span>，${surplusHtml}。这种宽裕，是你面对生活刁难时最坚硬的盾牌。<br>
+        <strong>4. 必然的妥协：</strong>30年后你将拥有 ${assetText}。虽然稳健的策略可能让你错失了一些激进加杠杆的机会，但在这个比烂的时代，活下去本身就是巨大的胜利。
         
         <span class="section-title">三、 写给你的生活指南</span>
-        1. <strong>守住你的护城河：</strong>继续保持至少 6 个月的活期存款。那是你的战略储备，无论任何人向你借钱，或者推荐所谓的高息理财，都别动这笔钱。<br>
-        2. <strong>把长租进行到底：</strong>别急，${triggerRent} 让时间帮你熬死那些高杠杆的炒房客，等市场彻底回归理性，我们再从容出手。<br>
+        1. <strong>守住你的护城河：</strong>继续保持至少 6 个月的活期存款。那是你的战略储备，无论谁向你借钱，都别动这笔钱。<br>
+        2. <strong>把长租进行到底：</strong>别急，${triggerRentShort} 让时间帮你熬死那些高杠杆的炒房客，我们再从容出手。<br>
         3. <strong>稳步削减债务：</strong>有余钱别去乱投资，优先提前还贷。无债一身轻，是你未来十年最坚硬的铠甲。
       `;
   }
   // ==================== 维度5：平衡型 ====================
   else if (viewTag === "平衡型") {
       text = `
-        <span class="section-title">一、 历经千帆后的终极圆满：做个能在烟火人间与诗意远方之间自由穿梭的六边形战士</span>
-        世人总爱走极端，要么为了追求极致财富而把自己逼成疯狂内卷的苦行僧，要么为了贪图一时享乐而沦为月光族。而你，我的朋友，却在这套【平衡型】方案中展现出了令人惊叹的大师级平衡美学。以 <b>${score} 分</b> 优雅落地的它，在资产增值、抗险防线、居住舒适、幸福指数这四个维度的雷达图上，勾勒出了一个近乎完美的正六边形。它既没有让你在前期租房时感到委屈和流浪，也没有让你在后期还贷时感到窒息和绝望。它像一首平仄极其工整的十四行诗，每一个字节都恰到好处，每一个音符都踩在时代鼓点最和谐的节拍上。这就是属于平凡普通人的最高级的生活艺术——左手烟火，右手远方，在世俗的泥泞中踩出一条优雅而坚定的康庄大道。生活不需要你每次都拿满分，但能在每一个维度都拿到 80 分的及格线，这就已经超越了 90% 的人。
+        <span class="section-title">一、 历经千帆后的终极圆满：做个自由穿梭的六边形战士</span>
+        世人总爱走极端，要么内卷苦行，要么月光享乐。而你，我的朋友，却在这套【平衡型】方案中展现了大师级的平衡美学。以 <span style="${cGreen}">${score} 分</span> 优雅落地的它，没有让你在前期 ${rentYears} 年的租房中流浪，也没有让你在后期 ${loanYears} 年的还贷中窒息。面对 ${houseTotalWan} 万总价的房子，你用 <span style="${cBlue}">${downPaymentWan.toFixed(1)} 万</span> 首付和 <span style="${cBlue}">${loanPrincipalWan.toFixed(1)} 万</span> 贷款，在资产增值、抗险防线、居住舒适、幸福指数四个维度上，勾勒出了近乎完美的正六边形。它像一首平仄极其工整的十四行诗，这就是属于普通人的最高级生活艺术——左手烟火，右手远方，在世俗的泥泞中踩出一条优雅的康庄大道。生活不需要你每次都拿满分，但每个维度都拿 80 分，就已经超越了 90% 的人。
         
         <span class="section-title">二、 圆满数据的全景扫描</span>
-        <strong>1. 完美的黄金分割：</strong>首付 ${downPaymentWan.toFixed(1)} 万，贷 ${loanPrincipalWan.toFixed(1)} 万。${triggerLoan}<br>
-        <strong>2. 现金流与抗风险的握手：</strong>家庭月支出占比 <u>${expenseRatio}%</u>，${triggerExpense}<br>
-        <strong>3. 毫无短板的舒适：</strong>${triggerSurplus}${triggerAsset}<br>
-        <strong>4. 时间的魔法：</strong>${triggerRent} 它没有哪个维度是突兀的，它能稳稳地运行30年，保护你的生活不被任何中等风险击穿。
+        <strong>1. 完美的黄金分割：</strong>首付 ${downPaymentWan.toFixed(1)} 万，贷 ${loanPrincipalWan.toFixed(1)} 万。${triggerLoanShort} 期间你需要承担${interestHtml}。<br>
+        <strong>2. 现金流与抗风险的握手：</strong>${expenseHtml}。你不会因为还贷而连一顿外卖都不敢点。<br>
+        <strong>3. 毫无短板的舒适：</strong>每月结余 <span style="${cBlue}">${formatNum(remainingCash, 0)} 元</span>，${surplusHtml}。30年后还有 ${assetText} 撑腰。<br>
+        <strong>4. 时间的魔法：</strong>${triggerRentShort} 这套方案没有哪个维度是突兀的，它能稳稳地运行30年，保护你的生活不被任何中等风险击穿。
         
         <span class="section-title">三、 写给你的生活指南</span>
         1. <strong>珍惜当下的平衡：</strong>不要轻易打破这个状态。别心血来潮去买豪车，别盲目去跟风创业。保持现状，就是在赢。<br>
         2. <strong>设立两个账户：</strong>一个是还贷的“定海神针”，一个是理财的“诗和远方”。让它们各司其职，你的生活齿轮就会永远顺滑。<br>
-        3. <strong>每年做一次复盘：</strong>带上爱人，用这套系统重新跑一次数据。随着收入的增加，你们可以去寻找更优的解，让家越来越温暖。
+        3. <strong>每年做一次复盘：</strong>带上爱人，用这套系统重新跑一次数据。随着收入的增加，你们可以去寻找更优的解。
       `;
   }
   // ==================== 维度6：进取型 ====================
   else if (viewTag === "进取型") {
       text = `
-        <span class="section-title">一、 敢叫日月换新天的破局者：用摧枯拉朽的进取姿态去撞开命运紧闭的大门</span>
-        平庸是温水煮青蛙的慢性毒药，而真正的勇士敢于迎着惊涛骇浪扬帆起航！这套【进取型】方案是专属于你体内那股不服输、不信命的热血基因的赞歌。它以极具侵略性的高效率（综合得分 <b>${score} 分</b>），通过精简的租房过渡与紧凑的贷款杠杆，以最快速度在城市的核心版图上打下了属于自己的深刻烙印。这是一场充满荷尔蒙气息的勇敢者游戏，它要求你在职场上披荆斩棘、在收入上不断突破，用未来的成长速度去无情碾压眼前的所有财务障碍。虽然过程可能会伴随着短暂的紧绷与压力，但当你看到期末那一串光芒四射的资产数字时，所有的汗水都会化作居高临下的骄傲。人生短短数十载，如果连做梦都不敢最大胆一点，那和咸鱼又有什么分别？只要你的野心配得上你的才华，这个方案就是你撬动地球的那个支点。
+        <span class="section-title">一、 敢叫日月换新天的破局者：用摧枯拉朽的姿态撞开命运的大门</span>
+        平庸是温水煮青蛙的毒药，而真正的勇士敢于迎着惊涛骇浪扬帆起航！这套【进取型】方案是专属于你热血基因的赞歌。它以极具侵略性的高效率（综合得分 <span style="${cGreen}">${score} 分</span>），面对 ${houseTotalWan} 万的资产，直接砸下 ${downPaymentWan.toFixed(1)} 万首付，背负 ${loanPrincipalWan.toFixed(1)} 万贷款，用最快的速度在城市核心打下属于自己的烙印。这是一场充满荷尔蒙的勇敢者游戏，它要求你在职场披荆斩棘、用未来的成长速度去碾压眼前的障碍。虽然过程伴随着紧绷，虽然你需要支付${interestText}，但当你看到期末那串数字时，所有的汗水都会化作骄傲。人生短短数十载，如果连做梦都不敢最大胆一点，那和咸鱼有什么分别？
         
         <span class="section-title">二、 锋芒毕露的数据解剖</span>
-        <strong>1. 雷霆万钧的杠杆：</strong>总价 ${houseTotalWan} 万，贷款 ${loanPrincipalWan.toFixed(1)} 万。你几乎没有太多犹豫，在极短的租房期后直接选择拿下红本。<br>
-        <strong>2. 效率就是生命：</strong>时间效率高达 <u>${time} 分</u>，你像是一个精算师，把付给银行的利息（${(calc.totalInterest / 10000).toFixed(1)} 万元）压缩到了极限。<br>
-        <strong>3. 战斗状态的面板：</strong>家庭月支出占比达到了 <u>${expenseRatio}%</u>，${triggerExpense}<br>
-        <strong>4. 金钱的嘉奖：</strong>${triggerAsset} 在通胀时代，快鱼吃慢鱼。这套方案强制你保持极高的职场竞争力，它不接受任何懈怠。
+        <strong>1. 雷霆万钧的杠杆：</strong>总价 ${houseTotalWan} 万，贷款 ${loanPrincipalWan.toFixed(1)} 万。你几乎没有犹豫，极短的租房期后直接拿下红本。<br>
+        <strong>2. 效率就是生命：</strong>时间效率高达 <span style="${cGreen}">${time} 分</span>，你像是一个精算师，将付给银行的利息锁定在 <span style="${totalInterestWan > 50 ? cRed : cBlue}">${totalInterestWan.toFixed(1)} 万元</span>。<br>
+        <strong>3. 战斗状态的面板：</strong>家庭月支出占比达到了 <span style="${cRed}">${expenseRatio}%</span>，${expenseHtml}。你想赢，就必须承受这份张力。<br>
+        <strong>4. 金钱的嘉奖：</strong>30 年后你将手握 ${assetText}。在通胀时代，快鱼吃慢鱼。这套方案强制你保持极高的职场竞争力，不接受任何懈怠。
         
         <span class="section-title">三、 写给你的生活指南</span>
-        1. <strong>打造不可替代的护城河：</strong>这种激进的方案，全靠你强大的现金流支撑。请务必保持你的职场竞争力，你现在的收入，就是这座大厦的地基。<br>
-        2. <strong>盯紧你的红线：</strong>${triggerMargin} 如果遇到收入波动，立刻勒紧裤腰带，保住月供是第一要务，不要让勇敢变成鲁莽。<br>
-        3. <strong>给自己留条后路：</strong>在房贷结清前，不要把所有的子弹都打光。保持一定的抗压底线，你才能在风浪中笑到最后。
+        1. <strong>打造不可替代的护城河：</strong>激进的方案全靠强大的现金流支撑。请务必保持你的职场竞争力，你现在的收入，就是这座大厦的地基。<br>
+        2. <strong>盯紧你的红线：</strong>距离 70% 红线仅剩 <span style="${cRed}">${formatNum(redlineMargin, 0)} 元</span> 的缓冲，如果遇到收入波动，立刻勒紧裤腰带，保住月供是第一要务。<br>
+        3. <strong>给自己留条后路：</strong>在房贷结清前，不要把所有的子弹都打光。保持抗压底线，你才能在风浪中笑到最后。
       `;
   }
   // ==================== 兜底备用 ====================
   else {
       text = `
-        <span class="section-title">一、 为你量身定制的宏大推演画卷，在不确定的时代里锚定确定的幸福</span>
-        系统针对您的自定义严格要求，对【${escapeHtml(regionName)}】片区进行了像素级的深度解构。在这个看似繁花似锦实则暗流涌动的楼市中，这套方案（租 ${rentYears} 年 + 贷 ${loanYears} 年）在严苛的风控红线过滤下成功突出重围。${healthDesc}它不仅是一场关于金钱流向的推演，更是一面映照你内心渴望的镜子。它告诉你，买房不是终点，好好生活才是。无论你选择了怎样的租贷组合，都是在用当下的克制，去换取未来的从容。生活就像这不断变动的宏观周期，我们无法预测明天的风雨，但可以通过精密的计算，为自己在狂风暴雨中建造一座坚固的灯塔。
+        <span class="section-title">一、 为你量身定制的宏大推演画卷，在不确定的时代锚定确定的幸福</span>
+        系统针对您的严格要求，对【${escapeHtml(regionName)}】片区进行了像素级的深度解构。这套方案（租 ${rentYears} 年 + 贷 ${loanYears} 年）在严苛的风控红线过滤下成功突出重围。它要求你面对 ${houseTotalWan} 万的总价，付出 ${downPaymentWan.toFixed(1)} 万首付，背负 ${loanPrincipalWan.toFixed(1)} 万贷款，并承担${interestText}。${healthDesc}这不仅是一场关于金钱流向的推演，更是一面映照你内心渴望的镜子。买房不是终点，好好生活才是。无论你选择了怎样的租贷组合，都是在用当下的克制，去换取未来的从容。生活就像这不断变动的周期，我们无法预测明天的风雨，但可以通过精密的计算，为自己在狂风暴雨中建造一座坚固的灯塔。
         
         <span class="section-title">二、 数据背后的心声</span>
         <strong>1. 坚实的财务地基：</strong>首付支出 ${downPaymentWan.toFixed(1)} 万，贷款本金 ${loanPrincipalWan.toFixed(1)} 万。<br>
-        <strong>2. 真实的呼吸空间：</strong>每月总支出 ${formatNum(totalMonthlyOutflow, 0)} 元，占收入的 <u>${expenseRatio}%</u>。${triggerExpense}<br>
-        <strong>3. 抵御寒冬的存粮：</strong>${triggerSurplus}${triggerMargin}<br>
-        <strong>4. 资产沉淀的真相：</strong>${triggerRent}${triggerAsset}
+        <strong>2. 真实的呼吸空间：</strong>每月总支出 <span style="${cBlue}">${formatNum(totalMonthlyOutflow, 0)} 元</span>。${expenseHtml}。<br>
+        <strong>3. 抵御寒冬的存粮：</strong>每月结余 <span style="${cBlue}">${formatNum(remainingCash, 0)} 元</span>，${surplusHtml}。距离红线余量 <span style="${redlineMargin > 0 ? cGreen : cRed}">${formatNum(redlineMargin, 0)} 元</span>。<br>
+        <strong>4. 资产沉淀的真相：</strong>${triggerRentShort} 最终沉淀下 ${assetText}。
         
         <span class="section-title">三、 写给你的生活指南</span>
         1. 保持对宏观利率环境的敏感度，如有闲钱优先考虑提前还款，早日卸下包袱，赎回自由身。<br>
         2. 严格监控每月的现金结余率，这是维持家庭幸福感与抗风险能力的基石，切忌盲目加杠杆。<br>
-        3. 无论选择哪条路径，切忌盲目跟风，数据才是客观的指路明灯。坚定执行你推演出的结论，做这个浮躁世界里清醒的少数派。
+        3. 无论选择哪条路径，切忌盲目跟风，数据才是客观的指路明灯。做这个浮躁世界里清醒的少数派。
       `;
   }
+
+  const reportBox = document.getElementById("aiReportBox");
+  reportBox.style.display = "block";
+  reportBox.innerHTML = `
+    <div class="ai-report-card" id="aiReportCard">
+      <div class="ai-report-header">
+        <div class="ai-report-title">
+          💡 智能置业多维决策报告
+          <span class="ai-view-chip">当前视角：${escapeHtml(viewTag)}</span>
+        </div>
+        <div class="ai-report-tag">${tag}</div>
+      </div>
+
+      <div class="ai-data-grid">
+        <div class="ai-data-item">
+          <div class="val">${formatNum(remainingCash, 0)}元</div>
+          <div class="lbl">月度纯现金结余</div>
+        </div>
+        <div class="ai-data-item">
+          <div class="val" style="${parseFloat(surplusRate) >= 50 ? cGreen : cRed}">${surplusRate}%</div>
+          <div class="lbl">真实结余率(小康线50%)</div>
+        </div>
+        <div class="ai-data-item">
+          <div class="val" style="${parseFloat(redlineMargin) < 0 ? cRed : cGreen}">${formatNum(redlineMargin, 0)}元</div>
+          <div class="lbl">距离70%红线余量</div>
+        </div>
+        <div class="ai-data-item">
+          <div class="val">${formatNum(actualNetMortgage, 0)}元</div>
+          <div class="lbl">实际自付月供</div>
+        </div>
+        <div class="ai-data-item">
+          <div class="val">${formatNum(totalMonthlyOutflow, 0)}元</div>
+          <div class="lbl">家庭月度总支出</div>
+        </div>
+      </div>
+
+      <div class="ai-report-content">${text}</div>
+
+      <button class="ai-jump-btn" onclick="openModal(currentTopItem)">📋 查看该方案完整财务明细（月供 / 收支 / 占比 / 利息）</button>
+    </div>
+  `;
+}
 
   const reportBox = document.getElementById("aiReportBox");
   reportBox.style.display = "block";
