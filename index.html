@@ -7,7 +7,8 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
 <style>
-  /* ========== 无方案激励弹窗 ========== */
+
+/* ========== 无方案激励弹窗 ========== */
 #failModal .modal-content {
   background: linear-gradient(135deg, rgba(30, 41, 59, 0.98), rgba(139, 92, 246, 0.15));
   border: 1px solid rgba(244, 114, 182, 0.4);
@@ -60,7 +61,7 @@
   border-left: 3px solid #ef4444;
   text-align: left;
 }
-  /* ========== 全屏撒花特效 ========== */
+/* ========== 全屏撒花特效 ========== */
 #confettiCanvas {
   position: fixed; inset: 0; z-index: 999999; /* 确保在所有面板之上 */
   pointer-events: none; /* 确保不影响鼠标点击 */
@@ -448,6 +449,58 @@ tbody tr:hover { background: rgba(51, 65, 85, 0.4); }
 .loading-spinner { width: 50px; height: 50px; border: 4px solid rgba(255,255,255,0.1); border-top-color: var(--accent-color); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .loading-text { color: #f8fafc; font-weight: 600; font-size: 16px; }
+/* ========== WebGIS 地图标签与图钉 ========== */
+/* 省/市行政区文字标签 */
+.map-label-province, .map-label-city {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  color: #fff;
+  font-weight: bold;
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.9); /* 加阴影防止看不清 */
+  font-size: 12px;
+  pointer-events: none; /* 防止文字遮挡鼠标点击边界 */
+}
+.map-label-province { color: #67e8f9; font-size: 14px; letter-spacing: 2px; }
+.map-label-city { color: #f8fafc; font-size: 13px; }
+
+/* 自定义片区图钉（带文字） */
+.custom-pin {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.custom-pin:hover { transform: translateY(-3px) scale(1.1); z-index: 9999; }
+.custom-pin-icon {
+  width: 26px; height: 26px;
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  border: 2px solid #fff;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  display: flex; justify-content: center; align-items: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+  margin-bottom: 6px;
+}
+.custom-pin-icon span { transform: rotate(45deg); font-size: 12px; color: #fff; }
+.custom-pin-label {
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(96, 165, 250, 0.4);
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  color: #f8fafc;
+  font-weight: bold;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+.custom-pin {
+  display: flex; flex-direction: column; align-items: center;
+  cursor: pointer; transition: transform 0.2s;
+  z-index: 9999; /* 确保图钉在最上层 */
+}
 </style>
 </head>
 <body>
@@ -829,8 +882,9 @@ function initMap() {
         provinceLayer = L.geoJSON(geoData, {
             style: function(feature) { return { className: 'china-border' }; },
             onEachFeature: function(feature, layer) {
-                const name = feature.properties.name || "未知省份";
-                layer.bindTooltip(name, { sticky: true, direction: 'top', className: 'region-tooltip' });
+                const name =  feature.properties.name  || "未知省份";
+                // 🌟 常驻地名
+                layer.bindTooltip(name, { permanent: true, direction: 'center', className: 'map-label-province' });
                 layer.on('click', (e) => {
                     L.DomEvent.stopPropagation(e);
                     map.flyToBounds(layer.getBounds(), { duration: 1.2, padding: [50, 50] });
@@ -847,8 +901,8 @@ function initMap() {
         cityLayer = L.geoJSON(geoData, {
             style: function(feature) { return { className: 'china-border' }; },
             onEachFeature: function(feature, layer) {
-                const name = feature.properties.name || "未知城市";
-                layer.bindTooltip(name, { sticky: true, direction: 'top', className: 'region-tooltip' });
+                const name =  feature.properties.name  || "未知城市";
+                layer.bindTooltip(name, { permanent: true, direction: 'center', className: 'map-label-city' });
                 layer.on('click', (e) => {
                     L.DomEvent.stopPropagation(e);
                     map.flyToBounds(layer.getBounds(), { duration: 1.2, padding: [50, 50] });
@@ -861,6 +915,12 @@ function initMap() {
   map.on('zoomend', function() {
     const z = map.getZoom();
     
+    // 🌟 防止文字拥挤：缩放太小时隐藏文字
+    const tooltips = document.querySelectorAll('.leaflet-tooltip');
+    tooltips.forEach(t => {
+      if (z < 4) { t.style.display = 'none'; } 
+      else { t.style.display = 'block'; }
+    });
     if (z < 6) {
       if (cityLayer && map.hasLayer(cityLayer)) map.removeLayer(cityLayer);
       if (provinceLayer && !map.hasLayer(provinceLayer)) map.addLayer(provinceLayer);
@@ -1729,11 +1789,20 @@ async function loadRegion() {
     regionList.forEach((r) => {
       sel.appendChild(new Option(r.name, r.name));
 
-      const m = L.circleMarker([r.lat, r.lng], {
-        pane: 'markers',
-        radius: isMobile ? 9 : 6, 
-        color: '#60a5fa', fillColor: '#3b82f6', fillOpacity: 0.9, weight: 2
-      });
+      const customIcon = L.divIcon({
+        className: '',
+        html: `
+          <div class="custom-pin">
+            <div class="custom-pin-icon"><span>📍</span></div>
+            <div class="custom-pin-label">${ r.name }</div>
+          </div>
+        `,
+        iconSize: [80, 50],
+        iconAnchor: [40, 50]
+});
+
+const m = L.marker([r.lat, r.lng], { icon: customIcon });
+
 
       const popupDom = document.createElement('div');
       popupDom.style.cssText = "color:#1e293b; font-size:13px;";
@@ -1777,9 +1846,8 @@ function selectAndFly(name, lat, lng) {
   document.getElementById("regionSel").onchange();
 
   const isMobile = window.innerWidth <= 900;
-  allMapMarkers.forEach(item => item.marker.setStyle({ radius: isMobile ? 9 : 6, color: '#60a5fa', fillColor: '#3b82f6' }));
-  const active = allMapMarkers.find(x => x.name === name);
-  if (active) active.marker.setStyle({ radius: isMobile ? 12 : 9, color: '#f87171', fillColor: '#ef4444' });
+  
+  
 
   map.flyTo([lat, lng], 12, { duration: 1.2 });
   revealPanels();
@@ -1794,9 +1862,9 @@ document.getElementById("regionSel").onchange = function () {
 
     revealPanels();
     const isMobile = window.innerWidth <= 900;
-    allMapMarkers.forEach(item => item.marker.setStyle({ radius: isMobile ? 9 : 6, color: '#60a5fa', fillColor: '#3b82f6' }));
+    
     const active = allMapMarkers.find(x => x.name === find.name);
-    if (active) active.marker.setStyle({ radius: isMobile ? 12 : 9, color: '#f87171', fillColor: '#ef4444' });
+    
 
     map.flyTo([find.lat, find.lng], 12, { duration: 1.2 });
   }
