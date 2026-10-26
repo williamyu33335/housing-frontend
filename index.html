@@ -44,7 +44,7 @@ body { margin: 0; padding: 0; background: #0b0f19; color: #f8fafc; overflow: hid
 /* ========== 行政边界样式 ========== */
 .china-border {
   stroke: #00ffff; stroke-width: 1.5; stroke-opacity: 0.8; 
-  fill: #00ffff; fill-opacity: 0.01; /* 极低透明度，确保能响应区域点击 */
+  fill: #00ffff; fill-opacity: 0.01;
   transition: stroke 0.2s, fill 0.2s, fill-opacity 0.2s;
   cursor: pointer;
 }
@@ -441,8 +441,9 @@ tbody tr:hover { background: rgba(51, 65, 85, 0.4); }
         <input type="number" id="initialSavingsWan" value="40" min="0">
       </div>
       <div class="form-item">
-        <label>首付比例 %（15~80）</label>
+        <label>最低首付比例 %（15~80）</label>
         <input type="number" id="downRatio" value="30" min="15" max="80">
+        <div class="form-hint">系统会以此为底线，智能推演掏空首付等策略。</div>
       </div>
     </div>
   </details>
@@ -852,11 +853,26 @@ document.getElementById("exportCsvBtn").onclick = function(){
   if(!currentResult || !currentResult.all_scheme) return showToast("请先推演计算");
   const dataList = currentResult.all_scheme;
   if(dataList.length === 0) return showToast("无数据可导出");
-  const baseCols = [["rent_year", "租年"], ["loan_year", "贷年"], ["down_payment_wan", "首付(万)"], ["liquid_asset_end_wan", "期末资产(万)"], ["adapt_score", "稳健分"], ["comfort_score", "舒适度"], ["surplus_happiness", "幸福感"], ["time_efficiency", "时间效率"], ["suitability_score", "合适度"], ["comprehensive_score", "综合得分"]];
+  const baseCols = [
+    ["rent_year", "租年"], ["loan_year", "贷年"], 
+    ["down_strategy", "首付策略"], ["down_payment_wan", "首付(万)"], 
+    ["liquid_asset_end_wan", "期末资产(万)"], ["adapt_score", "稳健分"], 
+    ["comfort_score", "舒适度"], ["surplus_happiness", "幸福感"], 
+    ["time_efficiency", "时间效率"], ["suitability_score", "合适度"], 
+    ["comprehensive_score", "综合得分"]
+  ];
   const hasRentLevel = dataList[0].rent_level !== undefined;
   const cols = hasRentLevel ? [["rent_level", "租金档(元)"]].concat(baseCols) : baseCols;
   let csvStr = cols.map(c=>c[1]).join(',') + '\n';
-  dataList.forEach(row=>{ csvStr += cols.map(c => csvEscape(row[c[0]])).join(',') + '\n'; });
+  dataList.forEach(row=>{ 
+    csvStr += cols.map(c => {
+      let val = row[c[0]];
+      if (c[0] === "down_strategy") {
+        val = val === "max" ? "极限" : (val === "balanced" ? "平衡" : "最低");
+      }
+      return csvEscape(val);
+    }).join(',') + '\n'; 
+  });
   const now = new Date(); const ts = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}`;
   const blob = new Blob(['\uFEFF'+csvStr], {type:'text/csv;charset=utf-8'});
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `房产推演_${currentMode}_${ts}.csv`; a.click();
@@ -917,7 +933,6 @@ function openModal(item) {
   
   const regionName = document.getElementById("regionSel").value || "目标片区";
   const houseTotalWan = nv("houseTotalWan");
-  const downRatio = nv("downRatio");
   const monthIncomeNet = nv("monthIncomeNet");
   const monthExp = nv("monthExp");
   const propertyFee = nv("propertyFee");
@@ -925,8 +940,10 @@ function openModal(item) {
   const loanRatePct = nv("loanRatePct");
   const repayKind = document.getElementById("repayKind").value;
 
-  const downPaymentWan = houseTotalWan * downRatio / 100;
-  const loanPrincipalWan = Math.max(0, houseTotalWan - downPaymentWan);
+  // 🌟 核心修改：优先读取后端算出的真实首付和贷款金额
+  const downPaymentWan = item.down_payment_wan !== undefined ? item.down_payment_wan : (houseTotalWan * nv("downRatio") / 100);
+  const loanPrincipalWan = item.loan_principal_wan !== undefined ? item.loan_principal_wan : (houseTotalWan - downPaymentWan);
+  
   const loanYears = item.loan_year || 0;
   const rentYears = item.rent_year || 0;
   const rentMonthly = (typeof item.rent_level === "number") ? item.rent_level : nv("rentBase");
@@ -948,6 +965,7 @@ function openModal(item) {
   const pctCls = (v) => v >= 50 ? "ok" : (v >= 0 ? "warn" : "bad");
 
   const row = (label, val, cls="") => `<div class="dr-row"><span class="dr-lbl">${label}</span><span class="dr-val ${cls}">${val}</span></div>`;
+  const dsText = item.down_strategy === "max" ? "极限首付(倾尽所有)" : (item.down_strategy === "balanced" ? "平衡首付(保留备用金)" : "最低首付(最大化杠杆)");
 
   const html = `
     <div class="dr-wrap">
@@ -955,9 +973,9 @@ function openModal(item) {
         <div class="dr-title">🏠 购房与贷款</div>
         ${row("目标片区", escapeHtml(regionName))}
         ${row("房屋总价", `${fmt(houseTotalWan,1)} 万元`)}
-        ${row("首付比例", `${fmt(downRatio,1)} %`)}
-        ${row("首付金额", `${fmt(downPaymentWan,1)} 万元`)}
-        ${row("贷款本金", `${fmt(loanPrincipalWan,1)} 万元`)}
+        ${row("首付策略", `<span style="color:#38bdf8">${dsText}</span>`)}
+        ${row("实际首付金额", `${fmt(downPaymentWan,1)} 万元`, "ok")}
+        ${row("实际贷款本金", `${fmt(loanPrincipalWan,1)} 万元`)}
         ${row("贷款年限", `${loanYears} 年`)}
         ${row("还款方式", repayKind === "equal_principal" ? "等额本金" : "等额本息")}
         ${row("房贷月供(均)", `${fmt(monthlyMortgage,0)} 元`)}
@@ -1026,7 +1044,6 @@ function generateAIExpertReport(topItem, res, viewTag = "综合最优") {
 
   const regionName = document.getElementById("regionSel").value || "目标片区";
   const houseTotalWan = nv("houseTotalWan");
-  const downRatio = nv("downRatio");
   const monthIncomeNet = nv("monthIncomeNet");
   const monthExp = nv("monthExp");
   const propertyFee = nv("propertyFee");
@@ -1035,8 +1052,10 @@ function generateAIExpertReport(topItem, res, viewTag = "综合最优") {
   const repayKind = document.getElementById("repayKind").value;
   const rentMonthly = (typeof topItem.rent_level === "number") ? topItem.rent_level : nv("rentBase");
 
-  const downPaymentWan = (houseTotalWan * downRatio) / 100;
-  const loanPrincipalWan = houseTotalWan - downPaymentWan;
+  // 🌟 核心修改：优先读取后端算出的真实首付和贷款金额
+  const downPaymentWan = topItem.down_payment_wan !== undefined ? topItem.down_payment_wan : (houseTotalWan * nv("downRatio") / 100);
+  const loanPrincipalWan = topItem.loan_principal_wan !== undefined ? topItem.loan_principal_wan : (houseTotalWan - downPaymentWan);
+  
   const loanYears = topItem.loan_year;
   const rentYears = topItem.rent_year;
 
@@ -1115,7 +1134,12 @@ function generateAIExpertReport(topItem, res, viewTag = "综合最优") {
       ? `高达 <span style="${cGreen}">${asset} 万元</span> 的流动现金`
       : `<span style="${cBlue}">${asset} 万元</span> 的流动现金`;
 
-  // 5. 租房年限与贷款年限的过渡语
+  // 5. 时间效率动态评价
+  const timeText = time >= 80 
+      ? `高达 <span style="${cGreen}">${time} 分</span>` 
+      : `<span style="${cBlue}">${time} 分</span>`;
+
+  // 6. 租房年限与贷款年限的过渡语
   const triggerRentShort = rentYears > 0 
     ? `前 ${rentYears} 年的蛰伏期里，你没有把青春白白上交给银行，而是把首付款安放在理财账户中让复利翻滚。` 
     : `直接买房的果断，让你立刻终结了颠沛流离的搬家之苦，获得了满满的归属感。`;
@@ -1123,6 +1147,17 @@ function generateAIExpertReport(topItem, res, viewTag = "综合最优") {
   const triggerLoanShort = loanYears <= 27 
     ? `它没有强迫你在“立刻背上30年房贷”的焦虑中砸锅卖铁，而是用 ${loanYears} 年的温和节奏为你铺就了从容的阶梯。`
     : `它要求你直面长达 ${loanYears} 年的长期贷款，用未来的汗水去置换当下的确定性。`;
+
+  // 7. 首付策略过渡语
+  const dsText = topItem.down_strategy === "max" ? "极限倾囊首付" : (topItem.down_strategy === "balanced" ? "平衡折中首付" : "最低门槛首付");
+  let dsDesc = "";
+  if (topItem.down_strategy === "max") {
+      dsDesc = `你果断采取了<span style="${cRed}">极致的进取策略</span>，倾尽所有现金砸出 ${downPaymentWan.toFixed(1)} 万首付，将贷款本金压制到最低的 ${loanPrincipalWan.toFixed(1)} 万，这是壮士断腕般的魄力。`;
+  } else if (topItem.down_strategy === "balanced") {
+      dsDesc = `你采用了<span style="${cBlue}">精妙的平衡首付</span>，掏出 ${downPaymentWan.toFixed(1)} 万首付，贷款 ${loanPrincipalWan.toFixed(1)} 万，既降低了月供，又留有余粮。`;
+  } else {
+      dsDesc = `你选择了<span style="${cGreen}">最保守的最低首付</span>，只付 ${downPaymentWan.toFixed(1)} 万，背上 ${loanPrincipalWan.toFixed(1)} 万的贷款，把剩余现金死死攥在手里用于理财。`;
+  }
 
   let healthTag = "💡 深度解析";
   let healthDesc = "该组合在财务压力与生活品质之间找到了奇妙的平衡点。";
@@ -1141,7 +1176,7 @@ function generateAIExpertReport(topItem, res, viewTag = "综合最优") {
   if (viewTag === "综合最优") {
       text = `
         <span class="section-title">一、 生活不是非黑即白，在柴米油盐的数据里拥抱真实</span>
-        亲爱的朋友，在这个连呼吸都带着KPI考核味道的时代，买房似乎成了悬在所有年轻人头顶的达摩克利斯之剑。但这套为你算出的【综合最优】方案，并不是一碗只讲情怀的迷魂汤。它总价 ${houseTotalWan} 万，首付 <span style="${cBlue}">${downPaymentWan.toFixed(1)} 万</span>，租房过渡 <span style="${cBlue}">${rentYears} 年</span>，贷款 <span style="${cBlue}">${loanYears} 年</span>。这不仅是一串数字，更是你真实的人生轨迹。${triggerRentShort} ${triggerLoanShort} 它懂得你深夜加班后渴望有一盏归家明灯，也明白你不愿被沉重的账单剥夺周末喝一杯手冲咖啡的自由。数据是冰冷的，但生活有温度；这套在严苛矩阵中斩获 <span style="${cGreen}">${score} 分</span> 的方案，正是用理性的克制，为你书写的一封情书。${healthDesc}
+        亲爱的朋友，在这个连呼吸都带着KPI考核味道的时代，买房似乎成了悬在所有年轻人头顶的达摩克利斯之剑。但这套为你算出的【综合最优】方案，并不是一碗只讲情怀的迷魂汤。它总价 ${houseTotalWan} 万，首付 <span style="${cBlue}">${downPaymentWan.toFixed(1)} 万</span>，租房过渡 <span style="${cBlue}">${rentYears} 年</span>，贷款 <span style="${cBlue}">${loanYears} 年</span>。这不仅是一串数字，更是你真实的人生轨迹。${dsDesc} ${triggerLoanShort} 它懂得你深夜加班后渴望有一盏归家明灯，也明白你不愿被沉重的账单剥夺周末喝一杯手冲咖啡的自由。数据是冰冷的，但生活有温度；这套在严苛矩阵中斩获 <span style="${cGreen}">${score} 分</span> 的方案，正是用理性的克制，为你书写的一封情书。${healthDesc}
         
         <span class="section-title">二、 听听数据背后的心声</span>
         <strong>1. 资本与杠杆的共舞：</strong>这套避风港总价值 <span style="${cBlue}">${houseTotalWan} 万元</span>，你将用 <span style="${cBlue}">${downPaymentWan.toFixed(1)} 万元</span> 首付敲开大门。剩下的 <span style="${cBlue}">${loanPrincipalWan.toFixed(1)} 万元</span> 贷款，通过${repayKind === "equal_principal" ? "等额本金" : "等额本息"}方式在 ${loanYears} 年中偿还，虽然要承担${interestHtml}，但这是跨越阶层的必经之路。<br>
@@ -1159,7 +1194,7 @@ function generateAIExpertReport(topItem, res, viewTag = "综合最优") {
   else if (viewTag === "舒适度TOP") {
       text = `
         <span class="section-title">一、 拼命赚钱的终极奥义，是买下自由呼吸的灵魂</span>
-        我的朋友，当你点开这个【舒适度TOP】标签时，空气里仿佛都弥漫着咖啡豆的香气。这套方案以 <span style="${cGreen}">${happy} 分</span> 的幸福感和 <span style="${cGreen}">${comfort} 分</span> 的舒适度登顶，它是一场对沉重消费主义的浪漫反叛。在这个人人都在鼓吹“早买早安心”的浮躁社会里，它让你在长达 <span style="${cBlue}">${rentYears} 年</span> 的过渡期里，依然能住在离公司步行五分钟的精致公寓，不用把有限青春出卖给地铁。它用 ${houseTotalWan} 万总价的期望，搭配 ${downPaymentWan.toFixed(1)} 万首付，没有榨干你最后的一滴血。这是一种极其奢侈的精神松弛感，它把“家”温柔地还原成了卸下防备的柔软角落。生活不是苦行僧的竞赛，而是一段应该被温柔以待的旅程。
+        我的朋友，当你点开这个【舒适度TOP】标签时，空气里仿佛都弥漫着咖啡豆的香气。这套方案以 <span style="${cGreen}">${happy} 分</span> 的幸福感和 <span style="${cGreen}">${comfort} 分</span> 的舒适度登顶，它是一场对沉重消费主义的浪漫反叛。在这个人人都在鼓吹“早买早安心”的浮躁社会里，它让你在长达 <span style="${cBlue}">${rentYears} 年</span> 的过渡期里，依然能住在离公司步行五分钟的精致公寓，不用把有限青春出卖给地铁。它用 ${houseTotalWan} 万总价的期望，搭配 ${dsText} 的 ${downPaymentWan.toFixed(1)} 万，没有榨干你最后的一滴血。这是一种极其奢侈的精神松弛感，它把“家”温柔地还原成了卸下防备的柔软角落。生活不是苦行僧的竞赛，而是一段应该被温柔以待的旅程。
         
         <span class="section-title">二、 自由，是最高级的财富</span>
         <strong>1. 杠杆的温柔面：</strong>虽然房屋总价高达 ${houseTotalWan} 万，但通过精明的蓄水，你只需 <span style="${cBlue}">${downPaymentWan.toFixed(1)} 万元</span> 首付即可上车，避免了砸锅卖铁的窘境。<br>
@@ -1177,13 +1212,13 @@ function generateAIExpertReport(topItem, res, viewTag = "综合最优") {
   else if (viewTag === "资产积蓄TOP") {
       text = `
         <span class="section-title">一、 拒绝为盲目跟风买单，用绝对理性的极客复利让资本打工</span>
-        嘿，极客朋友，如果你骨子里流淌着对数学之美的崇拜，那么这套【资产积蓄TOP】方案绝对会让你会心一笑。但请注意，这世上没有免费的午餐，这套方案不是只有光鲜亮丽的数字。它需要你掏出 ${downPaymentWan.toFixed(1)} 万首付，背上 ${loanPrincipalWan.toFixed(1)} 万的贷款，并在漫长岁月中支付${interestText}。它的底层逻辑冷酷得像一把手术刀：将首付款死死按在理财账户里野蛮生长，同时用长达 ${loanYears} 年的杠杆去换取现金流的喘息空间。这是一个将金融杠杆玩弄于股掌之间的艺术，它冷酷、精准，不带一丝情绪化冲动。到了30年后，你将手握 ${assetText}，完成了普通人几代人都难以逾越的资本原始积累。这不仅是买房，更是一场资本运作的沙盘演练。
+        嘿，极客朋友，如果你骨子里流淌着对数学之美的崇拜，那么这套【资产积蓄TOP】方案绝对会让你会心一笑。但请注意，这世上没有免费的午餐，这套方案不是只有光鲜亮丽的数字。${dsDesc} 并在漫长岁月中支付${interestText}。它的底层逻辑冷酷得像一把手术刀：将现金尽可能留在理财账户里野蛮生长，同时用长达 ${loanYears} 年的杠杆去换取现金流的喘息空间。这是一个将金融杠杆玩弄于股掌之间的艺术，它冷酷、精准，不带一丝情绪化冲动。到了30年后，你将手握 ${assetText}，完成了普通人几代人都难以逾越的资本原始积累。这不仅是买房，更是一场资本运作的沙盘演练。
         
         <span class="section-title">二、 金钱永不眠，时间看得见</span>
         <strong>1. 极客的算盘：</strong>房屋总价 ${houseTotalWan} 万，你选择了 ${loanYears} 年的贷款期限，${interestHtml}。这看似是一笔沉重的买路钱，但它是你撬动未来资产的支点。<br>
         <strong>2. 极致的资产冲刺：</strong>30 年后，当你彻底卸下债务，手里将握着 ${assetText}，那是资本为你疯狂打工的最强核武器。<br>
         <strong>3. 现金流的代价：</strong>想要在30年后拥有惊人的财富，就必须在当下承受压力。你的真实月供为 <span style="${cBlue}">${formatNum(actualNetMortgage, 0)} 元</span>，红线上方仅剩 <span style="${redlineMargin > 0 ? cGreen : cRed}">${formatNum(redlineMargin, 0)} 元</span> 的缓冲。${expenseHtml}。<br>
-        <strong>4. 战略性的蛰伏：</strong>${triggerRentShort} 这种用时间换取空间的战术，让时间效率得分达到了 <span style="${cBlue}">${time} 分</span>。
+        <strong>4. 战略性的蛰伏：</strong>${triggerRentShort} 这种用时间换取空间的战术，让时间效率得分达到了 ${timeText}。
         
         <span class="section-title">三、 写给你的生活指南</span>
         1. <strong>做金钱的执剑人：</strong>守住你的本金！把首付投入到年化收益能跑赢房贷利率的稳健基金里，去吃市场的无风险利差。<br>
@@ -1195,7 +1230,7 @@ function generateAIExpertReport(topItem, res, viewTag = "综合最优") {
   else if (viewTag === "稳健型") {
       text = `
         <span class="section-title">一、 在黑天鹅满天飞的时代里，把安全感织成黄金铠甲</span>
-        在这个充满不确定性的疯狂世界里，真正成熟的成年人从来不屑于去玩一荣俱荣的豪赌游戏。这套【稳健型】方案以惊人的 <span style="${cGreen}">${adapt} 分</span> 稳健评分傲视群雄。它用 ${houseTotalWan} 万总价、首付 ${downPaymentWan.toFixed(1)} 万、贷款 ${loanPrincipalWan.toFixed(1)} 万的数据底座，向你证明了一个真理：活得安稳，本身就是一种胜利。它通过极其宽裕的现金流安全垫，将每月开销死死压在安全地带。哪怕明天职场面临优化裁员，你依然可以端起茶杯，心里默念一句：“没关系，我的备用金还能撑很久。”这种泰山崩于前而色不变的底气，才是千金难买的人生顶级奢侈品。成年人的体面，是银行卡里永远有一笔能应对变故的“Fuck You Money”。
+        在这个充满不确定性的疯狂世界里，真正成熟的成年人从来不屑于去玩一荣俱荣的豪赌游戏。这套【稳健型】方案以惊人的 <span style="${cGreen}">${adapt} 分</span> 稳健评分傲视群雄。它用 ${houseTotalWan} 万总价、${dsText} 的 ${downPaymentWan.toFixed(1)} 万，向你证明了一个真理：活得安稳，本身就是一种胜利。它通过极其宽裕的现金流安全垫，将每月开销死死压在安全地带。哪怕明天职场面临优化裁员，你依然可以端起茶杯，心里默念一句：“没关系，我的备用金还能撑很久。”这种泰山崩于前而色不变的底气，才是千金难买的人生顶级奢侈品。成年人的体面，是银行卡里永远有一笔能应对变故的“Fuck You Money”。
         
         <span class="section-title">二、 数据背后的踏实安稳</span>
         <strong>1. 拒做账单奴隶：</strong>为了这份安全感，你选择了租 ${rentYears} 年、贷 ${loanYears} 年的组合。虽然产生了${interestHtml}，但这换来的是极致的从容。<br>
@@ -1213,7 +1248,7 @@ function generateAIExpertReport(topItem, res, viewTag = "综合最优") {
   else if (viewTag === "平衡型") {
       text = `
         <span class="section-title">一、 历经千帆后的终极圆满：做个自由穿梭的六边形战士</span>
-        世人总爱走极端，要么内卷苦行，要么月光享乐。而你，我的朋友，却在这套【平衡型】方案中展现了大师级的平衡美学。以 <span style="${cGreen}">${score} 分</span> 优雅落地的它，没有让你在前期 ${rentYears} 年的租房中流浪，也没有让你在后期 ${loanYears} 年的还贷中窒息。面对 ${houseTotalWan} 万总价的房子，你用 <span style="${cBlue}">${downPaymentWan.toFixed(1)} 万</span> 首付和 <span style="${cBlue}">${loanPrincipalWan.toFixed(1)} 万</span> 贷款，在资产增值、抗险防线、居住舒适、幸福指数四个维度上，勾勒出了近乎完美的正六边形。它像一首平仄极其工整的十四行诗，这就是属于普通人的最高级生活艺术——左手烟火，右手远方，在世俗的泥泞中踩出一条优雅的康庄大道。生活不需要你每次都拿满分，但每个维度都拿 80 分，就已经超越了 90% 的人。
+        世人总爱走极端，要么内卷苦行，要么月光享乐。而你，我的朋友，却在这套【平衡型】方案中展现了大师级的平衡美学。以 <span style="${cGreen}">${score} 分</span> 优雅落地的它，没有让你在前期 ${rentYears} 年的租房中流浪，也没有让你在后期 ${loanYears} 年的还贷中窒息。面对 ${houseTotalWan} 万总价的房子，${dsDesc} 在资产增值、抗险防线、居住舒适、幸福指数四个维度上，勾勒出了近乎完美的正六边形。它像一首平仄极其工整的十四行诗，这就是属于普通人的最高级生活艺术——左手烟火，右手远方，在世俗的泥泞中踩出一条优雅的康庄大道。生活不需要你每次都拿满分，但每个维度都拿 80 分，就已经超越了 90% 的人。
         
         <span class="section-title">二、 圆满数据的全景扫描</span>
         <strong>1. 完美的黄金分割：</strong>首付 ${downPaymentWan.toFixed(1)} 万，贷 ${loanPrincipalWan.toFixed(1)} 万。${triggerLoanShort} 期间你需要承担${interestHtml}。<br>
@@ -1231,11 +1266,11 @@ function generateAIExpertReport(topItem, res, viewTag = "综合最优") {
   else if (viewTag === "进取型") {
       text = `
         <span class="section-title">一、 敢叫日月换新天的破局者：用摧枯拉朽的姿态撞开命运的大门</span>
-        平庸是温水煮青蛙的毒药，而真正的勇士敢于迎着惊涛骇浪扬帆起航！这套【进取型】方案是专属于你热血基因的赞歌。它以极具侵略性的高效率（综合得分 <span style="${cGreen}">${score} 分</span>），面对 ${houseTotalWan} 万的资产，直接砸下 ${downPaymentWan.toFixed(1)} 万首付，背负 ${loanPrincipalWan.toFixed(1)} 万贷款，用最快的速度在城市核心打下属于自己的烙印。这是一场充满荷尔蒙的勇敢者游戏，它要求你在职场披荆斩棘、用未来的成长速度去碾压眼前的障碍。虽然过程伴随着紧绷，虽然你需要支付${interestText}，但当你看到期末那串数字时，所有的汗水都会化作骄傲。人生短短数十载，如果连做梦都不敢最大胆一点，那和咸鱼有什么分别？
+        平庸是温水煮青蛙的毒药，而真正的勇士敢于迎着惊涛骇浪扬帆起航！这套【进取型】方案是专属于你热血基因的赞歌。它以极具侵略性的高效率（综合得分 <span style="${cGreen}">${score} 分</span>），面对 ${houseTotalWan} 万的资产，${dsDesc} 用最快的速度在城市核心打下属于自己的烙印。这是一场充满荷尔蒙的勇敢者游戏，它要求你在职场披荆斩棘、用未来的成长速度去碾压眼前的障碍。虽然过程伴随着紧绷，虽然你需要支付${interestText}，但当你看到期末那串数字时，所有的汗水都会化作骄傲。人生短短数十载，如果连做梦都不敢最大胆一点，那和咸鱼有什么分别？
         
         <span class="section-title">二、 锋芒毕露的数据解剖</span>
         <strong>1. 雷霆万钧的杠杆：</strong>总价 ${houseTotalWan} 万，贷款 ${loanPrincipalWan.toFixed(1)} 万。你几乎没有犹豫，极短的租房期后直接拿下红本。<br>
-        <strong>2. 效率就是生命：</strong>时间效率高达 <span style="${cGreen}">${time} 分</span>，你像是一个精算师，将付给银行的利息锁定在 <span style="${totalInterestWan > 50 ? cRed : cBlue}">${totalInterestWan.toFixed(1)} 万元</span>。<br>
+        <strong>2. 效率就是生命：</strong>时间效率达到 ${timeText}，你像是一个精算师，将付给银行的利息锁定在 <span style="${totalInterestWan > 50 ? cRed : cBlue}">${totalInterestWan.toFixed(1)} 万元</span>。<br>
         <strong>3. 战斗状态的面板：</strong>家庭月支出占比达到了 <span style="${cRed}">${expenseRatio}%</span>，${expenseHtml}。你想赢，就必须承受这份张力。<br>
         <strong>4. 金钱的嘉奖：</strong>30 年后你将手握 ${assetText}。在通胀时代，快鱼吃慢鱼。这套方案强制你保持极高的职场竞争力，不接受任何懈怠。
         
@@ -1249,7 +1284,7 @@ function generateAIExpertReport(topItem, res, viewTag = "综合最优") {
   else {
       text = `
         <span class="section-title">一、 为你量身定制的宏大推演画卷，在不确定的时代锚定确定的幸福</span>
-        系统针对您的严格要求，对【${escapeHtml(regionName)}】片区进行了像素级的深度解构。这套方案（租 ${rentYears} 年 + 贷 ${loanYears} 年）在严苛的风控红线过滤下成功突出重围。它要求你面对 ${houseTotalWan} 万的总价，付出 ${downPaymentWan.toFixed(1)} 万首付，背负 ${loanPrincipalWan.toFixed(1)} 万贷款，并承担${interestText}。${healthDesc}这不仅是一场关于金钱流向的推演，更是一面映照你内心渴望的镜子。买房不是终点，好好生活才是。无论你选择了怎样的租贷组合，都是在用当下的克制，去换取未来的从容。生活就像这不断变动的周期，我们无法预测明天的风雨，但可以通过精密的计算，为自己在狂风暴雨中建造一座坚固的灯塔。
+        系统针对您的严格要求，对【${escapeHtml(regionName)}】片区进行了像素级的深度解构。这套方案（租 ${rentYears} 年 + 贷 ${loanYears} 年）在严苛的风控红线过滤下成功突出重围。${dsDesc} 并承担${interestText}。${healthDesc}这不仅是一场关于金钱流向的推演，更是一面映照你内心渴望的镜子。买房不是终点，好好生活才是。无论你选择了怎样的租贷组合，都是在用当下的克制，去换取未来的从容。生活就像这不断变动的周期，我们无法预测明天的风雨，但可以通过精密的计算，为自己在狂风暴雨中建造一座坚固的灯塔。
         
         <span class="section-title">二、 数据背后的心声</span>
         <strong>1. 坚实的财务地基：</strong>首付支出 ${downPaymentWan.toFixed(1)} 万，贷款本金 ${loanPrincipalWan.toFixed(1)} 万。<br>
@@ -1309,6 +1344,7 @@ function generateAIExpertReport(topItem, res, viewTag = "综合最优") {
 const BASE_COLUMNS = [
   { key: "rent_year", label: "租年", dec: 0 },
   { key: "loan_year", label: "贷年", dec: 0 },
+  { key: "down_payment_wan", label: "首付(万)", dec: 1 }, // 新增首付列
   { key: "liquid_asset_end_wan", label: "资产(万)", dec: 2, barMax: 300, color: "rgba(59,130,246,0.3)" },
   { key: "adapt_score", label: "稳健", dec: 2, barMax: 100, color: "rgba(16,185,129,0.3)" },
   { key: "comfort_score", label: "舒适", dec: 2, barMax: 100, color: "rgba(245,158,11,0.3)" },
