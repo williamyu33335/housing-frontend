@@ -41,9 +41,11 @@ body { margin: 0; padding: 0; background: #0b0f19; color: #f8fafc; overflow: hid
 @media (max-width: 1500px) { .layer-switch-btn { padding: 9px 20px; font-size: 13px; } }
 @media (max-width: 900px) { .layer-switch-btn { padding: 7px 14px; font-size: 12px; top: 10px; } }
 
-/* ========== 行政边界样式 ========== */
+/* ========== 行政边界样式（修复滤镜挡图钉） ========== */
 .china-border {
   stroke: #00ffff; stroke-width: 1.5; stroke-opacity: 0.8; fill: none; transition: all 0.2s;
+  /* 核心修复：让填充区域不拦截鼠标事件，只有描边能响应点击 */
+  pointer-events: visibleStroke; 
 }
 .china-border:hover {
   stroke: #fbbf24; stroke-width: 2.5; fill: rgba(251, 191, 36, 0.15); cursor: pointer;
@@ -109,6 +111,25 @@ body { margin: 0; padding: 0; background: #0b0f19; color: #f8fafc; overflow: hid
 @media (max-width: 900px) {
   #leftPanel, #rightPanel { position: relative; width: 100%; top: 0; left: 0; right: 0; margin-bottom: 10px; transform: none; opacity: 1; display: none; height: auto !important; max-height: 80vh; }
   #leftPanel.show, #rightPanel.show { display: block; }
+}
+
+/* ========== 核心修复：手机横屏特殊适配 ========== */
+@media (max-height: 550px) and (orientation: landscape) {
+  /* 横屏时高度不够，强制面板全屏浮层，防止挤压 */
+  #leftPanel, #rightPanel {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    z-index: 9999 !important;
+  }
+  .layer-switch-btn { top: 10px; padding: 6px 12px; font-size: 12px; }
+  .map-hint { display: none; }
 }
 
 /* ========== 面板标题栏 + 关闭按钮 + 边缘召回按钮 ========== */
@@ -568,7 +589,6 @@ const DEFAULT_FORM = {
   "rentInflationPct": 2, "loanRatePct": 3.9, "repayKind": "equal_principal_interest"
 };
 
-// 修复后的前端兜底坐标
 const FALLBACK_REGIONS = [
   {"name": "青秀区", "lat": 22.79, "lng": 108.38, "house_ref": 140, "rent_ref": 3000, "desc": "核心城区，配套完善，名校云集"},
   {"name": "西乡塘区", "lat": 22.84, "lng": 108.28, "house_ref": 85, "rent_ref": 1600, "desc": "科教片区，高校林立，生活成本低"},
@@ -723,7 +743,8 @@ function initMap() {
             onEachFeature: function(feature, layer) {
                 const name = feature.properties.name || "未知省份";
                 layer.bindTooltip(name, { sticky: true, direction: 'top', className: 'region-tooltip' });
-                layer.on('click', () => {
+                layer.on('click', (e) => {
+                    L.DomEvent.stopPropagation(e);
                     map.flyToBounds(layer.getBounds(), { duration: 1.2, padding: [50, 50] });
                 });
             }
@@ -740,7 +761,8 @@ function initMap() {
             onEachFeature: function(feature, layer) {
                 const name = feature.properties.name || "未知城市";
                 layer.bindTooltip(name, { sticky: true, direction: 'top', className: 'region-tooltip' });
-                layer.on('click', () => {
+                layer.on('click', (e) => {
+                    L.DomEvent.stopPropagation(e);
                     map.flyToBounds(layer.getBounds(), { duration: 1.2, padding: [50, 50] });
                 });
             }
@@ -761,6 +783,11 @@ function initMap() {
     if (z >= 10) {
       if (cityLayer && map.hasLayer(cityLayer)) map.removeLayer(cityLayer);
       if (provinceLayer && map.hasLayer(provinceLayer)) map.removeLayer(provinceLayer);
+    }
+
+    // 核心修复：每次缩放结束后，强制把图钉组提到最前面，避免被行政边界挡住
+    if (map.hasLayer(regionMarkersGroup)) {
+      regionMarkersGroup.bringToFront();
     }
   });
 }
@@ -1485,12 +1512,16 @@ async function loadRegion() {
 
     const sel = document.getElementById("regionSel");
     sel.innerHTML = "";
+    
+    // 手机端加大图钉尺寸
+    const isMobile = window.innerWidth <= 900;
 
     regionList.forEach((r) => {
       sel.appendChild(new Option(r.name, r.name));
 
       const m = L.circleMarker([r.lat, r.lng], {
-        radius: 6, color: '#60a5fa', fillColor: '#3b82f6', fillOpacity: 0.9, weight: 2
+        radius: isMobile ? 9 : 6, 
+        color: '#60a5fa', fillColor: '#3b82f6', fillOpacity: 0.9, weight: 2
       });
 
       const popupDom = document.createElement('div');
@@ -1504,6 +1535,7 @@ async function loadRegion() {
       btn.textContent = "以此片区推演";
       btn.style.cssText = "margin-top:6px; background:#2563eb; color:#fff; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;";
       btn.onclick = (e) => {
+        L.DomEvent.stopPropagation(e);
         e.stopPropagation();
         selectAndFly(r.name, r.lat, r.lng);
         m.closePopup();
@@ -1511,9 +1543,11 @@ async function loadRegion() {
       popupDom.appendChild(btn);
 
       m.bindPopup(popupDom);
-      m.on("click", () => {
-        sel.value = r.name;
-        sel.onchange();
+      // 阻止事件冒泡，防止触发地图其他点击
+      m.on("click", (e) => { 
+        L.DomEvent.stopPropagation(e);
+        sel.value = r.name; 
+        sel.onchange(); 
       });
 
       regionMarkersGroup.addLayer(m);
@@ -1521,6 +1555,8 @@ async function loadRegion() {
     });
 
     regionMarkersGroup.addTo(map);
+    // 强制把图钉组提到最前面
+    regionMarkersGroup.bringToFront();
 
     runBtn.disabled = false;
     if (regionList.length > 0) sel.selectedIndex = 0;
@@ -1534,9 +1570,10 @@ function selectAndFly(name, lat, lng) {
   document.getElementById("regionSel").value = name;
   document.getElementById("regionSel").onchange();
 
-  allMapMarkers.forEach(item => item.marker.setStyle({ radius: 6, color: '#60a5fa', fillColor: '#3b82f6' }));
+  const isMobile = window.innerWidth <= 900;
+  allMapMarkers.forEach(item => item.marker.setStyle({ radius: isMobile ? 9 : 6, color: '#60a5fa', fillColor: '#3b82f6' }));
   const active = allMapMarkers.find(x => x.name === name);
-  if (active) active.marker.setStyle({ radius: 9, color: '#f87171', fillColor: '#ef4444' });
+  if (active) active.marker.setStyle({ radius: isMobile ? 12 : 9, color: '#f87171', fillColor: '#ef4444' });
 
   map.flyTo([lat, lng], 12, { duration: 1.2 });
   revealPanels();
@@ -1550,9 +1587,10 @@ document.getElementById("regionSel").onchange = function () {
     document.getElementById("rentBase").value = find.rent_ref;
 
     revealPanels();
-    allMapMarkers.forEach(item => item.marker.setStyle({ radius: 6, color: '#60a5fa', fillColor: '#3b82f6' }));
+    const isMobile = window.innerWidth <= 900;
+    allMapMarkers.forEach(item => item.marker.setStyle({ radius: isMobile ? 9 : 6, color: '#60a5fa', fillColor: '#3b82f6' }));
     const active = allMapMarkers.find(x => x.name === find.name);
-    if (active) active.marker.setStyle({ radius: 9, color: '#f87171', fillColor: '#ef4444' });
+    if (active) active.marker.setStyle({ radius: isMobile ? 12 : 9, color: '#f87171', fillColor: '#ef4444' });
 
     map.flyTo([find.lat, find.lng], 12, { duration: 1.2 });
   }
