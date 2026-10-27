@@ -1598,6 +1598,17 @@
         <div id="carDetails"
           style="display:none; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; margin-bottom: 12px;">
           <div class="form-item">
+            <label>计划何时购车</label>
+            <select id="carBuyYear">
+              <option value="0">立刻买（第1年）</option>
+              <option value="5">第 5 年买</option>
+              <option value="10">第 10 年买</option>
+              <option value="15">第 15 年买</option>
+              <option value="20">第 20 年买</option>
+              <option value="25">第 25 年买</option>
+            </select>
+          </div>
+          <div class="form-item">
             <label>目标车价（万元）</label>
             <input type="number" id="carTotalWan" value="15" min="1">
           </div>
@@ -1949,15 +1960,14 @@
     function initMap() {
       map = L.map("map", { zoomControl: false }).setView([34.5, 108.9], 4);
 
+      // 🌟 使用 Canvas 渲染器，不再卡顿
+      const canvasRenderer = L.canvas({ padding: 0.5, tolerance: 0.5 });
+
       map.createPane('markers');
       map.getPane('markers').style.zIndex = 650;
 
-      esriSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-        attribution: '&copy; Esri', maxZoom: 18
-      });
-      amapVector = L.tileLayer('https://webrd02.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
-        attribution: '© 高德地图', maxZoom: 18
-      });
+      esriSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: '&copy; Esri', maxZoom: 18 });
+      amapVector = L.tileLayer('https://webrd02.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', { attribution: '© 高德地图', maxZoom: 18 });
 
       esriSat.addTo(map);
       L.control.zoom({ position: 'bottomright' }).addTo(map);
@@ -1965,74 +1975,76 @@
 
       regionMarkersGroup = L.layerGroup();
 
+      let globalProvinceData = null;
+      let globalCityData = null;
+      let currentProvinceLayer = null;
+      let currentCityLayer = null;
+
+      const baseStyle = { renderer: canvasRenderer, color: '#00ffff', weight: 1.2, opacity: 0.7, fillColor: '#00ffff', fillOpacity: 0.02, className: 'china-border' };
+      const highlightStyle = { color: '#000000', weight: 2.5, opacity: 1, fillColor: '#000000', fillOpacity: 0.05 };
+
       fetch('china-province.geojson')
         .then(res => res.ok ? res.json() : null)
-        .then(geoData => {
-          if (!geoData) return;
-          provinceLayer = L.geoJSON(geoData, {
-            style: function (feature) { return { className: 'china-border' }; },
-            onEachFeature: function (feature, layer) {
-              const name = feature.properties.name || "未知省份";
-              // 🌟 常驻地名
-              layer.bindTooltip(name, { permanent: true, direction: 'center', className: 'map-label-province' });
-              layer.on('click', (e) => {
-                L.DomEvent.stopPropagation(e);
-                map.flyToBounds(layer.getBounds(), { duration: 1.2, padding: [50, 50] });
-              });
-            }
-          }).addTo(map);
-        })
+        .then(geoData => { if (geoData) { globalProvinceData = geoData; drawProvinces(); } })
         .catch(e => console.log("未找到省级边界", e));
 
       fetch('china-city.geojson')
         .then(res => res.ok ? res.json() : null)
-        .then(geoData => {
-          if (!geoData) return;
-          cityLayer = L.geoJSON(geoData, {
-            style: function (feature) { return { className: 'china-border' }; },
-            onEachFeature: function (feature, layer) {
-              const name = feature.properties.name || "未知城市";
-              layer.bindTooltip(name, { permanent: true, direction: 'center', className: 'map-label-city' });
-              layer.on('click', (e) => {
-                L.DomEvent.stopPropagation(e);
-                map.flyToBounds(layer.getBounds(), { duration: 1.2, padding: [50, 50] });
-              });
-            }
-          });
-        })
+        .then(geoData => { if (geoData) globalCityData = geoData; })
         .catch(e => console.log("未找到市级边界", e));
+
+      function drawProvinces() {
+        if (currentCityLayer) { map.removeLayer(currentCityLayer); currentCityLayer = null; }
+        if (currentProvinceLayer) { map.removeLayer(currentProvinceLayer); }
+
+        currentProvinceLayer = L.geoJSON(globalProvinceData, {
+          style: baseStyle,
+          onEachFeature: function (feature, layer) {
+            const name = feature.properties.name || "未知省份";
+            const adcode = feature.properties.adcode;
+            layer.bindTooltip(name, { direction: 'center', className: 'region-tooltip' });
+            layer.on('click', (e) => {
+              L.DomEvent.stopPropagation(e);
+              if (adcode === 100000) return;
+              map.flyToBounds(layer.getBounds(), { duration: 1.2, padding: [20, 20], easeLinearity: 0.25 });
+              setTimeout(() => { drawCitiesByProvince(adcode, layer.getBounds()); }, 300);
+            });
+          }
+        }).addTo(map);
+      }
+
+      function drawCitiesByProvince(provinceAdcode, bounds) {
+        if (!globalCityData) return;
+        if (currentProvinceLayer) map.removeLayer(currentProvinceLayer);
+        if (currentCityLayer) map.removeLayer(currentCityLayer);
+
+        const cityFeatures = globalCityData.features.filter(f => f.properties.parent && f.properties.parent.adcode === provinceAdcode);
+        if (cityFeatures.length === 0) { showToast("该省暂无市级边界数据"); drawProvinces(); return; }
+
+        currentCityLayer = L.geoJSON(cityFeatures, {
+          style: { ...baseStyle, color: '#60a5fa' },
+          onEachFeature: function (feature, layer) {
+            layer.bindTooltip(feature.properties.name, { direction: 'center', className: 'region-tooltip' });
+            layer.on('click', (e) => {
+              L.DomEvent.stopPropagation(e);
+              layer.setStyle(highlightStyle);
+              map.flyToBounds(layer.getBounds(), { duration: 1.0, padding: [20, 20], easeLinearity: 0.25 });
+            });
+          }
+        }).addTo(map);
+        if (bounds) map.fitBounds(bounds, { padding: [20, 20] });
+      }
 
       map.on('zoomend', function () {
         const z = map.getZoom();
-
-        // 🌟 防止文字拥挤：缩放太小时隐藏文字
-        const tooltips = document.querySelectorAll('.leaflet-tooltip');
-        tooltips.forEach(t => {
-          if (z < 4) { t.style.display = 'none'; }
-          else { t.style.display = 'block'; }
-        });
-        if (z < 6) {
-          if (cityLayer && map.hasLayer(cityLayer)) map.removeLayer(cityLayer);
-          if (provinceLayer && !map.hasLayer(provinceLayer)) map.addLayer(provinceLayer);
-        } else {
-          if (provinceLayer && map.hasLayer(provinceLayer)) map.removeLayer(provinceLayer);
-          if (cityLayer && !map.hasLayer(cityLayer)) map.addLayer(cityLayer);
-        }
-
-        if (z >= 10) {
-          if (cityLayer && map.hasLayer(cityLayer)) map.removeLayer(cityLayer);
-          if (provinceLayer && map.hasLayer(provinceLayer)) map.removeLayer(provinceLayer);
-        }
-
-        if (z >= 9) {
-          if (!map.hasLayer(regionMarkersGroup)) {
-            regionMarkersGroup.addTo(map);
-          }
-        } else {
-          if (map.hasLayer(regionMarkersGroup)) {
-            map.removeLayer(regionMarkersGroup);
+        if (z < 7) {
+          if (currentCityLayer && map.hasLayer(currentCityLayer)) {
+            map.removeLayer(currentCityLayer);
+            if (!map.hasLayer(currentProvinceLayer) && globalProvinceData) drawProvinces();
           }
         }
+        if (z >= 9) { if (!map.hasLayer(regionMarkersGroup)) regionMarkersGroup.addTo(map); }
+        else { if (map.hasLayer(regionMarkersGroup)) map.removeLayer(regionMarkersGroup); }
       });
     }
 
@@ -2315,6 +2327,7 @@
       const loanYears = topItem.loan_year;
       const rentYears = topItem.rent_year;
 
+      const provCap = parseFloat(document.getElementById("providentLoanCapWan").value || 0);
       const calc = calcComboMortgage(loanPrincipalWan, loanRatePct, provCap, 3.1, loanYears, repayKind);
       const monthlyMortgage = calc.monthly;
       const totalInterestWan = calc.totalInterest / 10000;
@@ -2324,7 +2337,6 @@
       const carTotalWan = parseFloat(document.getElementById("carTotalWan").value || 0);
       const carExpense = parseFloat(document.getElementById("carMonthlyExpense").value || 0);
       const growthRate = parseFloat(document.getElementById("annualIncomeGrowthPct").value || 0);
-      const provCap = parseFloat(document.getElementById("providentLoanCapWan").value || 0);
 
       // 🌟 动态判定组合贷
       const isComboLoan = loanPrincipalWan > provCap;
@@ -3055,6 +3067,8 @@
       setLoading(true);
 
       const payload = {
+        buy_car: document.getElementById("buyCar").value === "true",
+        car_buy_year: parseInt(document.getElementById("carBuyYear").value || 0),
         house_total_wan: parseFloat(document.getElementById("houseTotalWan").value),
         initial_savings_wan: parseFloat(document.getElementById("initialSavingsWan").value),
         down_payment_ratio: downRatio,
@@ -3098,9 +3112,14 @@
 
           // 🌟 核心判断：如果是无可行方案，弹出黑马激励窗口，不报错
           if (msg.includes("无可行方案") || msg.includes("均无可行方案")) {
-            document.getElementById('failReasonBox').innerText = `💡 算法推演提示：${msg}`;
+            let failMsg = `💡 算法推演提示：${msg}`;
+            const buyCarStr = document.getElementById("buyCar").value;
+            if (buyCarStr === "true") {
+              failMsg += `<br><br><b>🚗 而且你还选了买车！</b><br>在当前严苛的红线之下，强行买车确实透支了你上车的能力。不妨做做取舍？如果不买车，可能立马就能找到完美的上车方案哦！`;
+            }
+            document.getElementById('failReasonBox').innerHTML = failMsg;
             document.getElementById('failModal').style.display = "flex";
-            return; // 终止当前函数，不执行后面的报错和渲染
+            return;
           }
 
           throw new Error(msg);
