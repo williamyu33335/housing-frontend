@@ -887,7 +887,7 @@ function initMap() {
                 layer.bindTooltip(name, { permanent: true, direction: 'center', className: 'map-label-province' });
                 layer.on('click', (e) => {
                     L.DomEvent.stopPropagation(e);
-                    map.flyToBounds(layer.getBounds(), { duration: 1.2, padding: [50, 50] });
+                    map.flyToBounds(layer.getBounds(), { duration: 1.2, padding: [50, 50] ,easeLinearity:0.25});
                 });
             }
         }).addTo(map);
@@ -905,7 +905,7 @@ function initMap() {
                 layer.bindTooltip(name, { permanent: true, direction: 'center', className: 'map-label-city' });
                 layer.on('click', (e) => {
                     L.DomEvent.stopPropagation(e);
-                    map.flyToBounds(layer.getBounds(), { duration: 1.2, padding: [50, 50] });
+                    map.flyToBounds(layer.getBounds(), { duration: 1.2, padding: [50, 50] ,easeLinearity:0.25});
                 });
             }
         });
@@ -915,12 +915,6 @@ function initMap() {
   map.on('zoomend', function() {
     const z = map.getZoom();
     
-    // 🌟 防止文字拥挤：缩放太小时隐藏文字
-    const tooltips = document.querySelectorAll('.leaflet-tooltip');
-    tooltips.forEach(t => {
-      if (z < 4) { t.style.display = 'none'; } 
-      else { t.style.display = 'block'; }
-    });
     if (z < 6) {
       if (cityLayer && map.hasLayer(cityLayer)) map.removeLayer(cityLayer);
       if (provinceLayer && !map.hasLayer(provinceLayer)) map.addLayer(provinceLayer);
@@ -1849,7 +1843,7 @@ function selectAndFly(name, lat, lng) {
   
   
 
-  map.flyTo([lat, lng], 12, { duration: 1.2 });
+  map.flyTo([lat, lng], 12, { duration: 1.0,easeLinearity:0.25 });
   revealPanels();
   showToast(`已切换至【${name}】进行空间决策`);
 }
