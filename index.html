@@ -1831,7 +1831,7 @@
       "monthIncomeNet": 6500, "monthExp": 2200, "propertyFee": 200,
       "housingFundPct": 16, "rentBase": 1800, "investYieldPct": 0.9,
       "rentInflationPct": 2, "loanRatePct": 3.9, "repayKind": "equal_principal_interest",
-      // 🌟 新增字段
+      "annualInflationPct": 2.5,
       "buyCar": "false", "carTotalWan": 15, "carLoanYear": 3, "carMonthlyExpense": 1500,
       "annualIncomeGrowthPct": 3, "providentLoanCapWan": 60
     };
@@ -2508,10 +2508,13 @@
       // ==================== 维度1：综合最优 ====================
       if (viewTag === "综合最优") {
         text = `
+        ${profileDesc}
         <span class="section-title">一、 生活不是非黑即白，在柴米油盐的数据里拥抱真实</span>
         亲爱的朋友，在这个连呼吸都带着KPI考核味道的时代，买房似乎成了悬在所有年轻人头顶的达摩克利斯之剑。但这套为你算出的【综合最优】方案，并不是一碗只讲情怀的迷魂汤。它总价 ${houseTotalWan} 万，首付 <span style="${cBlue}">${downPaymentWan.toFixed(1)} 万</span>，租房过渡 <span style="${cBlue}">${rentYears} 年</span>，贷款 <span style="${cBlue}">${loanYears} 年</span>。这不仅是一串数字，更是你真实的人生轨迹。${dsDesc} ${triggerLoanShort} 它懂得你深夜加班后渴望有一盏归家明灯，也明白你不愿被沉重的账单剥夺周末喝一杯手冲咖啡的自由。数据是冰冷的，但生活有温度；这套在严苛矩阵中斩获 <span style="${cGreen}">${score} 分</span> 的方案，正是用理性的克制，为你书写的一封情书。${healthDesc}
         
         <span class="section-title">二、 听听数据背后的心声</span>
+        ${buyCar ? `<strong>🚗 进阶生活：</strong>${carComment}<br>` : ''} <!-- 🌟 加上车 -->
+        ${growthRate > 0 ? `<strong>📈 职场复利：</strong>${growthComment}<br>` : ''} <!-- 🌟 加上涨薪 -->
         <strong>1. 资本与杠杆的共舞：</strong>这套避风港总价值 <span style="${cBlue}">${houseTotalWan} 万元</span>，你将用 <span style="${cBlue}">${downPaymentWan.toFixed(1)} 万元</span> 首付敲开大门。剩下的 <span style="${cBlue}">${loanPrincipalWan.toFixed(1)} 万元</span> 贷款，通过${repayKind === "equal_principal" ? "等额本金" : "等额本息"}方式在 ${loanYears} 年中偿还。虽然需要背负${interestPhrase}，但这是跨越阶层的必经之路。<br>
         <strong>2. 现金流的呼吸感：</strong>公积金的进账（约 <span style="${cBlue}">${formatNum(housingFundMonthly, 0)} 元</span>）如同温柔的缓冲垫，让真实的自付月供降至 <span style="${cBlue}">${formatNum(actualNetMortgage, 0)} 元</span>。${expenseHtml}。<br>
         <strong>3. 抵御风险的温柔铠甲：</strong>每月还能剩下 <span style="${cBlue}">${formatNum(remainingCash, 0)} 元</span> 纯现金，${surplusHtml}。你距离残酷的 70% 破产红线，还有 <span style="${redlineMargin > 0 ? cGreen : cRed}">${formatNum(redlineMargin, 0)} 元</span> 的安全余量。<br>
