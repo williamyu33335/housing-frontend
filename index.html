@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 
 <head>
@@ -131,6 +131,19 @@
       display: none;
     }
 
+    .ver-chip { font-size: 10px; color: #64748b; border: 1px solid #334155; border-radius: 4px; padding: 1px 5px; margin-left: 6px; vertical-align: middle; }
+    #appBadge {
+      position: fixed; left: 10px; bottom: 34px; z-index: 1000000;
+      font-size: 11px; color: #94a3b8; background: rgba(15,23,42,.72);
+      border: 1px solid rgba(148,163,184,.35); border-radius: 6px;
+      padding: 2px 8px; pointer-events: none; font-family: Consolas, monospace;
+    }
+    #errBanner {
+      position: fixed; left: 0; right: 0; top: 0; z-index: 1000001;
+      display: none; padding: 8px 14px; font-size: 12px; line-height: 1.5;
+      background: rgba(127, 29, 29, .95); color: #fecaca;
+      border-bottom: 1px solid #ef4444; white-space: pre-wrap;
+    }
     #map {
       position: absolute;
       inset: 0;
@@ -1786,11 +1799,13 @@
   </div>
 
   <div id="map"></div>
+  <div id="appBadge">V6.11</div>
+  <div id="errBanner"></div>
   <div class="map-hint" id="mapHint">🛰️ 初始视角为中国全境，点击城市轮廓可放大，并点击具体片区探索。</div>
 
   <div class="glass-panel" id="leftPanel">
     <div class="panel-head">
-      <h2>仿真参数配置</h2>
+      <h2>仿真参数配置 <span class="ver-chip">V6.11</span></h2>
       <button class="panel-close" onclick="hidePanel('leftPanel')" title="收起面板">✕</button>
     </div>
 
@@ -2130,6 +2145,23 @@
   </div>
 
   <script>
+    // 🚨 全局错误可见化：线上出问题时不用开 DevTools 也能看到原因
+    (function () {
+      function showErr(msg) {
+        const el = document.getElementById("errBanner");
+        if (!el) return;
+        el.style.display = "block";
+        el.textContent = "⚠️ 前端运行错误：" + msg + "（版本 V6.11，请把这条发给经纬）";
+      }
+      window.addEventListener("error", function (e) {
+        showErr((e.message || "未知错误") + " @ " + (e.filename || "").split("/").pop() + ":" + (e.lineno || 0));
+      });
+      window.addEventListener("unhandledrejection", function (e) {
+        const r = e.reason;
+        showErr("Promise: " + (r && r.message ? r.message : String(r)));
+      });
+    })();
+
     const API_HOST = (function () {
       try {
         const q = new URLSearchParams(location.search).get("api");
@@ -2335,7 +2367,8 @@
         || null;
     }
 
-    function applyCity(city) {
+    function applyCity(city, opts) {
+      const fly = !opts || opts.fly !== false;
       currentCity = city;
       regionList = formCityZones(city);
       const sel = document.getElementById("regionSel");
@@ -2350,11 +2383,15 @@
       if (citySel) citySel.value = city.code;
       if (map) {
         map.invalidateSize();
-        map.flyTo([city.lat, city.lng], city.tier <= 2 ? 9 : 10, { duration: 1.2 });
-        map.once('moveend', () => {
-          if (!map.hasLayer(regionMarkersGroup)) regionMarkersGroup.addTo(map);
-          map.invalidateSize();
-        });
+        if (fly) {
+          map.flyTo([city.lat, city.lng], city.tier <= 2 ? 9 : 10, { duration: 1.2 });
+          map.once('moveend', () => {
+            if (!map.hasLayer(regionMarkersGroup)) regionMarkersGroup.addTo(map);
+            map.invalidateSize();
+          });
+        } else if (!map.hasLayer(regionMarkersGroup)) {
+          regionMarkersGroup.addTo(map);
+        }
       }
     }
 
@@ -2711,6 +2748,14 @@
 
     function initMap() {
       map = L.map("map", { zoomControl: false }).setView([34.5, 108.9], 4);
+      // ?view=22.82,108.37,9 可直接定位到某个视角（分享/验收用）
+      const viewParam = new URLSearchParams(location.search).get("view");
+      if (viewParam) {
+        const vp = viewParam.split(",").map(Number);
+        if (vp.length >= 2 && vp.every(n => !isNaN(n))) {
+          map.setView([vp[0], vp[1]], vp[2] || 9);
+        }
+      }
 
       // 🌟 使用 Canvas 渲染器，不再卡顿
       const canvasRenderer = L.canvas({ padding: 0.5, tolerance: 0.5 });
@@ -2726,6 +2771,7 @@
       L.control.scale({ imperial: false, position: 'bottomleft' }).addTo(map);
 
       regionMarkersGroup = L.layerGroup();
+      let autoHintShown = false;
 
       let globalProvinceData = null;
       let globalCityData = null;
@@ -2742,7 +2788,18 @@
 
       fetch('china-city.geojson')
         .then(res => res.ok ? res.json() : null)
-        .then(geoData => { if (geoData) globalCityData = geoData; })
+        .then(geoData => {
+          if (geoData) {
+            globalCityData = geoData;
+            globalCityData.features.forEach(f => {
+              try { f.__bounds = L.geoJSON(f).getBounds(); } catch (_) { }
+            });
+            // 数据晚到时补几次城市识别（避开 loadRegion/clearCity 的时序竞争）
+            [200, 800, 1800].forEach(ms => setTimeout(() => {
+              if (window.__syncCityFromMap) window.__syncCityFromMap();
+            }, ms));
+          }
+        })
         .catch(e => console.log("未找到市级边界", e));
 
       function drawProvinces() {
@@ -2780,11 +2837,46 @@
             layer.on('click', (e) => {
               L.DomEvent.stopPropagation(e);
               layer.setStyle(highlightStyle);
-              map.flyToBounds(layer.getBounds(), { duration: 1.0, padding: [20, 20], easeLinearity: 0.25 });
+              const matched = matchCityByName(feature.properties.name);
+              if (matched) {
+                applyCity(matched);   // 命中基准库：同步城市下拉 + 生成图钉
+              } else {
+                map.flyToBounds(layer.getBounds(), { duration: 1.0, padding: [20, 20], easeLinearity: 0.25 });
+                showToast(`「${feature.properties.name}」暂无基准数据，可在左侧选择邻近城市`);
+              }
             });
           }
         }).addTo(map);
         if (bounds) map.fitBounds(bounds, { padding: [20, 20] });
+      }
+
+      function syncCityFromMap() {
+        if (!globalCityData || currentCity) return;
+        if (map.getZoom() < 8) return;
+        const hit = findCityAt(map.getCenter());
+        if (!hit) return;
+        const matched = matchCityByName(hit.name);
+        if (matched) {
+          applyCity(matched, { fly: false });
+          showToast(`已识别城市：${matched.name}，可直接选择片区`);
+        } else if (!autoHintShown) {
+          autoHintShown = true;
+          showToast(`「${hit.name}」暂无基准数据，可在左侧选择邻近城市`);
+        }
+      }
+      window.__syncCityFromMap = syncCityFromMap;
+
+      // 根据地图中心点找所在城市（用预计算的 bounds，取范围最小的）
+      function findCityAt(latlng) {
+        if (!globalCityData) return null;
+        let best = null;
+        for (const f of globalCityData.features) {
+          const b = f.__bounds;
+          if (!b || !b.contains(latlng)) continue;
+          const area = Math.abs((b.getNorth() - b.getSouth()) * (b.getEast() - b.getWest()));
+          if (!best || area < best.area) best = { name: f.properties.name, area: area };
+        }
+        return best;
       }
 
       setTimeout(() => map.invalidateSize(), 200);
@@ -2797,8 +2889,13 @@
             if (!map.hasLayer(currentProvinceLayer) && globalProvinceData) drawProvinces();
           }
         }
-        if (z >= 8) { if (!map.hasLayer(regionMarkersGroup)) regionMarkersGroup.addTo(map); }
-        else { if (map.hasLayer(regionMarkersGroup)) map.removeLayer(regionMarkersGroup); }
+        if (z >= 8) {
+          if (!map.hasLayer(regionMarkersGroup)) regionMarkersGroup.addTo(map);
+          // 🎯 放大到市级时自动识别城市并同步下拉，不需要先点列表
+          setTimeout(syncCityFromMap, 60);
+        } else {
+          if (map.hasLayer(regionMarkersGroup)) map.removeLayer(regionMarkersGroup);
+        }
       });
     }
 
@@ -3906,9 +4003,11 @@
           : null;
         if (preset) {
           applyCity(preset);
-        } else {
+        } else if (!currentCity && (!map || map.getZoom() < 8)) {
+          // 已经放大到市级时交给自动识别，不要清空
           clearCity();
         }
+        setTimeout(() => { if (window.__syncCityFromMap) window.__syncCityFromMap(); }, 250);
         runBtn.disabled = false;
       } catch (e) {
         console.error("城市数据初始化失败：", e);
@@ -4443,6 +4542,18 @@
 </body>
 
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
