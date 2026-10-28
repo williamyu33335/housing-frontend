@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 
 <head>
@@ -792,6 +792,25 @@
 
     .timemachine-card b { color: #ddd6fe; }
 
+    .pp-banner {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      background: rgba(56, 189, 248, 0.07);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 14px;
+    }
+    .pp-banner .pp-num { display: flex; flex-direction: column; }
+    .pp-banner .pp-num b { font-size: 18px; color: #e2e8f0; }
+    .pp-banner .pp-num.real b { color: #fbbf24; }
+    .pp-banner .pp-num span { font-size: 10px; color: #94a3b8; }
+    .pp-banner .pp-arrow { color: #64748b; font-size: 16px; }
+    .pp-banner .pp-note { flex-basis: 100%; font-size: 11px; color: #94a3b8; }
+
+
     /* ============================================================
        🧭 V6.1 风险姿态：70% 是承诺，90% 是悬崖
        ============================================================ */
@@ -875,6 +894,21 @@
     }
 
     .risk-card b { color: #fff; }
+
+    .career-card {
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.92), rgba(30, 41, 59, 0.85));
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 12px;
+      font-size: 12px;
+      color: #cbd5e1;
+    }
+    .career-card h3 { margin: 0 0 8px; font-size: 13px; color: #7dd3fc; }
+    .career-card .row { display: flex; justify-content: space-between; gap: 10px; margin: 4px 0; }
+    .career-card .row b { color: #f1f5f9; }
+    .career-card svg { display: block; width: 100%; height: 46px; margin-top: 8px; }
+    .career-card .note { color: #94a3b8; font-size: 11px; margin-top: 6px; line-height: 1.5; }
 
 
     button#runBtn {
@@ -1816,9 +1850,32 @@
           </div>
         </div>
         <div class="form-item">
-          <label>预期年薪增长率 %</label>
+          <label>职业类型（决定薪资曲线形状）</label>
+          <select id="careerType">
+            <option value="public">体制内 / 事业单位（稳定、职称台阶）</option>
+            <option value="corporate" selected>企业职员（早快后平）</option>
+            <option value="freelance">自由职业 / 销售（高波动、高上限）</option>
+          </select>
+        </div>
+        <div class="form-item">
+          <label>行业（决定天花板）</label>
+          <select id="industry">
+            <option value="other" selected>其他 / 综合</option>
+            <option value="it">信息技术 / 互联网</option>
+            <option value="finance">金融</option>
+            <option value="research">科研 / 技术服务</option>
+            <option value="health">医疗 / 卫生</option>
+            <option value="education">教育</option>
+            <option value="public_admin">公共管理</option>
+            <option value="manufacturing">制造 / 建筑</option>
+            <option value="services">住餐 / 居民服务</option>
+          </select>
+          <div class="form-hint">用国家统计局 2024 年分行业工资校准：信息业约为全国均值的 1.93 倍，住餐业约 0.49 倍。</div>
+        </div>
+        <div class="form-item">
+          <label>预期职业成长（年增速 %）</label>
           <input type="number" id="annualIncomeGrowthPct" value="3" step="0.1" min="0">
-          <div class="form-hint">打破死工资，每干一年涨点薪，复利的力量。</div>
+          <div class="form-hint">S 型职业曲线，不是复利：3% 大约 30 年后到起薪的 1.6 倍（10000→16000）；起薪越低，相对空间越大（4000→8400）。</div>
         </div>
         <div class="form-item">
           <label>公积金贷款最高额度（万）</label>
@@ -1934,6 +1991,12 @@
         </div>
 
         <div class="form-item">
+          <label>房价年增速 %（0 = 不预测涨跌）</label>
+          <input type="number" id="housePriceGrowthPct" value="0" step="0.1" min="0" max="20">
+          <div class="form-hint">只影响“买房那一年的总价”；填 0 就是现在的价，不做任何涨价假设。</div>
+        </div>
+
+        <div class="form-item">
           <label>房贷年利率 %</label>
           <input type="number" id="loanRatePct" value="3.9" step="0.1" min="0.1" max="20">
         </div>
@@ -1980,6 +2043,7 @@
       <div class="tab-wrap" id="tabWrap" style="margin:0;"></div>
     </div>
 
+    <div id="careerBox"></div>
     <div id="riskBox"></div>
     <div id="spatialBox"></div>
     <div id="timeMachineBox"></div>
@@ -1993,6 +2057,7 @@
         <div class="chart-tab active" data-chart="bar">资产与得分 TOP10</div>
         <div class="chart-tab" data-chart="radar">榜首能力雷达图</div>
       </div>
+      <button class="chart-save-btn" id="assetViewBtn" title="切换名义资产 / 今日购买力">💵 名义资产</button>
       <button class="chart-save-btn" id="saveChartBtn">💾 保存图表</button>
     </div>
     <div id="chartDom"></div>
@@ -2069,7 +2134,7 @@
       "monthIncomeNet": 6500, "monthExp": 2200, "propertyFee": 200,
       "housingFundPct": 16, "rentBase": 1800, "investYieldPct": 0.9,
       "rentInflationPct": 2, "loanRatePct": 3.9, "repayKind": "equal_principal_interest",
-      "annualInflationPct": 2.5,
+      "annualInflationPct": 2.5, "housePriceGrowthPct": 0,
       "buyCar": "false", "carTotalWan": 15, "carLoanYear": 3, "carMonthlyExpense": 1500,
       "annualIncomeGrowthPct": 3, "providentLoanCapWan": 60, "hiddenExpenseMonth": 0
     };
@@ -2149,6 +2214,10 @@
     let currentZone = null;
     let commuteManual = false;
     let currentRisk = "steady";
+    // 用户没选城市时的“全国平均”口径（百城二手均价 + 50 城平均租金 + 城镇非私营月薪）
+    const NATIONAL_DEFAULT = {
+      name: "全国平均", tier: 3, price: 13268, rent: 35, salary: 10342, lat: 35.0, lng: 105.0
+    };
     const TM_KEY = "housing_v2_time_machine";
 
     let map = null;
@@ -2159,6 +2228,7 @@
     let currentMode = "relative";
     let currentResult = null;
     let currentChartType = "bar";
+    let currentAssetView = "nominal";   // nominal | real
 
     let isCalculating = false;
     let entropyOpen = false;
@@ -2212,6 +2282,8 @@
       const sel = document.getElementById("citySel");
       if (!sel) return;
       sel.innerHTML = "";
+      // 🚩 默认不选任何城市：不是每个用户都在南宁，也不是每个访客都想在这里买房
+      sel.appendChild(new Option("🇨🇳 全国平均 · 请选择目标城市", ""));
       const groups = {};
       CITY_DB.forEach(c => { (groups[c.tier] = groups[c.tier] || []).push(c); });
       Object.keys(groups).sort().forEach(t => {
@@ -2223,15 +2295,31 @@
         sel.appendChild(og);
       });
       sel.onchange = function () {
+        if (!this.value) { clearCity(); return; }
         const c = CITY_DB.find(x => x.code === this.value);
         if (c) applyCity(c);
       };
+    }
+
+    function clearCity() {
+      currentCity = null;
+      currentZone = null;
+      regionList = [];
+      if (regionMarkersGroup) { regionMarkersGroup.clearLayers(); }
+      allMapMarkers = [];
+      const sel = document.getElementById("regionSel");
+      sel.innerHTML = '<option value="">请先选择目标城市</option>';
+      sel.disabled = true;
+      const citySel = document.getElementById("citySel");
+      if (citySel) citySel.value = "";
+      refreshSpatialChips();
     }
 
     function applyCity(city) {
       currentCity = city;
       regionList = formCityZones(city);
       const sel = document.getElementById("regionSel");
+      sel.disabled = false;
       sel.innerHTML = "";
       regionList.forEach(r => sel.appendChild(new Option(r.name, r.name)));
       sel.selectedIndex = 0;
@@ -2324,8 +2412,9 @@
     function refreshSpatialChips() {
       const box = document.getElementById("spatialChips");
       if (!box) return;
-      if (!currentCity || !currentZone) { box.innerHTML = ""; return; }
-      const price = currentZone.price_sqm || currentCity.price;
+      const city = currentCity || NATIONAL_DEFAULT;
+      const zone = currentZone || { price_sqm: city.price, name: "全国平均" };
+      const price = zone.price_sqm || city.price;
       const house = nv("houseTotalWan");
       const income = nv("monthIncomeNet");
       const famEl = document.getElementById("familyMode");
@@ -2333,9 +2422,9 @@
       const area = price > 0 ? house * 10000 / price : 0;
       const per = area / Math.max(1, fam);
       const pir = income > 0 ? house * 10000 / (income * 12) : 0;
-      const rel = currentCity.salary > 0 ? income / currentCity.salary : 0;
+      const rel = city.salary > 0 ? income / city.salary : 0;
       const items = [
-        { t: TIER_LABELS[currentCity.tier] || "未知能级", cls: "" },
+        { t: TIER_LABELS[city.tier] || "未知能级", cls: "" },
         { t: `${formatNum(price, 0)} 元/㎡`, cls: "" },
         { t: `可购 ${area.toFixed(0)}㎡`, cls: per < 18 ? "warn" : "ok" },
         { t: `人均 ${per.toFixed(1)}㎡`, cls: per < 18 ? "warn" : "" },
@@ -2346,7 +2435,7 @@
     }
 
     function spatialRequestFields() {
-      const city = currentCity || { name: "南宁", tier: 3, price: 10500, rent: 27, salary: 7200 };
+      const city = currentCity || NATIONAL_DEFAULT;
       const zone = currentZone || { price_sqm: city.price };
       const famEl = document.getElementById("familyMode");
       const fam = famEl ? (parseInt(famEl.value) || 2) : 2;
@@ -2365,6 +2454,35 @@
         rent_transport_month: Math.round(120 + 4 * rentMin),
         own_transport_month: Math.round(120 + 4 * ownMin)
       };
+    }
+
+    function renderCareerCard(career) {
+      const box = document.getElementById("careerBox");
+      if (!box) return;
+      if (!career) { box.innerHTML = ""; return; }
+      const nominal = career.nominal_curve || {};
+      const years = Object.keys(nominal).map(Number).sort((a, b) => a - b);
+      if (years.length < 2) { box.innerHTML = ""; return; }
+      const vals = years.map(y => nominal[y]);
+      const maxV = Math.max(...vals), minV = Math.min(...vals);
+      const pts = years.map((y, i) => {
+        const x = (i / (years.length - 1)) * 100;
+        const yy = 42 - ((nominal[y] - minV) / Math.max(1, maxV - minV)) * 36;
+        return `${x.toFixed(1)},${yy.toFixed(1)}`;
+      }).join(" ");
+      box.innerHTML = `
+      <div class="career-card">
+        <h3>📈 薪资曲线 · ${escapeHtml(career.career_label || "企业职员")} · S 型</h3>
+        <div class="row"><span>起薪</span><b>${formatNum(career.start_monthly, 0)} 元/月</b></div>
+        <div class="row"><span>职业天花板</span><b>${formatNum(career.ceiling_monthly, 0)} 元/月 · ${career.cap_multiple} 倍</b></div>
+        <div class="row"><span>行业</span><b>${escapeHtml(career.industry_label || "其他 / 综合")}</b></div>
+        <div class="row"><span>收入波动 / 应急缓冲</span><b>${career.volatility_pct != null ? career.volatility_pct : "--"}% · 建议 ${career.buffer_months_required != null ? career.buffer_months_required : "--"} 个月</b></div>
+        <div class="row"><span>30 年后（名义 / 今日物价）</span><b>${formatNum(career.nominal_30y_monthly, 0)} / ${formatNum(career.real_30y_monthly, 0)} 元</b></div>
+        <svg viewBox="0 0 100 46" preserveAspectRatio="none" aria-hidden="true">
+          <polyline points="${pts}" fill="none" stroke="#38bdf8" stroke-width="1.2" vector-effect="non-scaling-stroke"></polyline>
+        </svg>
+        <div class="note">${escapeHtml((career.career_note ? career.career_note + "。" : "") + career.note)}</div>
+      </div>`;
     }
 
     function renderRiskCard(rk) {
@@ -2407,7 +2525,8 @@
         <div class="spatial-grid">
           <div class="item"><div class="v">${sp.own_area_sqm}</div><div class="k">可购面积 ㎡</div></div>
           <div class="item"><div class="v">${sp.area_per_person}</div><div class="k">人均面积 ㎡</div></div>
-          <div class="item"><div class="v">${sp.commute.own_min}′</div><div class="k">买房后单程</div></div>          <div class="item"><div class="v">${formatNum(sp.commute.time_cost_month, 0)}</div><div class="k">通勤时间成本 元/月</div></div>
+          <div class="item"><div class="v">${sp.commute.own_min}′</div><div class="k">买房后单程</div></div>
+          <div class="item"><div class="v">${formatNum(sp.commute.time_cost_month, 0)}</div><div class="k">通勤时间成本 元/月</div></div>
           <div class="item"><div class="v">${sp.pir}</div><div class="k">房价收入比</div></div>
           <div class="item"><div class="v">${sp.rel_income}×</div><div class="k">相对本地收入</div></div>
         </div>
@@ -2670,6 +2789,8 @@
       }
       const famSel = document.getElementById("familyMode");
       if (famSel) famSel.value = "2";
+      const ct = document.getElementById("careerType"); if (ct) ct.value = "corporate";
+      const ind = document.getElementById("industry"); if (ind) ind.value = "other";
       currentRisk = "steady";
       document.querySelectorAll(".risk-btn").forEach(b => b.classList.toggle("active", b.dataset.risk === "steady"));
       document.getElementById("squeezeWrap").style.display = "none";
@@ -2687,6 +2808,14 @@
           document.getElementById("houseTotalWan").value = find.house_ref;
           document.getElementById("rentBase").value = find.rent_ref;
         }
+      }
+    };
+
+    document.getElementById("assetViewBtn").onclick = function () {
+      currentAssetView = currentAssetView === "nominal" ? "real" : "nominal";
+      this.textContent = currentAssetView === "real" ? "🟡 今日购买力" : "💵 名义资产";
+      if (currentResult && currentResult.top_comprehensive && currentResult.top_comprehensive.length) {
+        drawChart(currentResult.top_comprehensive[0], currentResult.top_comprehensive);
       }
     };
 
@@ -2717,7 +2846,7 @@
       const baseCols = [
         ["rent_year", "租年"], ["loan_year", "贷年"],
         ["down_strategy", "首付策略"], ["down_payment_wan", "首付(万)"],
-        ["liquid_asset_end_wan", "期末资产(万)"], ["adapt_score", "稳健分"],
+        ["liquid_asset_end_wan", "期末资产(万)"], ["real_asset_wan", "今日购买力(万)"], ["buffer_months", "现金缓冲(月)"], ["adapt_score", "稳健分"],
         ["comfort_score", "舒适度"], ["surplus_happiness", "幸福感"],
         ["time_efficiency", "时间效率"], ["suitability_score", "合适度"],
         ["comprehensive_score", "综合得分"]
@@ -2789,6 +2918,7 @@
       document.getElementById("emptyState").style.display = "block";
       document.getElementById("spatialBox").innerHTML = "";
       document.getElementById("riskBox").innerHTML = "";
+      document.getElementById("careerBox").innerHTML = "";
       document.getElementById("timeMachineBox").innerHTML = "";
       if (chart) { chart.dispose(); chart = null; }
     }
@@ -3027,7 +3157,10 @@
       const comfort = topItem.comfort_score;
       const happy = topItem.surplus_happiness;
       const time = topItem.time_efficiency;
-      const asset = formatNum(topItem.liquid_asset_end_wan, 2);
+      const nominalAssetWan = topItem.liquid_asset_end_wan;
+      const realAssetWan = (typeof topItem.real_asset_wan === "number") ? topItem.real_asset_wan : null;
+      const inflationFactor = (res.spatial && res.spatial.inflation_factor_30y) ? res.spatial.inflation_factor_30y : 2.098;
+      const asset = formatNum(nominalAssetWan, 2);
 
       // ==========================================
       // 🌟 颜色标记与数据评价引擎
@@ -3070,10 +3203,13 @@
         surplusHtml = `仅 <span style="${cRed}">${surplusRate}%</span> 的结余率，是一种为了长远资产跨越而采取的战术性紧缩`;
       }
 
-      // 4. 期末资产评价
+      // 4. 期末资产评价（名义 + 今日购买力，双口径）
+      const realAssetText = realAssetWan !== null
+        ? `，按今日物价约 <span style="${cBlue}">${formatNum(realAssetWan, 2)} 万元</span>`
+        : "";
       let assetText = topItem.liquid_asset_end_wan > 100
-        ? `高达 <span style="${cGreen}">${asset} 万元</span> 的流动现金`
-        : `<span style="${cBlue}">${asset} 万元</span> 的流动现金`;
+        ? `高达 <span style="${cGreen}">${asset} 万元</span> 的流动现金${realAssetText}`
+        : `<span style="${cBlue}">${asset} 万元</span> 的流动现金${realAssetText}`;
 
       // 5. 时间效率动态评价
       const timeText = time >= 80
@@ -3144,6 +3280,14 @@
 
       // 将 profileDesc 插入到最终的 text 字符串里：
       // 找到 text 模板里那句 "亲爱的朋友..." 或 "在这个连呼吸都带着KPI考核味道的时代..." 前面，加上 ${profileDesc}
+
+      const ppBanner = realAssetWan !== null ? `
+      <div class="pp-banner">
+        <div class="pp-num"><b>${formatNum(nominalAssetWan, 2)} 万</b><span>30 年后名义资产</span></div>
+        <div class="pp-arrow">≈</div>
+        <div class="pp-num real"><b>${formatNum(realAssetWan, 2)} 万</b><span>按今日物价（${inflationFactor}× 通胀）</span></div>
+        <div class="pp-note">名义数字会骗人，购买力不会。下面所有判断，都以“今天的钱”为准。</div>
+      </div>` : "";
 
       let text = "";
 
@@ -3313,18 +3457,27 @@
         这套方案落在 <b>${escapeHtml(sp.city_name)} · ${escapeHtml(sp.tier_label)}</b>，${escapeHtml(sp.family_label)}。按片区 ${formatNum(sp.district_price_sqm, 0)} 元/㎡ 折算，${houseTotalWan} 万只能买到 <b>${sp.own_area_sqm} ㎡</b>，人均 <b>${sp.area_per_person} ㎡</b>。${areaVerdict}<br>
         你的税后收入，是本地平均薪资（${formatNum(sp.city_avg_salary, 0)} 元/月）的 <b>${sp.rel_income} 倍</b>。这个倍数决定了你在这座城市里，到底是“被平均”，还是“有余裕”。${cityVerdict}<br>
         ${commuteVerdict} 按当地时薪折算，买房后每天往返 ${sp.commute.own_min * 2} 分钟（单程 ${sp.commute.own_min} 分钟），每月相当于隐性支付 <b>${formatNum(sp.commute.time_cost_month, 0)} 元</b>——它不会出现在工资条上，但它真实地吃掉你的人生。通勤折现后，你的时间效率是 <b>${time} 分</b>（租房期 ${sp.commute.rent_score} 分 / 买房后 ${sp.commute.own_score} 分）。<br>
-        最后是那个最容易被忽略的真相：30 年后你手里的 ${asset} 万，是名义资产；按 30 年通胀系数 ${sp.inflation_factor_30y}× 折算，真实购买力只剩 <b>${formatNum(topItem.real_asset_wan, 2)} 万元</b>。这正是我们反复拒绝“画大饼”的原因——数字会膨胀，人生不会。`;
+        最后是那个最容易被忽略的真相：30 年后你手里的 ${asset} 万，是名义资产；按 30 年通胀系数 ${sp.inflation_factor_30y}× 折算，真实购买力只剩 <b>${realAssetWan !== null ? formatNum(realAssetWan, 2) : "--"} 万元</b>。这正是我们反复拒绝“画大饼”的原因——数字会膨胀，人生不会。
+        ${(res.market && res.market.house_price_growth_pct > 0 && topItem.purchase_price_wan)
+            ? `<br>房价按每年 <b>${res.market.house_price_growth_pct}%</b> 增长：你在租 ${rentYears} 年后买入时，总价已变成 <b>${formatNum(topItem.purchase_price_wan, 1)} 万</b>，首付与贷款都按这个价格重算。`
+            : ""}`;
       }
 
       // ==========================================
-      // 🧭 V6.1 风险姿态叙事
+      // 🧭 V6.1 风险姿态叙事（V6.5 增补现金缓冲）
       // ==========================================
       const rk = (res && res.risk) ? res.risk : null;
+      const bufMonths = topItem.buffer_months;
+      const bufReq = topItem.buffer_required;
+      const bufferLine = (typeof bufMonths === "number")
+        ? `整个周期里最紧的时候，你手里只剩 <b>${bufMonths} 个月</b>的支出；按你的职业波动，建议至少留 <b>${bufReq} 个月</b>。${bufMonths >= bufReq ? "这条线守住了。" : "这就是悬崖：缓冲不足，一次断粮就会踩空。"}`
+        : "";
       let riskHtml = "";
       if (rk && rk.mode === "aggressive") {
         riskHtml = `
         <span class="section-title">五、 悬崖方案：踩在刀尖上的全速前进</span>
         你主动选择了 <b>${rk.loan_cap_pct}%</b> 的生存线。系统不再替你留那 30% 的安全垫——它把每一分钱都压进了时间效率里。${rk.squeeze_life ? "你甚至勾选了节衣缩食，把可支配生活开销压到 8 折。" : ""}
+        ${bufferLine}
         这不是一个可以推荐给任何人的方案，它是一个只属于“现在就要”的选择：任何一次失业、一场病、一个必须随的份子钱，都会让你踩空。
         但我也必须承认，在房价和收入的双重挤压下，有些人确实只剩下这一条路。系统把它算清楚，不是为了鼓励你跳，而是让你知道自己在跳什么。`;
       } else if (rk) {
@@ -3334,6 +3487,7 @@
         riskHtml = `
         <span class="section-title">五、 那道 70% 的红线，和它守住的 30%</span>
         这套方案里，还贷期的真实支出始终没有越过收入的 <b>${rk.loan_cap_pct}%</b>。${hiddenHtml}
+        ${bufferLine}
         我们坚持这条线，不是保守，是因为见过太多被一场病、一次裁员击穿的家庭。`;
       }
 
@@ -3372,7 +3526,7 @@
         </div>
       </div>
 
-      <div class="ai-report-content">${text}${spatialHtml}${riskHtml}</div>
+      <div class="ai-report-content">${ppBanner}${text}${spatialHtml}${riskHtml}</div>
 
       <button class="ai-jump-btn" onclick="openModal(currentTopItem)">📋 查看该方案完整财务明细（月供 / 收支 / 占比 / 利息）</button>
     </div>
@@ -3385,6 +3539,8 @@
       { key: "down_payment_wan", label: "真实首付(万)", dec: 1 },
       { key: "loan_principal_wan", label: "贷款本金(万)", dec: 1 },
       { key: "liquid_asset_end_wan", label: "资产(万)", dec: 2, barMax: 300, color: "rgba(59,130,246,0.3)" },
+      { key: "real_asset_wan", label: "购买力(万)", dec: 2, barMax: 300, color: "rgba(251,191,36,0.3)" },
+      { key: "buffer_months", label: "缓冲(月)", dec: 1, barMax: 12, color: "rgba(16,185,129,0.3)" },
       { key: "adapt_score", label: "稳健", dec: 2, barMax: 100, color: "rgba(16,185,129,0.3)" },
       { key: "comfort_score", label: "舒适", dec: 2, barMax: 100, color: "rgba(245,158,11,0.3)" },
       { key: "surplus_happiness", label: "幸福", dec: 2, barMax: 100, color: "rgba(139,92,246,0.3)" },
@@ -3451,7 +3607,9 @@
       if (currentChartType === "bar") {
         if (!topArr || topArr.length === 0) return;
         const top10 = topArr.slice(0, 10);
-        const assetData = top10.map(i => i.liquid_asset_end_wan);
+        const assetKey = currentAssetView === "real" ? "real_asset_wan" : "liquid_asset_end_wan";
+        const assetName = currentAssetView === "real" ? "今日购买力(万)" : "期末资产(万)";
+        const assetData = top10.map(i => (typeof i[assetKey] === "number" ? i[assetKey] : i.liquid_asset_end_wan));
         const scoreData = top10.map(i => i.comprehensive_score);
 
         let chartWarning = "";
@@ -3506,13 +3664,13 @@
             trigger: "axis", formatter: function (params) {
               let res = params[0].name + '<br/>';
               params.forEach(item => {
-                const unit = item.seriesName === "期末资产(万)" ? " 万" : " 分";
+                const unit = item.seriesName.indexOf("万") >= 0 ? " 万" : " 分";
                 res += `${item.marker} ${item.seriesName}: <b>${item.value}${unit}</b><br/>`;
               });
               return res;
             }
           },
-          legend: { data: ["期末资产(万)", "综合得分"], bottom: 0, textStyle: { color: '#cbd5e1' } },
+          legend: { data: [assetName, "综合得分"], bottom: 0, textStyle: { color: '#cbd5e1' } },
           grid: { left: "8%", right: "8%", bottom: "15%", top: "20%" },
           xAxis: {
             type: "category", data: top10.map(i => {
@@ -3522,7 +3680,7 @@
           },
           yAxis: [
             {
-              type: "value", name: "资产(万)",
+              type: "value", name: currentAssetView === "real" ? "购买力(万)" : "资产(万)",
               min: assetYAxisMin,
               max: assetYAxisMax,
               interval: assetInterval,
@@ -3539,7 +3697,7 @@
             }
           ],
           series: [
-            { name: "期末资产(万)", type: "bar", data: assetData, itemStyle: { color: "#3b82f6", borderRadius: [4, 4, 0, 0] } },
+            { name: assetName, type: "bar", data: assetData, itemStyle: { color: currentAssetView === "real" ? "#fbbf24" : "#3b82f6", borderRadius: [4, 4, 0, 0] } },
             { name: "综合得分", type: "line", yAxisIndex: 1, data: scoreData, itemStyle: { color: "#10b981" }, smooth: true }
           ]
         };
@@ -3593,7 +3751,8 @@
           <div class="metric"><div class="val">${gb.rent_year} 年</div><div class="lbl">租房年限</div></div>
           <div class="metric"><div class="val">${gb.loan_year} 年</div><div class="lbl">贷款年限</div></div>
           <div class="metric"><div class="val">${formatNum(gb.comprehensive_score, 2)}</div><div class="lbl">综合得分</div></div>
-          <div class="metric"><div class="val">${formatNum(gb.liquid_asset_end_wan, 2)}万</div><div class="lbl">期末资产</div></div>
+          <div class="metric"><div class="val">${formatNum(gb.liquid_asset_end_wan, 2)}万</div><div class="lbl">期末资产（名义）</div></div>
+          <div class="metric"><div class="val" style="color:#fbbf24">${gb.real_asset_wan !== undefined ? formatNum(gb.real_asset_wan, 2) : "--"}万</div><div class="lbl">按今日物价</div></div>
         </div>
       </div>`;
       } else {
@@ -3607,6 +3766,7 @@
       }
 
       // 🏙️ 空间折叠面板 + ⏳ 时光机
+      renderCareerCard(res.career);
       renderRiskCard(res.risk);
       if (res.spatial) {
         renderSpatialCard(res.spatial, res);
@@ -3694,8 +3854,7 @@
         if (nn) nn.zones = nanning;
 
         buildCitySelect();
-        applyCity(nn || CITY_DB[0]);
-
+        clearCity();   // 🚩 不自动跳南宁：从全国视角开始，用户自己选
         runBtn.disabled = false;
       } catch (e) {
         console.error(e);
@@ -3795,6 +3954,9 @@
       payload.risk_mode = currentRisk;
       payload.squeeze_life = document.getElementById("squeezeLife").checked && currentRisk === "aggressive";
       payload.hidden_expense_month = parseFloat(document.getElementById("hiddenExpenseMonth").value || 0);
+      payload.career_type = document.getElementById("careerType").value;
+      payload.industry = document.getElementById("industry").value;
+      payload.house_price_growth_pct = parseFloat(document.getElementById("housePriceGrowthPct").value || 0);
 
 
       const endpoint = currentMode === "relative" ? "/api/simulate" : "/api/simulate/absolute";
@@ -3888,6 +4050,14 @@
         const el = document.getElementById(id);
         if (el) el.addEventListener("input", () => { commuteManual = true; refreshSpatialChips(); });
       });
+
+      // 🧪 演示/验收钩子：?autorun=1 自动跑一次默认推演（不影响正常使用）
+      if (new URLSearchParams(location.search).get("autorun") === "1") {
+        setTimeout(() => {
+          const b = document.getElementById("runBtn");
+          if (b && !b.disabled) b.click();
+        }, 1200);
+      }
     };
     /* ============================================================
        🎉 撒花引擎 v2 · 性能优先
@@ -3971,6 +4141,8 @@
       let startTime = 0;
       let dpr = 1;
       let frameCount = 0;
+      let avgDelta = 16.7;
+      let throttled = false;
 
       function sizeCanvas() {
         // 装饰性动画不值得为 HiDPI 付 4 倍像素的合成成本：
@@ -4014,10 +4186,10 @@
         const cores = navigator.hardwareConcurrency || 8;
         const lowEnd = cores <= 4 || w < 900;
 
-        const nCenter = lowEnd ? 34 : 52;
-        const nSide = lowEnd ? 10 : 16;
-        const nStar = lowEnd ? 24 : 38;
-        const nEmoji = lowEnd ? 8 : 14;
+        const nCenter = lowEnd ? 30 : 42;
+        const nSide = lowEnd ? 8 : 12;
+        const nStar = lowEnd ? 20 : 30;
+        const nEmoji = lowEnd ? 6 : 12;
 
         particles = [];
 
@@ -4076,21 +4248,30 @@
         if (!running) return;
         if (!startTime) { startTime = now; last = now; }
 
-        let dt = (now - last) / 16.667;
+        const rawDelta = now - last;
+        let dt = rawDelta / 16.667;
         last = now;
         if (dt > 2.5) dt = 2.5;      // 切后台回来不要瞬移
         if (dt <= 0) dt = 0.001;
 
-        const elapsed = now - startTime;
-        // 尾段：淡出更快（2.1s 开始，2.7s 结束），并隔帧渲染，
-        // 避免全屏半透明粒子和页面重绘抢帧——旧版“最后缓降时卡”就卡在这里。
-        const fading = elapsed > 2100;
         frameCount++;
-        if (fading && particles.length < 70 && (frameCount & 1)) {
+        // 🩺 自适应降帧：连续偏慢就主动降到 ~30fps，宁可稳，不要一顿一顿的
+        avgDelta = avgDelta * 0.9 + Math.min(rawDelta, 80) * 0.1;
+        if (frameCount > 25 && !throttled && avgDelta > 21) throttled = true;
+        if (throttled && (frameCount & 1)) {
           raf = requestAnimationFrame(frame);
           return;
         }
-        const fade = elapsed < 2100 ? 1 : Math.max(0, 1 - (elapsed - 2100) / 600);
+
+        const elapsed = now - startTime;
+        // 尾段：淡出更快（1.9s 开始，2.35s 结束），并隔帧渲染，
+        // 避免全屏半透明粒子和页面重绘抢帧——旧版“最后缓降时卡”就卡在这里。
+        const fading = elapsed > 1900;
+        if (fading && particles.length < 60 && (frameCount & 1)) {
+          raf = requestAnimationFrame(frame);
+          return;
+        }
+        const fade = elapsed < 1900 ? 1 : Math.max(0, 1 - (elapsed - 1900) / 450);
 
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -4194,5 +4375,21 @@
 </body>
 
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
