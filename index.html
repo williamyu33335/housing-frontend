@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 
 <head>
@@ -2324,6 +2324,15 @@
       refreshSpatialChips();
     }
 
+    // 把 GeoJSON 里的“南宁市/崇左市”映射到 CITY_DB 的“南宁/崇左”
+    function matchCityByName(rawName) {
+      if (!rawName) return null;
+      const clean = String(rawName).replace(/(市|地区|自治州|盟|特别行政区)$/u, "");
+      return CITY_DB.find(c => c.name === clean)
+        || CITY_DB.find(c => clean.startsWith(c.name) || c.name.startsWith(clean))
+        || null;
+    }
+
     function applyCity(city) {
       currentCity = city;
       regionList = formCityZones(city);
@@ -2337,7 +2346,14 @@
       syncZoneToForm(true);
       const citySel = document.getElementById("citySel");
       if (citySel) citySel.value = city.code;
-      if (map) map.flyTo([city.lat, city.lng], city.tier <= 2 ? 9 : 10, { duration: 1.2 });
+      if (map) {
+        map.invalidateSize();
+        map.flyTo([city.lat, city.lng], city.tier <= 2 ? 9 : 10, { duration: 1.2 });
+        map.once('moveend', () => {
+          if (!map.hasLayer(regionMarkersGroup)) regionMarkersGroup.addTo(map);
+          map.invalidateSize();
+        });
+      }
     }
 
     function renderRegionMarkers() {
@@ -2769,6 +2785,8 @@
         if (bounds) map.fitBounds(bounds, { padding: [20, 20] });
       }
 
+      setTimeout(() => map.invalidateSize(), 200);
+
       map.on('zoomend', function () {
         const z = map.getZoom();
         if (z < 7) {
@@ -2777,7 +2795,7 @@
             if (!map.hasLayer(currentProvinceLayer) && globalProvinceData) drawProvinces();
           }
         }
-        if (z >= 9) { if (!map.hasLayer(regionMarkersGroup)) regionMarkersGroup.addTo(map); }
+        if (z >= 8) { if (!map.hasLayer(regionMarkersGroup)) regionMarkersGroup.addTo(map); }
         else { if (map.hasLayer(regionMarkersGroup)) map.removeLayer(regionMarkersGroup); }
       });
     }
@@ -3879,7 +3897,16 @@
         if (nn) nn.zones = nanning;
 
         buildCitySelect();
-        clearCity();   // 🚩 不自动跳南宁：从全国视角开始，用户自己选
+        // 🚩 默认全国视角，不自动跳南宁；?city=450100 或 ?city=南宁 可直达
+        const cityParam = new URLSearchParams(location.search).get("city");
+        const preset = cityParam
+          ? CITY_DB.find(x => x.code === cityParam || x.name === cityParam)
+          : null;
+        if (preset) {
+          applyCity(preset);
+        } else {
+          clearCity();
+        }
         runBtn.disabled = false;
       } catch (e) {
         console.error(e);
@@ -4412,6 +4439,8 @@
 </body>
 
 </html>
+
+
 
 
 
