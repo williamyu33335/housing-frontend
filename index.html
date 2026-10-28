@@ -698,6 +698,185 @@
       line-height: 1.4;
     }
 
+    /* ============================================================
+       🏙️ V2.0 空间折叠：城市能级 / 通勤 / 时光机
+       ============================================================ */
+    .spatial-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .spatial-chip {
+      font-size: 11px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      color: #7dd3fc;
+      white-space: nowrap;
+    }
+
+    .spatial-chip.warn {
+      background: rgba(248, 113, 113, 0.12);
+      border-color: rgba(248, 113, 113, 0.4);
+      color: #fca5a5;
+    }
+
+    .spatial-chip.ok {
+      background: rgba(52, 211, 153, 0.12);
+      border-color: rgba(52, 211, 153, 0.4);
+      color: #6ee7b7;
+    }
+
+    .spatial-card {
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.85), rgba(15, 23, 42, 0.9));
+      border: 1px solid rgba(56, 189, 248, 0.28);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+    }
+
+    .spatial-card h3 {
+      margin: 0 0 10px;
+      font-size: 14px;
+      color: #7dd3fc;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .spatial-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+      gap: 10px;
+    }
+
+    .spatial-grid .item {
+      text-align: center;
+    }
+
+    .spatial-grid .item .v {
+      font-size: 16px;
+      font-weight: 800;
+      color: #e2e8f0;
+    }
+
+    .spatial-grid .item .k {
+      font-size: 10px;
+      color: #94a3b8;
+      margin-top: 3px;
+    }
+
+    .spatial-note {
+      margin-top: 10px;
+      font-size: 11px;
+      color: #94a3b8;
+      line-height: 1.5;
+      border-top: 1px dashed rgba(148, 163, 184, 0.25);
+      padding-top: 8px;
+    }
+
+    .timemachine-card {
+      background: rgba(139, 92, 246, 0.08);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 12px;
+      font-size: 12px;
+      color: #c4b5fd;
+      line-height: 1.65;
+    }
+
+    .timemachine-card b { color: #ddd6fe; }
+
+    /* ============================================================
+       🧭 V6.1 风险姿态：70% 是承诺，90% 是悬崖
+       ============================================================ */
+    .risk-switch {
+      display: flex;
+      gap: 6px;
+      margin: 10px 0 8px;
+    }
+
+    .risk-btn {
+      flex: 1;
+      padding: 8px 6px;
+      border-radius: 8px;
+      border: 1px solid #334155;
+      background: rgba(15, 23, 42, 0.6);
+      color: #cbd5e1;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .risk-btn.active {
+      border-color: #38bdf8;
+      background: rgba(56, 189, 248, 0.15);
+      color: #7dd3fc;
+      font-weight: 700;
+    }
+
+    .risk-btn[data-risk="aggressive"].active {
+      border-color: #f87171;
+      background: rgba(248, 113, 113, 0.15);
+      color: #fca5a5;
+    }
+
+    .risk-note {
+      font-size: 11px;
+      line-height: 1.55;
+      color: #94a3b8;
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px dashed rgba(148, 163, 184, 0.3);
+      border-radius: 8px;
+      padding: 8px 10px;
+      margin-bottom: 8px;
+    }
+
+    .risk-note.danger {
+      color: #fca5a5;
+      border-color: rgba(248, 113, 113, 0.4);
+      background: rgba(248, 113, 113, 0.08);
+    }
+
+    .risk-check {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #fca5a5;
+      cursor: pointer;
+    }
+
+    .risk-check input { width: auto; margin: 0; }
+
+    .risk-card {
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 12px;
+      font-size: 12px;
+      line-height: 1.65;
+    }
+
+    .risk-card.steady {
+      background: rgba(52, 211, 153, 0.07);
+      border: 1px solid rgba(52, 211, 153, 0.28);
+      color: #a7f3d0;
+    }
+
+    .risk-card.aggressive {
+      background: rgba(248, 113, 113, 0.08);
+      border: 1px solid rgba(248, 113, 113, 0.35);
+      color: #fecaca;
+    }
+
+    .risk-card b { color: #fff; }
+
+
     button#runBtn {
       width: 100%;
       padding: 14px;
@@ -1566,7 +1745,7 @@
 
   <div class="splash-screen" id="splashScreen">
     <h1 class="splash-title">全国房产金融决策仿真系统</h1>
-    <p class="splash-subtitle">基于 WebGIS 与多准则决策的智能推演平台</p>
+    <p class="splash-subtitle">V6.0 · 空间折叠引擎 ｜ 基于 WebGIS 与多准则决策的智能推演平台</p>
     <button class="splash-btn" onclick="enterSystem()">进入全景中国地图</button>
   </div>
 
@@ -1582,6 +1761,20 @@
     <div class="mode-switch">
       <button class="mode-btn active" data-mode="relative">📍 相对推演</button>
       <button class="mode-btn" data-mode="absolute">🎯 绝对寻优</button>
+    </div>
+
+    <div class="risk-switch">
+      <button class="risk-btn active" data-risk="steady">🛡️ 稳健红线 70%</button>
+      <button class="risk-btn" data-risk="aggressive">🚀 悬崖方案 90%</button>
+    </div>
+    <div class="risk-note" id="riskNote">
+      70% 红线：还贷期真实支出不超过收入的 70%，替你守住 30% 的呼吸空间——那里装着生病、失业、和突然要随的份子钱。
+    </div>
+    <div id="squeezeWrap" style="display:none; margin-bottom:10px;">
+      <label class="risk-check">
+        <input type="checkbox" id="squeezeLife">
+        节衣缩食：把可支配生活开销压到 8 折（仅激进模式）
+      </label>
     </div>
 
     <details class="config-group">
@@ -1636,6 +1829,35 @@
     </details>
 
     <details class="config-group" open>
+      <summary>🏙️ 城市能级与空间折叠</summary>
+      <div class="config-body">
+        <div class="form-item">
+          <label>目标城市</label>
+          <select id="citySel"></select>
+          <div class="form-hint">V2.0：不同城市换算不同的房价、薪资与通勤，空间异质性不再是一句口号。</div>
+        </div>
+        <div class="form-item">
+          <label>家庭模式</label>
+          <select id="familyMode">
+            <option value="1">🧍 单身贵族（人均面积按 1 人算）</option>
+            <option value="2" selected>👫 二人世界（人均面积按 2 人算）</option>
+            <option value="3">👨‍👩‍👧 三口之家（人均面积按 3 人算）</option>
+          </select>
+        </div>
+        <div class="form-item">
+          <label>租房期单程通勤（分钟）</label>
+          <input type="number" id="rentCommuteMin" value="20" min="0" max="180">
+        </div>
+        <div class="form-item">
+          <label>买房后单程通勤（分钟）</label>
+          <input type="number" id="ownCommuteMin" value="28" min="0" max="180">
+          <div class="form-hint" id="commuteHint">已按片区几何距离自动估算，可手动修正。</div>
+        </div>
+        <div id="spatialChips" class="spatial-chips"></div>
+      </div>
+    </details>
+
+    <details class="config-group" open>
       <summary>核心资产配置</summary>
       <div class="config-body">
         <div class="form-item">
@@ -1677,6 +1899,11 @@
           <label>公积金缴存比例 %（个人+企业合计）</label>
           <input type="number" id="housingFundPct" value="16" min="0" max="24">
           <div class="form-hint">买房后公积金按月进账，可直接抵扣月供。</div>
+        </div>
+        <div class="form-item">
+          <label>隐形支出摊销（元/月）</label>
+          <input type="number" id="hiddenExpenseMonth" value="0" min="0" placeholder="例如 600">
+          <div class="form-hint">请你自己的账，我们不替你填。例：过年红包 2000 + 旅行 3000 + 体检/看病 2000 + 份子钱 2000 ≈ 9000/年 ≈ 750 元/月。填 0 表示暂不计入。</div>
         </div>
       </div>
     </details>
@@ -1753,8 +1980,11 @@
       <div class="tab-wrap" id="tabWrap" style="margin:0;"></div>
     </div>
 
-    <div id="aiReportBox" style="display:none;"></div>
+    <div id="riskBox"></div>
+    <div id="spatialBox"></div>
+    <div id="timeMachineBox"></div>
 
+    <div id="aiReportBox" style="display:none;"></div>
     <div id="warningBox"></div>
     <div id="skipTipBox"></div>
 
@@ -1825,7 +2055,15 @@
   </div>
 
   <script>
-    const API_HOST = "https://housing-api-aexa.onrender.com";
+    const API_HOST = (function () {
+      try {
+        const q = new URLSearchParams(location.search).get("api");
+        if (q) return q.replace(/\/$/, "");
+        const saved = localStorage.getItem("housing_api_host");
+        if (saved) return saved.replace(/\/$/, "");
+      } catch (_) { }
+      return "https://housing-api-aexa.onrender.com";
+    })();
     const DEFAULT_FORM = {
       "houseTotalWan": 100, "initialSavingsWan": 40, "downRatio": 30,
       "monthIncomeNet": 6500, "monthExp": 2200, "propertyFee": 200,
@@ -1833,18 +2071,85 @@
       "rentInflationPct": 2, "loanRatePct": 3.9, "repayKind": "equal_principal_interest",
       "annualInflationPct": 2.5,
       "buyCar": "false", "carTotalWan": 15, "carLoanYear": 3, "carMonthlyExpense": 1500,
-      "annualIncomeGrowthPct": 3, "providentLoanCapWan": 60
+      "annualIncomeGrowthPct": 3, "providentLoanCapWan": 60, "hiddenExpenseMonth": 0
     };
     const FALLBACK_REGIONS = [
-      { "name": "青秀区", "lat": 22.79, "lng": 108.38, "house_ref": 140, "rent_ref": 3000, "desc": "核心城区，配套完善，名校云集" },
-      { "name": "西乡塘区", "lat": 22.84, "lng": 108.28, "house_ref": 85, "rent_ref": 1600, "desc": "科教片区，高校林立，生活成本低" },
-      { "name": "江南区", "lat": 22.78, "lng": 108.28, "house_ref": 78, "rent_ref": 1500, "desc": "老城区，刚需友好，烟火气浓" },
-      { "name": "兴宁区", "lat": 22.85, "lng": 108.33, "house_ref": 92, "rent_ref": 1900, "desc": "老城商圈，火车站附近，交通便利" },
-      { "name": "良庆区", "lat": 22.74, "lng": 108.36, "house_ref": 110, "rent_ref": 2300, "desc": "五象新区核心地带，发展潜力大" },
-      { "name": "邕宁区", "lat": 22.76, "lng": 108.48, "house_ref": 82, "rent_ref": 1600, "desc": "五象东扩区，价格洼地，生态宜居" },
-      { "name": "武鸣区", "lat": 23.16, "lng": 108.27, "house_ref": 55, "rent_ref": 1200, "desc": "教育园区，大学城，价格极低" },
-      { "name": "五象新区", "lat": 22.72, "lng": 108.35, "house_ref": 120, "rent_ref": 2500, "desc": "自治区级重点发展新区，总部基地" }
+      { "name": "青秀区", "lat": 22.79, "lng": 108.38, "house_ref": 140, "rent_ref": 3000, "price_sqm": 15500, "commute_min": 15, "desc": "核心城区，配套完善，名校云集" },
+      { "name": "西乡塘区", "lat": 22.84, "lng": 108.28, "house_ref": 85, "rent_ref": 1600, "price_sqm": 9500, "commute_min": 28, "desc": "科教片区，高校林立，生活成本低" },
+      { "name": "江南区", "lat": 22.78, "lng": 108.28, "house_ref": 78, "rent_ref": 1500, "price_sqm": 8700, "commute_min": 30, "desc": "老城区，刚需友好，烟火气浓" },
+      { "name": "兴宁区", "lat": 22.85, "lng": 108.33, "house_ref": 92, "rent_ref": 1900, "price_sqm": 10200, "commute_min": 22, "desc": "老城商圈，火车站附近，交通便利" },
+      { "name": "良庆区", "lat": 22.74, "lng": 108.36, "house_ref": 110, "rent_ref": 2300, "price_sqm": 12200, "commute_min": 25, "desc": "五象新区核心地带，发展潜力大" },
+      { "name": "邕宁区", "lat": 22.76, "lng": 108.48, "house_ref": 82, "rent_ref": 1600, "price_sqm": 9100, "commute_min": 35, "desc": "五象东扩区，价格洼地，生态宜居" },
+      { "name": "武鸣区", "lat": 23.16, "lng": 108.27, "house_ref": 55, "rent_ref": 1200, "price_sqm": 6100, "commute_min": 55, "desc": "教育园区，大学城，价格极低" },
+      { "name": "五象新区", "lat": 22.72, "lng": 108.35, "house_ref": 120, "rent_ref": 2500, "price_sqm": 13300, "commute_min": 20, "desc": "自治区级重点发展新区，总部基地" }
     ];
+
+    /* ============================================================
+       🏙️ V2.0 全国城市库 · 空间异质性的数据底座
+       ------------------------------------------------------------
+       price  : 元/㎡（二手房综合口径）
+       rent   : 元/㎡·月（整租折算）
+       salary : 城镇就业月均收入（用于“相对收入位置”，不是人均可支配）
+       ============================================================ */
+    const CITY_DB = [
+      { code: "110000", name: "北京", tier: 1, price: 63000, rent: 92, salary: 13900, lat: 39.90, lng: 116.41 },
+      { code: "310000", name: "上海", tier: 1, price: 61000, rent: 95, salary: 13800, lat: 31.23, lng: 121.47 },
+      { code: "440300", name: "深圳", tier: 1, price: 58000, rent: 85, salary: 13000, lat: 22.54, lng: 114.06 },
+      { code: "440100", name: "广州", tier: 2, price: 33000, rent: 55, salary: 11500, lat: 23.13, lng: 113.26 },
+      { code: "330100", name: "杭州", tier: 2, price: 31000, rent: 52, salary: 11000, lat: 30.27, lng: 120.16 },
+      { code: "320100", name: "南京", tier: 2, price: 28000, rent: 40, salary: 10500, lat: 32.06, lng: 118.80 },
+      { code: "320500", name: "苏州", tier: 2, price: 22000, rent: 36, salary: 10000, lat: 31.30, lng: 120.58 },
+      { code: "330200", name: "宁波", tier: 2, price: 24000, rent: 38, salary: 9800, lat: 29.87, lng: 121.55 },
+      { code: "350200", name: "厦门", tier: 2, price: 35000, rent: 45, salary: 10000, lat: 24.48, lng: 118.09 },
+      { code: "120000", name: "天津", tier: 2, price: 18000, rent: 32, salary: 9000, lat: 39.13, lng: 117.20 },
+      { code: "370200", name: "青岛", tier: 2, price: 20000, rent: 33, salary: 9000, lat: 36.07, lng: 120.38 },
+      { code: "510100", name: "成都", tier: 2, price: 18000, rent: 35, salary: 9500, lat: 30.57, lng: 104.07 },
+      { code: "420100", name: "武汉", tier: 2, price: 16500, rent: 32, salary: 9000, lat: 30.59, lng: 114.31 },
+      { code: "610100", name: "西安", tier: 2, price: 15000, rent: 30, salary: 8800, lat: 34.34, lng: 108.94 },
+      { code: "500000", name: "重庆", tier: 2, price: 12000, rent: 28, salary: 8500, lat: 29.56, lng: 106.55 },
+      { code: "430100", name: "长沙", tier: 2, price: 11000, rent: 26, salary: 8200, lat: 28.23, lng: 112.94 },
+      { code: "410100", name: "郑州", tier: 2, price: 12000, rent: 26, salary: 7800, lat: 34.75, lng: 113.63 },
+      { code: "340100", name: "合肥", tier: 2, price: 16000, rent: 28, salary: 8500, lat: 31.86, lng: 117.28 },
+      { code: "440600", name: "佛山", tier: 2, price: 14000, rent: 27, salary: 8500, lat: 23.02, lng: 113.12 },
+      { code: "441900", name: "东莞", tier: 2, price: 18000, rent: 30, salary: 8800, lat: 23.02, lng: 113.75 },
+      { code: "320200", name: "无锡", tier: 2, price: 17000, rent: 30, salary: 9000, lat: 31.49, lng: 120.31 },
+      { code: "350100", name: "福州", tier: 2, price: 22000, rent: 34, salary: 9000, lat: 26.07, lng: 119.30 },
+      { code: "530100", name: "昆明", tier: 3, price: 11500, rent: 26, salary: 7500, lat: 25.04, lng: 102.71 },
+      { code: "450100", name: "南宁", tier: 3, price: 10500, rent: 27, salary: 7200, lat: 22.82, lng: 108.37 },
+      { code: "520100", name: "贵阳", tier: 3, price: 9500, rent: 24, salary: 7000, lat: 26.65, lng: 106.63 },
+      { code: "360100", name: "南昌", tier: 3, price: 12000, rent: 25, salary: 7500, lat: 28.68, lng: 115.86 },
+      { code: "370100", name: "济南", tier: 3, price: 15000, rent: 28, salary: 8500, lat: 36.65, lng: 117.12 },
+      { code: "210200", name: "大连", tier: 3, price: 13000, rent: 28, salary: 8000, lat: 38.91, lng: 121.61 },
+      { code: "210100", name: "沈阳", tier: 3, price: 10000, rent: 24, salary: 7000, lat: 41.80, lng: 123.43 },
+      { code: "230100", name: "哈尔滨", tier: 3, price: 9500, rent: 23, salary: 6800, lat: 45.80, lng: 126.53 },
+      { code: "220100", name: "长春", tier: 3, price: 9500, rent: 23, salary: 6800, lat: 43.82, lng: 125.32 },
+      { code: "130100", name: "石家庄", tier: 3, price: 11000, rent: 24, salary: 7200, lat: 38.04, lng: 114.51 },
+      { code: "140100", name: "太原", tier: 3, price: 10000, rent: 23, salary: 7000, lat: 37.87, lng: 112.55 },
+      { code: "460200", name: "三亚", tier: 3, price: 28000, rent: 45, salary: 8000, lat: 18.25, lng: 109.51 },
+      { code: "620100", name: "兰州", tier: 4, price: 9000, rent: 22, salary: 6500, lat: 36.06, lng: 103.83 },
+      { code: "460100", name: "海口", tier: 4, price: 17000, rent: 30, salary: 7800, lat: 20.04, lng: 110.32 },
+      { code: "440400", name: "珠海", tier: 4, price: 24000, rent: 35, salary: 9000, lat: 22.27, lng: 113.58 },
+      { code: "650100", name: "乌鲁木齐", tier: 4, price: 8500, rent: 22, salary: 7000, lat: 43.83, lng: 87.62 },
+      { code: "150100", name: "呼和浩特", tier: 4, price: 9000, rent: 21, salary: 6800, lat: 40.84, lng: 111.75 },
+      { code: "640100", name: "银川", tier: 4, price: 8000, rent: 20, salary: 6500, lat: 38.49, lng: 106.23 },
+      { code: "630100", name: "西宁", tier: 4, price: 8500, rent: 21, salary: 6600, lat: 36.62, lng: 101.78 },
+      { code: "540100", name: "拉萨", tier: 4, price: 12000, rent: 30, salary: 8000, lat: 29.65, lng: 91.14 }
+    ];
+
+    const TIER_LABELS = { 1: "超一线", 2: "新一线", 3: "二线", 4: "三线", 5: "四线及以下" };
+    const TIER_SPEED = { 1: 24, 2: 23, 3: 22, 4: 21, 5: 20 };   // 城市平均通勤速度 km/h
+    const TIER_RADIUS = { 1: 18, 2: 14, 3: 11, 4: 9, 5: 7 };     // 城区半径 km
+    const CITY_ZONES = [
+      { key: "core", label: "核心区", priceMult: 1.30, rentMult: 1.25, distMult: 0.18, desc: "城市心脏，通勤最短，价格最贵" },
+      { key: "main", label: "主城区", priceMult: 1.00, rentMult: 1.00, distMult: 0.50, desc: "生活配套成熟，性价比的主战场" },
+      { key: "suburb", label: "近郊新区", priceMult: 0.70, rentMult: 0.72, distMult: 1.00, desc: "价格洼地，用通勤时间换居住面积" }
+    ];
+
+    let currentCity = null;
+    let currentZone = null;
+    let commuteManual = false;
+    let currentRisk = "steady";
+    const TM_KEY = "housing_v2_time_machine";
 
     let map = null;
     let chart = null;
@@ -1868,6 +2173,299 @@
     let cityLayer = null;
 
     let currentTopItem = null;
+
+    /* ============================================================
+       🏙️ 空间几何：城市 → 区位 → 通勤 → 参数
+       ============================================================ */
+    function haversineKm(lat1, lng1, lat2, lng2) {
+      const R = 6371, toRad = d => d * Math.PI / 180;
+      const dLat = toRad(lat2 - lat1), dLng = toRad(lng2 - lng1);
+      const a = Math.sin(dLat / 2) ** 2
+        + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+      return 2 * R * Math.asin(Math.sqrt(a));
+    }
+
+    // 非南宁城市：按“核心区 / 主城区 / 近郊新区”三环生成可推演区位
+    function formCityZones(city) {
+      if (city.zones && city.zones.length) return city.zones;
+      const speed = TIER_SPEED[city.tier] || 22;
+      const radius = TIER_RADIUS[city.tier] || 11;
+      return CITY_ZONES.map(z => {
+        const dist = radius * z.distMult;
+        const lat = city.lat + (dist / 111) * 0.9;
+        const lng = city.lng + (dist / (111 * Math.cos(city.lat * Math.PI / 180))) * 0.5;
+        const km = haversineKm(city.lat, city.lng, lat, lng);
+        return {
+          name: `${city.name}·${z.label}`,
+          lat: lat,
+          lng: lng,
+          house_ref: Math.max(20, Math.round(city.price * z.priceMult * 90 / 10000)),
+          rent_ref: Math.max(600, Math.round(city.rent * 70 * z.rentMult / 100) * 100),
+          price_sqm: Math.round(city.price * z.priceMult / 100) * 100,
+          commute_min: Math.max(6, Math.round(km * 1.35 / speed * 60)),
+          desc: z.desc
+        };
+      });
+    }
+
+    function buildCitySelect() {
+      const sel = document.getElementById("citySel");
+      if (!sel) return;
+      sel.innerHTML = "";
+      const groups = {};
+      CITY_DB.forEach(c => { (groups[c.tier] = groups[c.tier] || []).push(c); });
+      Object.keys(groups).sort().forEach(t => {
+        const og = document.createElement("optgroup");
+        og.label = TIER_LABELS[t] || ("能级 " + t);
+        groups[t].forEach(c => og.appendChild(
+          new Option(`${c.name} · ${TIER_LABELS[t] || ""}`, c.code)
+        ));
+        sel.appendChild(og);
+      });
+      sel.onchange = function () {
+        const c = CITY_DB.find(x => x.code === this.value);
+        if (c) applyCity(c);
+      };
+    }
+
+    function applyCity(city) {
+      currentCity = city;
+      regionList = formCityZones(city);
+      const sel = document.getElementById("regionSel");
+      sel.innerHTML = "";
+      regionList.forEach(r => sel.appendChild(new Option(r.name, r.name)));
+      sel.selectedIndex = 0;
+      currentZone = regionList[0] || null;
+      renderRegionMarkers();
+      syncZoneToForm(true);
+      const citySel = document.getElementById("citySel");
+      if (citySel) citySel.value = city.code;
+      if (map) map.flyTo([city.lat, city.lng], city.tier <= 2 ? 9 : 10, { duration: 1.2 });
+    }
+
+    function renderRegionMarkers() {
+      if (!regionMarkersGroup) return;
+      regionMarkersGroup.clearLayers();
+      allMapMarkers = [];
+      regionList.forEach(r => {
+        const customIcon = L.divIcon({
+          className: '',
+          html: `
+          <div class="custom-pin">
+            <div class="custom-pin-icon"><span>📍</span></div>
+            <div class="custom-pin-label">${escapeHtml(r.name)}</div>
+          </div>
+        `,
+          iconSize: [80, 50],
+          iconAnchor: [40, 50]
+        });
+        const m = L.marker([r.lat, r.lng], { icon: customIcon });
+
+        const popupDom = document.createElement('div');
+        popupDom.style.cssText = "color:#1e293b; font-size:13px;";
+        popupDom.innerHTML = `<b>📍 ${escapeHtml(r.name)}</b><br>
+        参考房价: <b>${formatNum(r.price_sqm, 0)} 元/㎡</b><br>
+        参考租金: <b>${formatNum(r.rent_ref, 0)} 元/月</b><br>
+        单程通勤: <b>约 ${r.commute_min} 分钟</b><br>
+        <i>${escapeHtml(r.desc || '')}</i><br>`;
+
+        const btn = document.createElement("button");
+        btn.textContent = "以此片区推演";
+        btn.style.cssText = "margin-top:6px; background:#2563eb; color:#fff; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;";
+        btn.onclick = (e) => {
+          L.DomEvent.stopPropagation(e);
+          e.stopPropagation();
+          selectAndFly(r.name, r.lat, r.lng);
+          m.closePopup();
+        };
+        popupDom.appendChild(btn);
+
+        m.bindPopup(popupDom);
+        m.on("click", (e) => {
+          L.DomEvent.stopPropagation(e);
+          const sel = document.getElementById("regionSel");
+          sel.value = r.name;
+          if (typeof sel.onchange === "function") sel.onchange();
+        });
+
+        regionMarkersGroup.addLayer(m);
+        allMapMarkers.push({ marker: m, name: r.name });
+      });
+      if (map && !map.hasLayer(regionMarkersGroup)) regionMarkersGroup.addTo(map);
+    }
+
+    function estimateCommute(zone, city) {
+      const km = haversineKm(city.lat, city.lng, zone.lat, zone.lng);
+      const speed = TIER_SPEED[city.tier] || 22;
+      const geoMin = Math.max(5, Math.round(km * 1.35 / speed * 60));
+      const own = (typeof zone.commute_min === "number") ? zone.commute_min : geoMin;
+      return { km: km, own: own, rent: Math.max(8, Math.round(own * 0.55)) };
+    }
+
+    function syncZoneToForm(force) {
+      const z = currentZone;
+      if (!z || !currentCity) return;
+      if (force) {
+        document.getElementById("houseTotalWan").value = z.house_ref;
+        document.getElementById("rentBase").value = z.rent_ref;
+      }
+      const est = estimateCommute(z, currentCity);
+      if (!commuteManual) {
+        document.getElementById("ownCommuteMin").value = est.own;
+        document.getElementById("rentCommuteMin").value = est.rent;
+      }
+      const hint = document.getElementById("commuteHint");
+      if (hint) {
+        hint.textContent = `几何估算：到城市中心直线 ${est.km.toFixed(1)} km → 单程约 ${est.own} 分钟（绕行系数 1.35，按 ${TIER_SPEED[currentCity.tier] || 22} km/h 计）。可手动修正。`;
+      }
+      refreshSpatialChips();
+    }
+
+    function refreshSpatialChips() {
+      const box = document.getElementById("spatialChips");
+      if (!box) return;
+      if (!currentCity || !currentZone) { box.innerHTML = ""; return; }
+      const price = currentZone.price_sqm || currentCity.price;
+      const house = nv("houseTotalWan");
+      const income = nv("monthIncomeNet");
+      const famEl = document.getElementById("familyMode");
+      const fam = famEl ? (parseInt(famEl.value) || 2) : 2;
+      const area = price > 0 ? house * 10000 / price : 0;
+      const per = area / Math.max(1, fam);
+      const pir = income > 0 ? house * 10000 / (income * 12) : 0;
+      const rel = currentCity.salary > 0 ? income / currentCity.salary : 0;
+      const items = [
+        { t: TIER_LABELS[currentCity.tier] || "未知能级", cls: "" },
+        { t: `${formatNum(price, 0)} 元/㎡`, cls: "" },
+        { t: `可购 ${area.toFixed(0)}㎡`, cls: per < 18 ? "warn" : "ok" },
+        { t: `人均 ${per.toFixed(1)}㎡`, cls: per < 18 ? "warn" : "" },
+        { t: `房价收入比 ${pir.toFixed(1)}`, cls: pir >= 15 ? "warn" : "" },
+        { t: `收入/本地均薪 ${rel.toFixed(2)}×`, cls: rel >= 1.2 ? "ok" : "" }
+      ];
+      box.innerHTML = items.map(i => `<span class="spatial-chip ${i.cls}">${escapeHtml(i.t)}</span>`).join("");
+    }
+
+    function spatialRequestFields() {
+      const city = currentCity || { name: "南宁", tier: 3, price: 10500, rent: 27, salary: 7200 };
+      const zone = currentZone || { price_sqm: city.price };
+      const famEl = document.getElementById("familyMode");
+      const fam = famEl ? (parseInt(famEl.value) || 2) : 2;
+      const rentMin = nv("rentCommuteMin");
+      const ownMin = nv("ownCommuteMin");
+      return {
+        city_name: city.name,
+        city_tier: city.tier,
+        city_avg_price_sqm: city.price,
+        city_avg_rent_sqm: city.rent,
+        city_avg_salary: city.salary,
+        district_price_sqm: zone.price_sqm || city.price,
+        family_size: fam,
+        rent_commute_min: rentMin,
+        own_commute_min: ownMin,
+        rent_transport_month: Math.round(120 + 4 * rentMin),
+        own_transport_month: Math.round(120 + 4 * ownMin)
+      };
+    }
+
+    function renderRiskCard(rk) {
+      const box = document.getElementById("riskBox");
+      if (!box) return;
+      if (!rk) { box.innerHTML = ""; return; }
+      const hidden = rk.hidden_expense_month || 0;
+      const hiddenSteady = hidden > 0
+        ? `另按月摊销 ${formatNum(hidden, 0)} 元隐形支出（红包 / 旅行 / 医疗 / 意外）。`
+        : `你没有计入隐形支出——红包、旅行、医疗、意外，请自己在心里补上这一笔。`;
+      if (rk.mode === "aggressive") {
+        box.innerHTML = `
+        <div class="risk-card aggressive">
+          🚀 <b>悬崖方案 · ${rk.loan_cap_pct}% 生存线</b>${rk.squeeze_life ? " · 节衣缩食 ×0.8" : ""}<br>
+          你主动放弃了安全垫。系统按 ${rk.loan_cap_pct}% 的支出上限放行方案${hidden > 0 ? `，并按月摊销 ${formatNum(hidden, 0)} 元隐形支出` : "（未计入隐形支出）"}。
+          这不是推荐，是把你自己的选择算到最清楚：一旦收入中断，你没有那 30% 的缓冲。
+        </div>`;
+      } else {
+        box.innerHTML = `
+        <div class="risk-card steady">
+          🛡️ <b>稳健红线 · ${rk.loan_cap_pct}%</b><br>
+          还贷期真实支出始终 ≤ 收入 ${rk.loan_cap_pct}%。${hiddenSteady}
+          这条线不是保守，是给“万一”留的活路。
+        </div>`;
+      }
+    }
+
+    function renderSpatialCard(sp, res) {
+      const box = document.getElementById("spatialBox");
+      if (!box) return;
+      if (!sp) { box.innerHTML = ""; return; }
+      const top = (res && res.top_comprehensive && res.top_comprehensive[0]) || null;
+      const realAsset = top && typeof top.real_asset_wan === "number" ? top.real_asset_wan : null;
+      const nominal = top ? top.liquid_asset_end_wan : null;
+      box.innerHTML = `
+      <div class="spatial-card">
+        <h3>🏙️ 空间折叠面板
+          <span style="font-size:11px;color:#94a3b8;font-weight:400;">${escapeHtml(sp.city_name)} · ${escapeHtml(sp.tier_label)} · ${escapeHtml(sp.family_label)}</span>
+        </h3>
+        <div class="spatial-grid">
+          <div class="item"><div class="v">${sp.own_area_sqm}</div><div class="k">可购面积 ㎡</div></div>
+          <div class="item"><div class="v">${sp.area_per_person}</div><div class="k">人均面积 ㎡</div></div>
+          <div class="item"><div class="v">${sp.commute.own_min}′</div><div class="k">买房后单程</div></div>          <div class="item"><div class="v">${formatNum(sp.commute.time_cost_month, 0)}</div><div class="k">通勤时间成本 元/月</div></div>
+          <div class="item"><div class="v">${sp.pir}</div><div class="k">房价收入比</div></div>
+          <div class="item"><div class="v">${sp.rel_income}×</div><div class="k">相对本地收入</div></div>
+        </div>
+        <div class="spatial-note">
+          ${escapeHtml(sp.area_note)}。时间效率：租房期 ${sp.commute.rent_score} 分 / 买房后 ${sp.commute.own_score} 分；通勤时间成本 ${formatNum(sp.commute.time_cost_month_rent, 0)} → ${formatNum(sp.commute.time_cost_month, 0)} 元/月，交通费 ${formatNum(sp.commute.transport_month.rent, 0)} → ${formatNum(sp.commute.transport_month.own, 0)} 元/月。
+          ${realAsset !== null ? `30 年后名义资产 ${formatNum(nominal, 2)} 万，按今日物价只值 <b>${formatNum(realAsset, 2)} 万</b>。` : ""}
+        </div>
+      </div>`;
+    }
+
+    /* ============================================================
+       ⏳ V1.5 时光机：把这一次推演刻进浏览器
+       ============================================================ */
+    function readTimeMachine() {
+      try { return JSON.parse(localStorage.getItem(TM_KEY) || "null"); } catch (_) { return null; }
+    }
+
+    function renderTimeMachine(res) {
+      const box = document.getElementById("timeMachineBox");
+      if (!box) return;
+      const prev = readTimeMachine();
+      const sp = res.spatial || {};
+      const top = (res.top_comprehensive && res.top_comprehensive[0]) || {};
+      const cur = {
+        ts: Date.now(),
+        city: sp.city_name || "",
+        tier: sp.tier_label || "",
+        house: nv("houseTotalWan"),
+        income: nv("monthIncomeNet"),
+        savings: nv("initialSavingsWan"),
+        scheme: {
+          rent_year: top.rent_year, loan_year: top.loan_year,
+          down_strategy: top.down_strategy,
+          liquid_asset_end_wan: top.liquid_asset_end_wan
+        }
+      };
+      if (prev && prev.ts && prev.scheme) {
+        const days = Math.max(0, Math.round((Date.now() - prev.ts) / 86400000));
+        const ds = (cur.savings || 0) - (prev.savings || 0);
+        const da = (cur.scheme.liquid_asset_end_wan || 0) - (prev.scheme.liquid_asset_end_wan || 0);
+        const sign = v => (v >= 0 ? "+" : "") + v.toFixed(1);
+        box.innerHTML = `
+        <div class="timemachine-card">
+          ⏳ <b>时光机 · 距上次推演 ${days} 天</b><br>
+          上次（${new Date(prev.ts).toLocaleDateString("zh-CN")}）：存款 <b>${formatNum(prev.savings, 1)}</b> 万，方案 租 ${prev.scheme.rent_year} 年 + 贷 ${prev.scheme.loan_year} 年。<br>
+          这次：存款 <b>${formatNum(cur.savings, 1)}</b> 万（<b style="color:#6ee7b7">${sign(ds)} 万</b>），期末资产预测 ${formatNum(prev.scheme.liquid_asset_end_wan, 1)} → <b>${formatNum(cur.scheme.liquid_asset_end_wan, 1)}</b> 万（${sign(da)} 万）。<br>
+          ${ds > 0 ? "你确实在往前走。数字不会说谎。" : ds === 0 ? "参数没变，说明你在认真核对。真正的答案，要等一年后再看。" : "存款没有变多，这不丢人；但下一次，我希望这个数字是正的。"}
+        </div>`;
+      } else {
+        box.innerHTML = `
+        <div class="timemachine-card">
+          ⏳ <b>时光机已启动</b>：这是这套参数在本机的第一次推演，我已经把它刻进浏览器。
+          一年后回来，我会告诉你走了多远。
+        </div>`;
+      }
+      try { localStorage.setItem(TM_KEY, JSON.stringify(cur)); } catch (_) { }
+    }
+
 
     const runBtn = document.getElementById("runBtn");
     const loadingText = document.getElementById("loadingText");
@@ -2070,6 +2668,17 @@
         const el = document.getElementById(key);
         if (el) el.value = DEFAULT_FORM[key];
       }
+      const famSel = document.getElementById("familyMode");
+      if (famSel) famSel.value = "2";
+      currentRisk = "steady";
+      document.querySelectorAll(".risk-btn").forEach(b => b.classList.toggle("active", b.dataset.risk === "steady"));
+      document.getElementById("squeezeWrap").style.display = "none";
+      document.getElementById("squeezeLife").checked = false;
+      const rn = document.getElementById("riskNote");
+      rn.className = "risk-note";
+      rn.innerHTML = "70% 红线：还贷期真实支出不超过收入的 70%，替你守住 30% 的呼吸空间——那里装着生病、失业、和突然要随的份子钱。";
+      commuteManual = false;
+      if (currentCity) applyCity(currentCity);
       showToast("参数已重置为默认值");
       const sel = document.getElementById("regionSel");
       if (sel && sel.value && regionList.length > 0) {
@@ -2145,6 +2754,24 @@
       };
     });
 
+    /* ============ 🧭 风险姿态：70% 是承诺，90% 必须自己按 ============ */
+    document.querySelectorAll(".risk-btn").forEach(btn => {
+      btn.onclick = () => {
+        currentRisk = btn.dataset.risk;
+        document.querySelectorAll(".risk-btn").forEach(b => b.classList.toggle("active", b === btn));
+        const aggressive = currentRisk === "aggressive";
+        document.getElementById("squeezeWrap").style.display = aggressive ? "block" : "none";
+        const note = document.getElementById("riskNote");
+        note.className = "risk-note" + (aggressive ? " danger" : "");
+        note.innerHTML = aggressive
+          ? "🚨 悬崖方案：租贷两期都放宽到 90% 生存线。你在用安全垫换时间——任何一次失业、一场病、一个必须随的份子钱，都可能让你踩空。"
+          : "70% 红线：还贷期真实支出不超过收入的 70%，替你守住 30% 的呼吸空间——那里装着生病、失业、和突然要随的份子钱。";
+        if (!aggressive) document.getElementById("squeezeLife").checked = false;
+        clearResults();
+        showToast(aggressive ? "已切换到悬崖方案：请先确认你承担得起最坏的情况" : "已回到稳健红线 70%");
+      };
+    });
+
     function clearResults() {
       entropyOpen = false; assumptionOpen = false;
       currentTopItem = null;
@@ -2160,6 +2787,9 @@
       document.getElementById("tabWrap").innerHTML = "";
       document.getElementById("tabContents").innerHTML = "";
       document.getElementById("emptyState").style.display = "block";
+      document.getElementById("spatialBox").innerHTML = "";
+      document.getElementById("riskBox").innerHTML = "";
+      document.getElementById("timeMachineBox").innerHTML = "";
       if (chart) { chart.dispose(); chart = null; }
     }
 
@@ -2231,12 +2861,22 @@
 
       const fmt = (v, d = 0) => (isNaN(v) ? "--" : Number(v).toLocaleString("zh-CN", { minimumFractionDigits: d, maximumFractionDigits: d }));
       const pctCls = (v) => v >= 50 ? "ok" : (v >= 0 ? "warn" : "bad");
+      const sp = (currentResult && currentResult.spatial) ? currentResult.spatial : null;
 
       const row = (label, val, cls = "") => `<div class="dr-row"><span class="dr-lbl">${label}</span><span class="dr-val ${cls}">${val}</span></div>`;
       const dsText = item.down_strategy === "max" ? "极限首付(倾尽所有)" : (item.down_strategy === "balanced" ? "平衡首付(保留备用金)" : "最低首付(最大化杠杆)");
 
       const html = `
     <div class="dr-wrap">
+      <div class="dr-section">
+        <div class="dr-title">🏙️ 空间折叠</div>
+        ${row("目标城市", sp ? `${escapeHtml(sp.city_name)} · ${escapeHtml(sp.tier_label)}` : escapeHtml(regionName))}
+        ${row("可购面积 / 人均", sp ? `${sp.own_area_sqm} ㎡ / ${sp.area_per_person} ㎡（${sp.family_label}）` : "--")}
+        ${row("单程通勤（租房 → 买房）", sp ? `${sp.commute.rent_min} → ${sp.commute.own_min} 分钟` : "--")}
+        ${row("通勤时间成本", sp ? `${fmt(sp.commute.time_cost_month, 0)} 元/月` : "--", sp && sp.commute.time_cost_month > 800 ? "warn" : "")}
+        ${row("房价收入比", sp ? `${sp.pir} 倍` : "--", sp && sp.pir >= 15 ? "bad" : "ok")}
+        ${row("相对本地收入", sp ? `${sp.rel_income} ×` : "--")}
+      </div>
       <div class="dr-section">
         <div class="dr-title">🏠 购房与贷款</div>
         ${row("目标片区", escapeHtml(regionName))}
@@ -2276,7 +2916,9 @@
           <div><div style="font-size:18px;font-weight:800;color:#10b981;">${fmt(item.comprehensive_score, 1)}</div><div style="font-size:11px;color:#94a3b8;">熵权综合得分</div></div>
         </div>
         <div style="margin-top:12px;">
-          ${row("30年期末流动资产", `${fmt(item.liquid_asset_end_wan, 2)} 万元`, "ok")}
+          ${row("30年期末流动资产（名义）", `${fmt(item.liquid_asset_end_wan, 2)} 万元`, "ok")}
+          ${row("真实购买力（按今日物价）", item.real_asset_wan !== undefined ? `${fmt(item.real_asset_wan, 2)} 万元` : "--", "warn")}
+          ${row("生命周期最低现金余额", item.min_cash_wan !== undefined ? `${fmt(item.min_cash_wan, 2)} 万元` : "--")}
         </div>
       </div>
     </div>
@@ -2399,7 +3041,7 @@
       } else if (totalInterestWan > 30) {
         interestPhrase = `<span style="${cBlue}">${totalInterestWan.toFixed(1)} 万元</span> 的不菲利息`;
       } else {
-        interestPhrase = `仅 <span style="${cGreen}">${totalInterestWan.toFixed(1)} 万元</span> 的极低利息`;
+        interestPhrase = `<span style="${cGreen}">${totalInterestWan.toFixed(1)} 万元</span> 的极低利息`;
       }
 
       // 2. 支出占比评价
@@ -2643,6 +3285,58 @@
       `;
       }
 
+      // ==========================================
+      // 🏙️ 空间折叠叙事（V2.0）：这一节，是整套报告的灵魂
+      // ==========================================
+      const sp = (res && res.spatial) ? res.spatial : null;
+      let spatialHtml = "";
+      if (sp) {
+        const areaVerdict = sp.area_per_person < 15
+          ? "人均面积已经跌破了“体面生活”的警戒线，这不是买房，是把自己塞进一个昂贵的储物柜。"
+          : sp.area_per_person < 25
+            ? "人均面积勉强够用，多一个人、多一件家具都会显得局促。"
+            : sp.area_per_person < 40
+              ? "人均面积落在舒适的区间，日子能舒展得开。"
+              : "人均面积称得上宽裕，这是这份方案里最值得庆幸的空间红利。";
+        const commuteVerdict = sp.commute.own_min >= 60
+          ? "每天单程一小时以上，意味着你每年有超过 500 个小时被钉在路上——那不是通勤，是慢性失血。"
+          : sp.commute.own_min >= 40
+            ? "单程四十分钟，是大多数城市打工人真实的生活切片。"
+            : "单程半小时以内，你买下的不只是房子，还有每天多出来的那一点人生。";
+        const cityVerdict = sp.pir >= 18
+          ? `房价收入比 ${sp.pir}，这座城市正在用一套房子，收割一个年轻人三十年的可能性。`
+          : sp.pir >= 10
+            ? `房价收入比 ${sp.pir}，压力和希望并存，这是大多数普通人真实的战场。`
+            : `房价收入比 ${sp.pir}，在这座城市，努力和回报还没有彻底脱钩。`;
+        spatialHtml = `
+        <span class="section-title">四、 空间折叠：你在哪座城市，买的是哪种人生</span>
+        这套方案落在 <b>${escapeHtml(sp.city_name)} · ${escapeHtml(sp.tier_label)}</b>，${escapeHtml(sp.family_label)}。按片区 ${formatNum(sp.district_price_sqm, 0)} 元/㎡ 折算，${houseTotalWan} 万只能买到 <b>${sp.own_area_sqm} ㎡</b>，人均 <b>${sp.area_per_person} ㎡</b>。${areaVerdict}<br>
+        你的税后收入，是本地平均薪资（${formatNum(sp.city_avg_salary, 0)} 元/月）的 <b>${sp.rel_income} 倍</b>。这个倍数决定了你在这座城市里，到底是“被平均”，还是“有余裕”。${cityVerdict}<br>
+        ${commuteVerdict} 按当地时薪折算，买房后每天往返 ${sp.commute.own_min * 2} 分钟（单程 ${sp.commute.own_min} 分钟），每月相当于隐性支付 <b>${formatNum(sp.commute.time_cost_month, 0)} 元</b>——它不会出现在工资条上，但它真实地吃掉你的人生。通勤折现后，你的时间效率是 <b>${time} 分</b>（租房期 ${sp.commute.rent_score} 分 / 买房后 ${sp.commute.own_score} 分）。<br>
+        最后是那个最容易被忽略的真相：30 年后你手里的 ${asset} 万，是名义资产；按 30 年通胀系数 ${sp.inflation_factor_30y}× 折算，真实购买力只剩 <b>${formatNum(topItem.real_asset_wan, 2)} 万元</b>。这正是我们反复拒绝“画大饼”的原因——数字会膨胀，人生不会。`;
+      }
+
+      // ==========================================
+      // 🧭 V6.1 风险姿态叙事
+      // ==========================================
+      const rk = (res && res.risk) ? res.risk : null;
+      let riskHtml = "";
+      if (rk && rk.mode === "aggressive") {
+        riskHtml = `
+        <span class="section-title">五、 悬崖方案：踩在刀尖上的全速前进</span>
+        你主动选择了 <b>${rk.loan_cap_pct}%</b> 的生存线。系统不再替你留那 30% 的安全垫——它把每一分钱都压进了时间效率里。${rk.squeeze_life ? "你甚至勾选了节衣缩食，把可支配生活开销压到 8 折。" : ""}
+        这不是一个可以推荐给任何人的方案，它是一个只属于“现在就要”的选择：任何一次失业、一场病、一个必须随的份子钱，都会让你踩空。
+        但我也必须承认，在房价和收入的双重挤压下，有些人确实只剩下这一条路。系统把它算清楚，不是为了鼓励你跳，而是让你知道自己在跳什么。`;
+      } else if (rk) {
+        const hiddenHtml = rk.hidden_expense_month > 0
+          ? `除此之外，系统还替你按月摊销了 <b>${formatNum(rk.hidden_expense_month, 0)} 元</b> 的隐形支出——红包、旅行、体检、一张突然的医院缴费单、家里半夜打来的一通电话。它们从不出现在工资条上，但它们真实发生。`
+          : `这套方案没有计入隐形支出。红包、旅行、体检、一张突然的医院缴费单——它们不在工资条上，但真实发生。建议你自己补上这一笔，再决定要不要签字。`;
+        riskHtml = `
+        <span class="section-title">五、 那道 70% 的红线，和它守住的 30%</span>
+        这套方案里，还贷期的真实支出始终没有越过收入的 <b>${rk.loan_cap_pct}%</b>。${hiddenHtml}
+        我们坚持这条线，不是保守，是因为见过太多被一场病、一次裁员击穿的家庭。`;
+      }
+
       const reportBox = document.getElementById("aiReportBox");
       reportBox.style.display = "block";
       reportBox.innerHTML = `
@@ -2678,7 +3372,7 @@
         </div>
       </div>
 
-      <div class="ai-report-content">${text}</div>
+      <div class="ai-report-content">${text}${spatialHtml}${riskHtml}</div>
 
       <button class="ai-jump-btn" onclick="openModal(currentTopItem)">📋 查看该方案完整财务明细（月供 / 收支 / 占比 / 利息）</button>
     </div>
@@ -2912,6 +3606,16 @@
         generateAIExpertReport(topArr[0], res, "综合最优");
       }
 
+      // 🏙️ 空间折叠面板 + ⏳ 时光机
+      renderRiskCard(res.risk);
+      if (res.spatial) {
+        renderSpatialCard(res.spatial, res);
+      } else {
+        document.getElementById("spatialBox").innerHTML =
+          `<div class="warning-box">⚠️ 当前后端引擎尚未升级到 V6.0，空间折叠系数（面积 / 通勤 / 真实购买力）没有参与计算。请先部署新版 main.py，再刷新本页。</div>`;
+      }
+      renderTimeMachine(res);
+
       const allScheme = res.all_scheme ?? [];
       const topAsset = res.top_asset ?? [...allScheme].sort((a, b) => b.liquid_asset_end_wan - a.liquid_asset_end_wan).slice(0, 20);
       const topComfort = [...allScheme].sort((a, b) => b.comfort_score - a.comfort_score).slice(0, 20);
@@ -2976,107 +3680,48 @@
 
     async function loadRegion() {
       try {
-        regionMarkersGroup.clearLayers();
-        allMapMarkers = [];
-
+        let nanning = FALLBACK_REGIONS;
         try {
           const res = await fetch(`${API_HOST}/api/gis/regions`);
           if (!res.ok) throw new Error("后端API不可用");
           const json = await res.json();
-          if (!json.data || json.data.length === 0) throw new Error("后端返回空数据");
-          regionList = json.data;
+          if (json.data && json.data.length) nanning = json.data;
         } catch (err) {
           console.warn("⚠️ 后端片区数据加载失败，已启用前端本地兜底数据。", err);
-          regionList = FALLBACK_REGIONS;
         }
 
-        const sel = document.getElementById("regionSel");
-        sel.innerHTML = "";
+        const nn = CITY_DB.find(c => c.code === "450100");
+        if (nn) nn.zones = nanning;
 
-        const isMobile = window.innerWidth <= 900;
-
-        regionList.forEach((r) => {
-          sel.appendChild(new Option(r.name, r.name));
-
-          const customIcon = L.divIcon({
-            className: '',
-            html: `
-          <div class="custom-pin">
-            <div class="custom-pin-icon"><span>📍</span></div>
-            <div class="custom-pin-label">${r.name}</div>
-          </div>
-        `,
-            iconSize: [80, 50],
-            iconAnchor: [40, 50]
-          });
-
-          const m = L.marker([r.lat, r.lng], { icon: customIcon });
-
-
-          const popupDom = document.createElement('div');
-          popupDom.style.cssText = "color:#1e293b; font-size:13px;";
-          popupDom.innerHTML = `<b>📍 ${escapeHtml(r.name)}</b><br>
-        参考房价: <b>${r.house_ref}万元</b><br>
-        参考租金: <b>${r.rent_ref}元/月</b><br>
-        <i>${escapeHtml(r.desc)}</i><br>`;
-
-          const btn = document.createElement("button");
-          btn.textContent = "以此片区推演";
-          btn.style.cssText = "margin-top:6px; background:#2563eb; color:#fff; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;";
-          btn.onclick = (e) => {
-            L.DomEvent.stopPropagation(e);
-            e.stopPropagation();
-            selectAndFly(r.name, r.lat, r.lng);
-            m.closePopup();
-          };
-          popupDom.appendChild(btn);
-
-          m.bindPopup(popupDom);
-          m.on("click", (e) => {
-            L.DomEvent.stopPropagation(e);
-            sel.value = r.name;
-            sel.onchange();
-          });
-
-          regionMarkersGroup.addLayer(m);
-          allMapMarkers.push({ marker: m, name: r.name });
-        });
+        buildCitySelect();
+        applyCity(nn || CITY_DB[0]);
 
         runBtn.disabled = false;
-        if (regionList.length > 0) sel.selectedIndex = 0;
       } catch (e) {
-        showToast("片区数据加载失败，请确保后端已启动");
+        console.error(e);
+        showToast("城市数据加载失败，请检查前端数据");
         runBtn.disabled = true;
       }
     }
 
     function selectAndFly(name, lat, lng) {
-      document.getElementById("regionSel").value = name;
-      document.getElementById("regionSel").onchange();
-
-      const isMobile = window.innerWidth <= 900;
-
-
-
-      map.flyTo([lat, lng], 12, { duration: 1.2 });
+      const sel = document.getElementById("regionSel");
+      sel.value = name;
+      currentZone = regionList.find(x => x.name === name) || currentZone;
+      syncZoneToForm(true);
+      if (map) map.flyTo([lat, lng], 12, { duration: 1.2 });
       revealPanels();
       showToast(`已切换至【${name}】进行空间决策`);
     }
 
     document.getElementById("regionSel").onchange = function () {
       const find = regionList.find(x => x.name === this.value);
-      if (find) {
-        document.getElementById("houseTotalWan").value = find.house_ref;
-        document.getElementById("rentBase").value = find.rent_ref;
-
-        revealPanels();
-        const isMobile = window.innerWidth <= 900;
-
-        const active = allMapMarkers.find(x => x.name === find.name);
-
-
-        map.flyTo([find.lat, find.lng], 12, { duration: 1.2 });
-      }
+      if (!find) return;
+      currentZone = find;
+      // 切换片区：重算几何通勤、可购面积、房价收入比
+      syncZoneToForm(true);
+      revealPanels();
+      if (map) map.flyTo([find.lat, find.lng], 12, { duration: 1.2 });
     };
 
     document.getElementById("leftPanel").addEventListener("keydown", (e) => {
@@ -3143,6 +3788,14 @@
       };
       if (currentMode === "relative") payload.rent_monthly_base = parseFloat(document.getElementById("rentBase").value);
 
+      // 🏙️ V2.0 空间折叠参数：城市能级、片区单价、家庭规模、双阶段通勤
+      Object.assign(payload, spatialRequestFields());
+
+      // 🧭 V6.1 风险姿态与隐形支出
+      payload.risk_mode = currentRisk;
+      payload.squeeze_life = document.getElementById("squeezeLife").checked && currentRisk === "aggressive";
+      payload.hidden_expense_month = parseFloat(document.getElementById("hiddenExpenseMonth").value || 0);
+
 
       const endpoint = currentMode === "relative" ? "/api/simulate" : "/api/simulate/absolute";
 
@@ -3181,12 +3834,12 @@
         currentResult = result;
         clearResults();
 
-        // 🎉 触发满屏撒花特效
-        window.triggerConfetti();
-
-        // 渲染表格与分析
+        // 渲染表格与分析（先把 DOM 与 ECharts 的重活干完）
         renderResult(result);
         showToast("推演计算完成！");
+
+        // 🎉 撒花放在渲染之后：不再和表格 / ECharts 的重绘抢帧
+        setTimeout(() => window.triggerConfetti(), 260);
 
         if (window.innerWidth <= 900) {
           document.getElementById('leftPanel').classList.remove('show');
@@ -3223,128 +3876,323 @@
           else this.classList.remove("invalid");
         });
       });
+
+      // 🏙️ 空间折叠：这些输入会即时改变“可购面积 / 房价收入比”芯片
+      ["houseTotalWan", "monthIncomeNet", "initialSavingsWan"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener("input", refreshSpatialChips);
+      });
+      const famEl = document.getElementById("familyMode");
+      if (famEl) famEl.addEventListener("change", refreshSpatialChips);
+      ["ownCommuteMin", "rentCommuteMin"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener("input", () => { commuteManual = true; refreshSpatialChips(); });
+      });
     };
-    /* ============ 🎉 全局满屏撒花特效引擎 ============ */
-    window.triggerConfetti = function () {
-      const canvas = document.getElementById('confettiCanvas');
-      if (!canvas) return;
-      const ctx = canvas.getContext('2d');
+    /* ============================================================
+       🎉 撒花引擎 v2 · 性能优先
+       ------------------------------------------------------------
+       旧版卡顿的三个真实原因（不是“电脑不好”）：
+         1. 每帧对 60 个 emoji 调 fillText：彩色字形走不了字形缓存，
+            字号还是随机的，等于每帧重新栅格化 60 次；
+         2. 每个粒子 save()/restore()，每帧还要调 140 次 Date.now()；
+         3. 淡出阶段粒子仍在全量遍历，恰好和表格 / ECharts 的重绘撞车。
+       新版：
+         · 字形、星星预渲染成 64px 贴图，每帧只 drawImage
+         · setTransform 取代 save/restore
+         · 每帧只取一次时间，dt 归一化（掉帧时动画不变慢）
+         · 死粒子 swap-remove，淡出结束立刻停帧、清画布
+         · 尊重 prefers-reduced-motion；低端机自动降采样
+       ============================================================ */
+    (function () {
+      // ⚠️ canvas 在脚本标签之后才出现，所以不能在这里取，必须惰性初始化
+      let canvas = null;
+      let ctx = null;
 
-      canvas.style.display = 'block';
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+      function ensureCanvas() {
+        if (canvas) return true;
+        canvas = document.getElementById('confettiCanvas');
+        if (!canvas) return false;
+        ctx = canvas.getContext('2d', { alpha: true, desynchronized: true });
+        return !!ctx;
+      }
 
-      const particles = [];
-      const colors = ['#f87171', '#fbbf24', '#34d399', '#60a5fa', '#a78bfa', '#f472b6']; // 喜庆配色
-      const emojis = ['🌸', '🎉', '✨', '🎊'];
+      const SPRITE = 64;
+      const cache = new Map();
 
-      // 1. 生成底部的礼花（向上喷射）
-      for (let i = 0; i < 80; i++) {
-        particles.push({
-          x: window.innerWidth / 2,
-          y: window.innerHeight + 20,
-          vx: (Math.random() - 0.5) * 25, // 向四周散开
-          vy: (Math.random() - 1) * 25,   // 向上喷射
-          size: Math.random() * 8 + 6,
-          color: colors[Math.floor(Math.random() * colors.length)],
-          type: 'rect',
-          rotation: Math.random() * Math.PI * 2,
-          rotSpeed: (Math.random() - 0.5) * 0.3,
-          opacity: 1
+      function makeSprite(key, painter) {
+        let c = cache.get(key);
+        if (c) return c;
+        c = document.createElement('canvas');
+        c.width = c.height = SPRITE;
+        painter(c.getContext('2d'), SPRITE);
+        cache.set(key, c);
+        return c;
+      }
+
+      function emojiSprite(ch) {
+        return makeSprite('e:' + ch, (g, S) => {
+          g.font = '52px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",Arial';
+          g.textAlign = 'center';
+          g.textBaseline = 'middle';
+          g.fillText(ch, S / 2, S / 2 + 2);
         });
       }
 
-      // 2. 生成顶部满屏飘落的花瓣（从左、中、右三个位置落下）
-      for (let i = 0; i < 60; i++) {
-        particles.push({
-          x: Math.random() * window.innerWidth,
-          y: -Math.random() * window.innerHeight * 0.5 - 20,
-          vx: (Math.random() - 0.5) * 4,
-          vy: Math.random() * 3 + 2,
-          size: Math.random() * 16 + 14,
-          color: '#fff',
-          type: 'emoji',
-          char: emojis[Math.floor(Math.random() * emojis.length)],
-          rotation: Math.random() * Math.PI * 2,
-          rotSpeed: (Math.random() - 0.5) * 0.1,
-          opacity: 1
+      function starSprite(color) {
+        return makeSprite('s:' + color, (g, S) => {
+          const cx = S / 2, cy = S / 2, R = 27, r = 10;
+          g.beginPath();
+          for (let i = 0; i < 8; i++) {
+            const a = -Math.PI / 2 + (i * Math.PI) / 4;
+            const rad = i % 2 ? r : R;
+            const px = cx + Math.cos(a) * rad;
+            const py = cy + Math.sin(a) * rad;
+            if (i === 0) g.moveTo(px, py); else g.lineTo(px, py);
+          }
+          g.closePath();
+          g.fillStyle = color;
+          g.fill();
+          g.beginPath();
+          g.arc(cx, cy, 3.2, 0, Math.PI * 2);
+          g.fillStyle = 'rgba(255,255,255,.85)';
+          g.fill();
         });
       }
 
-      let animationFrame;
-      const startTime = Date.now();
+      const PALETTE = ['#ff6b81', '#ffb347', '#ffe066', '#5ee0a0', '#5aa9ff', '#b388ff', '#ff8ad8'];
+      const STAR_COLORS = ['#ffe066', '#ffb347', '#ff8ad8', '#8fd3ff', '#c4b5fd', '#ffffff'];
+      const EMOJIS = ['🌸', '🎉', '✨', '🎊', '💖'];
 
-      function render() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        let activeParticles = 0;
+      let running = false;
+      let raf = 0;
+      let particles = [];
+      let last = 0;
+      let startTime = 0;
+      let dpr = 1;
+      let frameCount = 0;
 
-        particles.forEach(p => {
-          // 重力与空气阻力
-          p.vy += 0.4;
-          p.vx *= 0.98;
-          p.vy *= 0.98;
-
-          p.x += p.vx;
-          p.y += p.vy;
-          p.rotation += p.rotSpeed;
-
-          // 针对飘落花瓣的特殊摇摆
-          if (p.type === 'emoji') {
-            p.x += Math.sin(p.y / 30) * 1.5;
-          }
-
-          // 快结束时的淡出效果
-          const elapsed = Date.now() - startTime;
-          if (elapsed > 2000) {
-            p.opacity -= 0.02;
-          }
-
-          if (p.opacity > 0 && p.y < canvas.height + 50) {
-            activeParticles++;
-            ctx.save();
-            ctx.globalAlpha = Math.max(0, p.opacity);
-            ctx.translate(p.x, p.y);
-            ctx.rotate(p.rotation);
-
-            if (p.type === 'rect') {
-              ctx.fillStyle = p.color;
-              ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
-            } else if (p.type === 'emoji') {
-              ctx.font = `${p.size}px Arial`;
-              ctx.textAlign = 'center';
-              ctx.textBaseline = 'middle';
-              ctx.fillText(p.char, 0, 0);
-            }
-            ctx.restore();
-          }
-        });
-
-        if (activeParticles > 0) {
-          animationFrame = requestAnimationFrame(render);
-        } else {
-          cancelAnimationFrame(animationFrame);
-          canvas.style.display = 'none'; // 粒子没了就隐藏画布
-        }
-      }
-
-      render();
-    };
-
-    // 窗口大小改变时重置画布
-    window.addEventListener('resize', () => {
-      const canvas = document.getElementById('confettiCanvas');
-      if (canvas && canvas.style.display === 'block') {
+      function sizeCanvas() {
+        // 装饰性动画不值得为 HiDPI 付 4 倍像素的合成成本：
+        // 固定 1x，肉眼几乎无差，但在 2x/3x 屏上能省掉大量全屏合成。
+        dpr = 1;
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
       }
-    });
+
+      function addRibbon(x, y, angle, speed) {
+        particles.push({
+          kind: 'ribbon',
+          x: x, y: y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          size: 8 + Math.random() * 10,
+          color: PALETTE[(Math.random() * PALETTE.length) | 0],
+          rot: Math.random() * 6.283,
+          rotSpeed: (Math.random() - 0.5) * 0.24,
+          sway: 0.25 + Math.random() * 0.65,
+          phase: Math.random() * 6.283,
+          alpha: 1
+        });
+      }
+
+      function addSprite(kind, img, x, y, vx, vy, size) {
+        particles.push({
+          kind: kind, img: img,
+          x: x, y: y, vx: vx, vy: vy,
+          size: size,
+          rot: Math.random() * 6.283,
+          rotSpeed: (Math.random() - 0.5) * 0.12,
+          sway: 0.6 + Math.random() * 0.9,
+          phase: Math.random() * 6.283,
+          alpha: 1
+        });
+      }
+
+      function spawn() {
+        const w = window.innerWidth, h = window.innerHeight;
+        const cores = navigator.hardwareConcurrency || 8;
+        const lowEnd = cores <= 4 || w < 900;
+
+        const nCenter = lowEnd ? 34 : 52;
+        const nSide = lowEnd ? 10 : 16;
+        const nStar = lowEnd ? 24 : 38;
+        const nEmoji = lowEnd ? 8 : 14;
+
+        particles = [];
+
+        // 1) 中央礼花：向上炸开
+        for (let i = 0; i < nCenter; i++) {
+          addRibbon(
+            w * 0.5 + (Math.random() - 0.5) * 70,
+            h * 0.82,
+            -Math.PI / 2 + (Math.random() - 0.5) * 1.7,
+            10 + Math.random() * 15
+          );
+        }
+
+        // 2) 左右两侧礼炮：向内上方喷射，构图更满
+        for (let i = 0; i < nSide; i++) {
+          addRibbon(-10, h * 0.88, -Math.PI / 2 + 0.35 + Math.random() * 0.55, 17 + Math.random() * 10);
+          addRibbon(w + 10, h * 0.88, -Math.PI / 2 - 0.35 - Math.random() * 0.55, 17 + Math.random() * 10);
+        }
+
+        // 3) 顶部星屑：慢速飘落，负责“收尾的美感”
+        for (let i = 0; i < nStar; i++) {
+          addSprite(
+            'star',
+            starSprite(STAR_COLORS[(Math.random() * STAR_COLORS.length) | 0]),
+            Math.random() * w,
+            -Math.random() * h * 0.5 - 20,
+            (Math.random() - 0.5) * 1.6,
+            1.8 + Math.random() * 2.6,
+            9 + Math.random() * 12
+          );
+        }
+
+        // 4) 花瓣 / 彩带 emoji：克制数量，只做点睛
+        for (let i = 0; i < nEmoji; i++) {
+          addSprite(
+            'emoji',
+            emojiSprite(EMOJIS[(Math.random() * EMOJIS.length) | 0]),
+            Math.random() * w,
+            -Math.random() * h * 0.6 - 40,
+            (Math.random() - 0.5) * 1.2,
+            1.4 + Math.random() * 2.2,
+            16 + Math.random() * 14
+          );
+        }
+      }
+
+      function finish() {
+        running = false;
+        cancelAnimationFrame(raf);
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        canvas.style.display = 'none';
+      }
+
+      function frame(now) {
+        if (!running) return;
+        if (!startTime) { startTime = now; last = now; }
+
+        let dt = (now - last) / 16.667;
+        last = now;
+        if (dt > 2.5) dt = 2.5;      // 切后台回来不要瞬移
+        if (dt <= 0) dt = 0.001;
+
+        const elapsed = now - startTime;
+        // 尾段：淡出更快（2.1s 开始，2.7s 结束），并隔帧渲染，
+        // 避免全屏半透明粒子和页面重绘抢帧——旧版“最后缓降时卡”就卡在这里。
+        const fading = elapsed > 2100;
+        frameCount++;
+        if (fading && particles.length < 70 && (frameCount & 1)) {
+          raf = requestAnimationFrame(frame);
+          return;
+        }
+        const fade = elapsed < 2100 ? 1 : Math.max(0, 1 - (elapsed - 2100) / 600);
+
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const w = window.innerWidth, h = window.innerHeight;
+        const drag = Math.pow(0.992, dt);
+
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const p = particles[i];
+
+          p.vy += 0.34 * dt;
+          p.vx *= drag;
+          p.vy *= drag;
+          p.x += p.vx * dt + Math.sin((p.y + p.phase) * 0.018) * p.sway * dt;
+          p.y += p.vy * dt;
+          p.rot += p.rotSpeed * dt;
+
+          // 出界、淡到看不见、或淡出结束：立刻移除（swap-remove，避免数组空洞）
+          const alpha = p.alpha * fade;
+          if (fade <= 0 || alpha <= 0.22 || p.y > h + 70 || p.x < -90 || p.x > w + 90) {
+            particles[i] = particles[particles.length - 1];
+            particles.pop();
+            continue;
+          }
+
+          const cos = Math.cos(p.rot);
+          const sin = Math.sin(p.rot);
+
+          if (p.kind === 'ribbon') {
+            // 丝带：横向缩放模拟“翻转”，比 3D 便宜得多，观感接近
+            const flip = 0.35 + 0.65 * Math.abs(Math.cos(p.phase + elapsed * 0.004));
+            const s = dpr;
+            ctx.setTransform(cos * s * flip, sin * s * flip, -sin * s, cos * s, p.x * dpr, p.y * dpr);
+            ctx.globalAlpha = alpha;
+            ctx.fillStyle = p.color;
+            ctx.fillRect(-p.size / 2, -p.size * 0.22, p.size, p.size * 0.44);
+            ctx.fillStyle = 'rgba(255,255,255,.35)';
+            ctx.fillRect(-p.size / 2, -p.size * 0.22, p.size, p.size * 0.12);
+          } else {
+            const scale = (p.size / SPRITE) * dpr;
+            ctx.setTransform(cos * scale, sin * scale, -sin * scale, cos * scale, p.x * dpr, p.y * dpr);
+            ctx.globalAlpha = alpha;
+            ctx.drawImage(p.img, -SPRITE / 2, -SPRITE / 2);
+          }
+        }
+
+        if (particles.length === 0) {
+          finish();
+          return;
+        }
+        raf = requestAnimationFrame(frame);
+      }
+
+      window.triggerConfetti = function () {
+        if (running) return;   // 连点不叠加，避免粒子翻倍
+        // 自动化验收时可用 ?noconfetti=1 关掉动画，避免 rAF 阻塞无头浏览器
+        if (new URLSearchParams(location.search).get('noconfetti') === '1') return;
+        if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        if (!ensureCanvas()) return;
+
+        running = true;
+        sizeCanvas();
+        spawn();
+        canvas.style.display = 'block';
+        startTime = 0;
+        last = 0;
+        cancelAnimationFrame(raf);
+        raf = requestAnimationFrame(frame);
+      };
+
+      window.addEventListener('resize', function () {
+        if (running) sizeCanvas();
+      });
+    })();
+
     // 关闭激励弹窗
     window.closeFailModal = function () {
       document.getElementById("failModal").style.display = "none";
     };
+
+    /* ============================================================
+       🔌 调试 / 集成入口（不影响业务逻辑）
+       ------------------------------------------------------------
+       顶层 const 不会挂到 window 上，这里显式暴露一个只读命名空间，
+       方便控制台调试、无头浏览器验收，以及未来的小程序/第三方嵌入。
+       ============================================================ */
+    window.HousingApp = {
+      cityDb: CITY_DB,
+      zoneDefs: CITY_ZONES,
+      get currentCity() { return currentCity; },
+      get currentZone() { return currentZone; },
+      get currentResult() { return currentResult; },
+      applyCity: applyCity,
+      buildCitySelect: buildCitySelect,
+      spatialRequestFields: spatialRequestFields,
+      refreshSpatialChips: refreshSpatialChips
+    };
   </script>
   <!-- 撒花特效画布 -->
-  <canvas id="confettiCanvas"></canvas>
+  <canvas id="confettiCanvas" aria-hidden="true"></canvas>
 </body>
 
 </html>
+
+
