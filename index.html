@@ -1693,12 +1693,19 @@
         </div>
         <div class="form-item">
           <label>理财年化收益率 %</label>
-          <input type="number" id="investYieldPct" value="2.5" step="0.1" min="0">
+          <input type="number" id="investYieldPct" value="0.9" step="0.1" min="0">
+          <div class="form-hint">普通人真实活期收益，余额宝当前约 0.8%~0.9%</div>
         </div>
         <div class="form-item">
           <label>租金年化通胀率 %</label>
           <input type="number" id="rentInflationPct" value="2" step="0.1" min="0">
         </div>
+        <div class="form-item">
+          <label>年均通货膨胀率 %</label>
+          <input type="number" id="annualInflationPct" value="2.5" step="0.1" min="0">
+          <div class="form-hint">现在的 2200 元开销，30 年后可能变成 4600 元</div>
+        </div>
+
         <div class="form-item">
           <label>房贷年利率 %</label>
           <input type="number" id="loanRatePct" value="3.9" step="0.1" min="0.1" max="20">
@@ -1822,7 +1829,7 @@
     const DEFAULT_FORM = {
       "houseTotalWan": 100, "initialSavingsWan": 40, "downRatio": 30,
       "monthIncomeNet": 6500, "monthExp": 2200, "propertyFee": 200,
-      "housingFundPct": 16, "rentBase": 1800, "investYieldPct": 2.5,
+      "housingFundPct": 16, "rentBase": 1800, "investYieldPct": 0.9,
       "rentInflationPct": 2, "loanRatePct": 3.9, "repayKind": "equal_principal_interest",
       // 🌟 新增字段
       "buyCar": "false", "carTotalWan": 15, "carLoanYear": 3, "carMonthlyExpense": 1500,
@@ -2462,6 +2469,40 @@
       }
 
       let tag = healthTag;
+
+      // ==========================================
+      // 🌟 用户画像引擎：识别你的真实处境
+      // ==========================================
+      const yieldRate = parseFloat(document.getElementById("investYieldPct").value);
+      const ratio = houseTotalWan / ((monthIncomeNet * 12) / 10000); // 房价收入比
+
+      let userProfile = "balanced";
+      if (yieldRate >= 2.5 || surplusRateNum >= 50) {
+        userProfile = "aggressive"; // 能力进取型（有野心、懂理财或结余极高）
+      } else if (ratio >= 15 || (expenseRatioNum > 50 && monthExp > 5000)) {
+        userProfile = "city_striver"; // 大城拼搏型（买房压力极大，开销高）
+      } else if (ratio <= 8) {
+        userProfile = "relaxed"; // 小城安逸型（压力小）
+      }
+
+      let profileDesc = "";
+      if (userProfile === "relaxed") {
+        profileDesc = `<div style="background: rgba(16, 185, 129, 0.1); border-left: 3px solid #10b981; padding: 10px; margin-bottom: 15px; font-size: 13px; color: #6ee7b7;">
+      🍃 <b>生活平衡大师：</b>系统识别到你的购房压力相对较小。你不需要去卷高风险投资，稳稳的幸福才是你的主旋律。
+    </div>`;
+      } else if (userProfile === "city_striver") {
+        profileDesc = `<div style="background: rgba(239, 68, 68, 0.1); border-left: 3px solid #ef4444; padding: 10px; margin-bottom: 15px; font-size: 13px; color: #fca5a5;">
+      🔥 <b>逆风破局者：</b>系统识别到你在高压环境下奋斗。仅靠死工资和活期理财，在这个城市扎根会极其吃力，你需要寻找破局点。
+    </div>`;
+      } else if (userProfile === "aggressive") {
+        profileDesc = `<div style="background: rgba(139, 92, 246, 0.1); border-left: 3px solid #8b5cf6; padding: 10px; margin-bottom: 15px; font-size: 13px; color: #c4b5fd;">
+      ⚔️ <b>金融猎手/潜力股：</b>系统识别到你具备较强的进取心或理财能力。你正在用超越常人的方式加速资产积累。
+    </div>`;
+      }
+
+      // 将 profileDesc 插入到最终的 text 字符串里：
+      // 找到 text 模板里那句 "亲爱的朋友..." 或 "在这个连呼吸都带着KPI考核味道的时代..." 前面，加上 ${profileDesc}
+
       let text = "";
 
       // ==================== 维度1：综合最优 ====================
@@ -2477,10 +2518,18 @@
         <strong>4. 时间的玫瑰：</strong>30 年后，当你彻底卸下债务，手里将握着 ${assetText}，那是时间与复利给你的最高奖赏。
         
         <span class="section-title">三、 写给你的生活指南</span>
-        1. <strong>给蓄水期一点耐心：</strong>如果你选了长租房期，别去眼红别人的红本本。把首付资金稳妥安放，复利的力量终会破土而出。<br>
-        2. <strong>写给未来的提前还贷信：</strong>如果在第 5-10 年事业迎来小高峰，手里有了闲钱，请毫不犹豫去银行申请缩短年限。早日卸下债务包袱。<br>
+        ${userProfile === 'city_striver' ? `
+        1. <strong>寻找第二曲线：</strong>不要光盯着死工资，试着利用你的专业去接点私活，或者去学习真正的资产配置。<br>
+        2. <strong>考虑降维打击：</strong>如果在这个城市强行上车会让你失去翻盘的机会，不妨考虑下周边二线城市，你的生活品质会瞬间翻倍。<br>
+        ` : userProfile === 'relaxed' ? `
+        1. <strong>享受松弛感：</strong>你已经比很多大城市焦虑的白领过得舒服了，保持这个节奏，多花点时间陪陪家人。<br>
+        2. <strong>稳健为王：</strong>千万别去碰那些不懂的高风险理财，你的抗风险能力很好，别把它毁了。<br>
+        ` : `
+        1. <strong>建立防火墙：</strong>在你野心勃勃向前的路上，一定要把 50% 的资产配置在绝对安全的底仓上，永远不要拿还房贷的钱去赌。<br>
+        2. <strong>敬畏市场：</strong>高收益伴随高风险，保持警惕，祝你早日实现真正的财务自由。<br>
+        `}
         3. <strong>为爱筑起防线：</strong>每月健康的结余就是最大的底气。拿出一部分买好重疾险，这是你在风雨来临时，护家人周全的温柔承诺。
-      `;
+        `;
       }
       // ==================== 维度2：舒适度TOP ====================
       else if (viewTag === "舒适度TOP") {
@@ -3078,6 +3127,7 @@
         housing_fund_pct: parseFloat(document.getElementById("housingFundPct").value),
         invest_annual_yield_pct: parseFloat(document.getElementById("investYieldPct").value),
         rent_inflation_year_pct: parseFloat(document.getElementById("rentInflationPct").value),
+        annual_inflation_pct: parseFloat(document.getElementById("annualInflationPct").value),
         loan_annual_rate_pct: parseFloat(document.getElementById("loanRatePct").value),
         repay_kind: document.getElementById("repayKind").value,
 
