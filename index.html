@@ -3,6 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
+  <meta name="app-version" content="V6.11">
   <title>全国房产金融 WebGIS 智能决策仿真系统</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -1780,7 +1781,7 @@
 
   <div class="splash-screen" id="splashScreen">
     <h1 class="splash-title">全国房产金融决策仿真系统</h1>
-    <p class="splash-subtitle">V6.0 · 空间折叠引擎 ｜ 基于 WebGIS 与多准则决策的智能推演平台</p>
+    <p class="splash-subtitle">V6.11 · 空间折叠引擎 ｜ 基于 WebGIS 与多准则决策的智能推演平台</p>
     <button class="splash-btn" onclick="enterSystem()">进入全景中国地图</button>
   </div>
 
@@ -2317,8 +2318,9 @@
       if (regionMarkersGroup) { regionMarkersGroup.clearLayers(); }
       allMapMarkers = [];
       const sel = document.getElementById("regionSel");
-      sel.innerHTML = '<option value="">请先选择目标城市</option>';
-      sel.disabled = true;
+      // 没选城市也能推演：给一个“全国平均”选项，而不是把下拉锁死
+      sel.innerHTML = '<option value="">全国平均（未指定城市）</option>';
+      sel.disabled = false;
       const citySel = document.getElementById("citySel");
       if (citySel) citySel.value = "";
       refreshSpatialChips();
@@ -3909,9 +3911,10 @@
         }
         runBtn.disabled = false;
       } catch (e) {
-        console.error(e);
-        showToast("城市数据加载失败，请检查前端数据");
-        runBtn.disabled = true;
+        console.error("城市数据初始化失败：", e);
+        try { clearCity(); } catch (_) { }
+        runBtn.disabled = false;   // 至少让用户能按全国平均口径推演
+        showToast("城市数据初始化异常，已回退到全国平均口径：" + (e && e.message ? e.message : e));
       }
     }
 
@@ -3926,6 +3929,7 @@
     }
 
     document.getElementById("regionSel").onchange = function () {
+      if (!this.value) { clearCity(); return; }   // 选“全国平均”回到全国口径
       const find = regionList.find(x => x.name === this.value);
       if (!find) return;
       currentZone = find;
@@ -4439,6 +4443,8 @@
 </body>
 
 </html>
+
+
 
 
 
