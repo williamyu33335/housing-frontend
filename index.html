@@ -2265,6 +2265,16 @@
     let map = null;
     let chart = null;
     let regionMarkersGroup = null;
+
+    // 🗺️ V7.3 全国区县底图（按省拆分，看哪个省下哪个省）
+    let countyData = null;              // 当前已加载省份的 FeatureCollection
+    let countyProvince = null;          // 已加载的省码，如 450000
+    let countyLayer = null;
+    let countyFetchState = 'idle';      // idle | loading | ready | failed
+    let countyRenderer = null;
+    let currentProvincePrefix = null;   // 用户点开的是哪个省
+    let countyCity = null;              // 当前画的是哪个市（区划码前 4 位）
+    const COUNTY_DIR = 'county/';
     let regionList = [];
     let calcAbortCtrl = null;
     let currentMode = "relative";
@@ -2348,6 +2358,7 @@
       currentZone = null;
       regionList = [];
       if (regionMarkersGroup) { regionMarkersGroup.clearLayers(); }
+      if (typeof syncCountyLayer === 'function') syncCountyLayer();
       allMapMarkers = [];
       const sel = document.getElementById("regionSel");
       // 没选城市也能推演：给一个“全国平均”选项，而不是把下拉锁死
@@ -2367,6 +2378,79 @@
         || null;
     }
 
+    // ---------------------------------------------------------------
+    // 🗺️ V7.3 全国区县底图
+    //    · 数据：county/<省码>.geojson，34 个文件，平均 225KB，看哪个省下哪个
+    //    · 全国 2890 个区县一个不少——产品要面向县城，不能只服务 42 个基准城市
+    //    · zoom < 7 不画；interactive:false，点击穿透给我们的合成分区
+    //    · 非基准城市（崇左、玉林…）靠地图中心反查省份，一样看得到自己的区
+    // ---------------------------------------------------------------
+    // 当前该看哪个市的区县：省视图（z<9 且没选城市）一律不给
+    function currentViewCityAdcode4() {
+      if (currentCity && currentCity.code) return String(currentCity.code).slice(0, 4);
+      if (map && map.getZoom() >= 9 && window.__findCityAt) {
+        const hit = window.__findCityAt(map.getCenter());
+        const ad = hit && hit.adcode ? String(hit.adcode) : "";
+        if (ad.length >= 6) return ad.slice(0, 4);
+      }
+      return null;
+    }
+
+    function loadProvinceCounties(prov) {
+      countyFetchState = 'loading';
+      countyData = null;
+      countyProvince = prov;
+      fetch(`${COUNTY_DIR}${prov}.geojson`)
+        .then(res => res.ok ? res.json() : Promise.reject(new Error('HTTP ' + res.status)))
+        .then(geo => {
+          if (countyProvince !== prov) return;          // 期间又切了省，丢掉过期结果
+          countyData = geo;
+          countyFetchState = 'ready';
+          document.documentElement.dataset.countyLayer = 'ready';
+          console.info(`[V7.3] ${prov} 区县底图就绪：${geo.features.length} 个`);
+          drawCountyLayer();
+        })
+        .catch(e => {
+          countyFetchState = 'failed';
+          document.documentElement.dataset.countyLayer = 'failed';
+          console.warn(`[V7.3] ${prov} 区县底图没加载上，主功能不受影响`, e);
+        });
+    }
+
+    function drawCountyLayer() {
+      if (countyLayer) { map.removeLayer(countyLayer); countyLayer = null; }
+      if (!countyData || !map || map.getZoom() < 7) return;
+      const ad4 = countyCity;
+      const feats = countyData.features.filter(f => String((f.properties || {}).gb || '').slice(3, 7) === ad4);
+      if (!feats.length) return;
+      console.info(`[V7.3] 画出 ${ad4} 的 ${feats.length} 个区县`);
+      countyLayer = L.geoJSON({ type: 'FeatureCollection', features: feats }, {
+        renderer: countyRenderer,
+        pane: 'countyPane',
+        interactive: false,
+        style: { color: '#e2e8f0', weight: 1.0, opacity: 0.75, dashArray: '5,4', fill: false }
+      });
+      countyLayer.addTo(map);
+    }
+
+    function syncCountyLayer() {
+      if (!map) return;
+      const ad4 = currentViewCityAdcode4();
+      document.documentElement.dataset.countyCity = ad4 || 'none';
+      // 只有进到某个市才画区县；省视图只留市界（和阿里云 DataV 一致）
+      if (map.getZoom() < 8 || !ad4) {
+        if (countyLayer) { map.removeLayer(countyLayer); countyLayer = null; }
+        return;
+      }
+      const prov = ad4.slice(0, 2) + "0000";
+      countyCity = ad4;
+      if (countyProvince === prov && countyData) { drawCountyLayer(); return; }
+      if (countyFetchState === 'loading' && countyProvince === prov) return;
+      loadProvinceCounties(prov);
+    }
+
+    window.__syncCountyLayer = syncCountyLayer;
+
     function applyCity(city, opts) {
       const fly = !opts || opts.fly !== false;
       currentCity = city;
@@ -2379,6 +2463,7 @@
       currentZone = regionList[0] || null;
       renderRegionMarkers();
       syncZoneToForm(true);
+      syncCountyLayer();
       const citySel = document.getElementById("citySel");
       if (citySel) citySel.value = city.code;
       if (map) {
@@ -2748,6 +2833,14 @@
 
     function initMap() {
       map = L.map("map", { zoomControl: false }).setView([34.5, 108.9], 4);
+      // ?enter=1 跳过启动页直达地图（分享/无头验收用，不影响正常流程）
+      if (new URLSearchParams(location.search).get("enter") === "1") {
+        setTimeout(() => {
+          const sp = document.getElementById('splashScreen');
+          if (sp) { sp.classList.add('hide'); sp.style.display = 'none'; }
+        }, 30);
+      }
+
       // ?view=22.82,108.37,9 可直接定位到某个视角（分享/验收用）
       const viewParam = new URLSearchParams(location.search).get("view");
       if (viewParam) {
@@ -2759,6 +2852,11 @@
 
       // 🌟 使用 Canvas 渲染器，不再卡顿
       const canvasRenderer = L.canvas({ padding: 0.5, tolerance: 0.5 });
+
+      // 区县底图单独一个窗格：压在瓦片之上、图钉和合成区之下
+      map.createPane('countyPane');
+      map.getPane('countyPane').style.zIndex = 350;
+      countyRenderer = L.canvas({ padding: 0.5, pane: 'countyPane' });
 
       map.createPane('markers');
       map.getPane('markers').style.zIndex = 650;
@@ -2798,6 +2896,10 @@
             [200, 800, 1800].forEach(ms => setTimeout(() => {
               if (window.__syncCityFromMap) window.__syncCityFromMap();
             }, ms));
+            // 区县底图也补几次：非基准城市全靠这里反查省份
+            [400, 1200, 2600].forEach(ms => setTimeout(() => {
+              if (window.__syncCountyLayer) window.__syncCountyLayer();
+            }, ms));
           }
         })
         .catch(e => console.log("未找到市级边界", e));
@@ -2815,8 +2917,10 @@
             layer.on('click', (e) => {
               L.DomEvent.stopPropagation(e);
               if (adcode === 100000) return;
+              currentProvincePrefix = String(adcode).slice(0, 2) + "0000";
               map.flyToBounds(layer.getBounds(), { duration: 1.2, padding: [20, 20], easeLinearity: 0.25 });
               setTimeout(() => { drawCitiesByProvince(adcode, layer.getBounds()); }, 300);
+              setTimeout(syncCountyLayer, 340);
             });
           }
         }).addTo(map);
@@ -2865,6 +2969,7 @@
         }
       }
       window.__syncCityFromMap = syncCityFromMap;
+      window.__findCityAt = findCityAt;
 
       // 根据地图中心点找所在城市（用预计算的 bounds，取范围最小的）
       function findCityAt(latlng) {
@@ -2874,7 +2979,9 @@
           const b = f.__bounds;
           if (!b || !b.contains(latlng)) continue;
           const area = Math.abs((b.getNorth() - b.getSouth()) * (b.getEast() - b.getWest()));
-          if (!best || area < best.area) best = { name: f.properties.name, area: area };
+          if (!best || area < best.area) {
+            best = { name: f.properties.name, area: area, adcode: f.properties.adcode };
+          }
         }
         return best;
       }
@@ -2896,7 +3003,12 @@
         } else {
           if (map.hasLayer(regionMarkersGroup)) map.removeLayer(regionMarkersGroup);
         }
+        // 省视图（z≥7）就该看到县界；晚一点，等 syncCityFromMap 把城市定下来
+        setTimeout(syncCountyLayer, 120);
       });
+
+      // 首屏 setView 早于 zoomend 监听、拿不到事件，这里兜底补几次
+      [600, 2000, 4000].forEach(ms => setTimeout(syncCountyLayer, ms));
     }
 
     document.getElementById("toggleEntropyBtn").onclick = function () {
