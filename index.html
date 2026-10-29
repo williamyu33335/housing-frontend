@@ -3992,6 +3992,29 @@
           console.warn("⚠️ 后端片区数据加载失败，已启用前端本地兜底数据。", err);
         }
 
+        // 🗄️ V7.0：优先使用数据库里的城市表，失败则用内置 CITY_DB
+        try {
+          const rc = await fetch(`${API_HOST}/api/cities`, {
+            signal: (window.AbortSignal && AbortSignal.timeout) ? AbortSignal.timeout(3500) : undefined
+          });
+          if (rc.ok) {
+            const jc = await rc.json();
+            if (jc.data && jc.data.length) {
+              CITY_DB.length = 0;
+              jc.data.forEach(c => CITY_DB.push({
+                code: c.code, name: c.name, tier: c.tier,
+                price: c.price, rent: c.rent, salary: c.salary,
+                lat: c.lat, lng: c.lng
+              }));
+              console.info(`[V7.0] 已从数据库加载 ${jc.data.length} 个城市`);
+              document.documentElement.dataset.citySource = "db";
+            }
+          }
+        } catch (e) {
+          console.warn("[V7.0] 城市库接口不可用，使用内置 CITY_DB", e);
+          document.documentElement.dataset.citySource = "fallback";
+        }
+
         const nn = CITY_DB.find(c => c.code === "450100");
         if (nn) nn.zones = nanning;
 
@@ -4110,6 +4133,8 @@
       payload.squeeze_life = document.getElementById("squeezeLife").checked && currentRisk === "aggressive";
       payload.hidden_expense_month = parseFloat(document.getElementById("hiddenExpenseMonth").value || 0);
       payload.career_type = document.getElementById("careerType").value;
+      payload.city_code = currentCity ? currentCity.code : "000000";
+      payload.city_code = currentCity ? currentCity.code : "000000";
       payload.industry = document.getElementById("industry").value;
       payload.income_earners = parseInt(document.getElementById("incomeEarners").value || 1);
       payload.house_price_growth_pct = parseFloat(document.getElementById("housePriceGrowthPct").value || 0);
@@ -4542,6 +4567,9 @@
 </body>
 
 </html>
+
+
+
 
 
 
