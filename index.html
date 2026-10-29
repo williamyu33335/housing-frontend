@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 
 <head>
   <meta charset="UTF-8">
-  <meta name="app-version" content="V6.11">
+  <meta name="app-version" content="V7.0">
   <title>全国房产金融 WebGIS 智能决策仿真系统</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -1794,18 +1794,18 @@
 
   <div class="splash-screen" id="splashScreen">
     <h1 class="splash-title">全国房产金融决策仿真系统</h1>
-    <p class="splash-subtitle">V6.11 · 空间折叠引擎 ｜ 基于 WebGIS 与多准则决策的智能推演平台</p>
+    <p class="splash-subtitle">V7.0 · 空间折叠引擎 ｜ 基于 WebGIS 与 PostGIS 的智能推演平台</p>
     <button class="splash-btn" onclick="enterSystem()">进入全景中国地图</button>
   </div>
 
   <div id="map"></div>
-  <div id="appBadge">V6.11</div>
+  <div id="appBadge">V7.0</div>
   <div id="errBanner"></div>
   <div class="map-hint" id="mapHint">🛰️ 初始视角为中国全境，点击城市轮廓可放大，并点击具体片区探索。</div>
 
   <div class="glass-panel" id="leftPanel">
     <div class="panel-head">
-      <h2>仿真参数配置 <span class="ver-chip">V6.11</span></h2>
+      <h2>仿真参数配置 <span class="ver-chip">V7.0</span></h2>
       <button class="panel-close" onclick="hidePanel('leftPanel')" title="收起面板">✕</button>
     </div>
 
@@ -2151,7 +2151,7 @@
         const el = document.getElementById("errBanner");
         if (!el) return;
         el.style.display = "block";
-        el.textContent = "⚠️ 前端运行错误：" + msg + "（版本 V6.11，请把这条发给经纬）";
+        el.textContent = "⚠️ 前端运行错误：" + msg + "（版本 V7.0，请把这条发给经纬）";
       }
       window.addEventListener("error", function (e) {
         showErr((e.message || "未知错误") + " @ " + (e.filename || "").split("/").pop() + ":" + (e.lineno || 0));
@@ -4008,12 +4008,28 @@
               }));
               console.info(`[V7.0] 已从数据库加载 ${jc.data.length} 个城市`);
               document.documentElement.dataset.citySource = "db";
+            } else {
+              // 库没配（/api/health/db → enabled:false）时接口会返回空数组，这里必须显式标记回退
+              console.warn("[V7.0] 城市库接口为空（后端未配 DATABASE_URL？），使用内置 CITY_DB");
+              document.documentElement.dataset.citySource = "fallback";
             }
+          } else {
+            document.documentElement.dataset.citySource = "fallback";
           }
         } catch (e) {
           console.warn("[V7.0] 城市库接口不可用，使用内置 CITY_DB", e);
           document.documentElement.dataset.citySource = "fallback";
         }
+
+        // 🏷️ V7.0 数据来源可见：库里读的，还是内置表兜的，徽标上必须一眼看出来
+        (function markCitySource() {
+          const src = document.documentElement.dataset.citySource === "db" ? "库" : "内置";
+          document.documentElement.dataset.citySourceLabel = src;
+          const badge = document.getElementById("appBadge");
+          if (badge) badge.textContent = `V7.0 · ${src}`;
+          const chip = document.querySelector(".ver-chip");
+          if (chip) chip.textContent = `V7.0 · ${src}`;
+        })();
 
         const nn = CITY_DB.find(c => c.code === "450100");
         if (nn) nn.zones = nanning;
