@@ -3471,11 +3471,14 @@
         // 相等时两栏都绿（不再一红一绿）
         const sysCls = s.cash >= u.cash ? "ok" : "bad";
         const userCls = u.cash >= s.cash ? "ok" : "bad";
+        // 支出：越低越好，相等时两边都绿
+        const sysOut = s.outflow <= u.outflow ? "ok" : "bad";
+        const userOut = u.outflow <= s.outflow ? "ok" : "bad";
         const mark = (i === crossIdx) ? `<span class="cmp-cross-tag">推荐从这里反超</span>` : "";
         rows.push(`<tr class="${i === crossIdx ? "cmp-cross-row" : ""}" ${labelOf.click ? `data-year="${i + 1}" style="cursor:pointer;"` : ""}>
           <td>${labelOf.text(sysRows[i])}${mark}</td>
-          <td>${fmtv(s.outflow)}${unit}</td>
-          <td>${fmtv(u.outflow)}${unit}</td>
+          <td class="${sysOut}">${fmtv(s.outflow)}${unit}</td>
+          <td class="${userOut}">${fmtv(u.outflow)}${unit}</td>
           <td class="${sysCls}">${fmtv(s.cash)}${unit}</td>
           <td class="${userCls}">${fmtv(u.cash)}${unit}</td>
         </tr>`);
