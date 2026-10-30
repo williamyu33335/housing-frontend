@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="app-version" content="V8.1">
+  <meta name="app-version" content="V8.1.1">
   <title>全国房产金融 WebGIS 智能决策仿真系统</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -721,10 +721,44 @@
 
     details.config-group {
       border: 1px solid rgba(255, 255, 255, 0.1);
+      border-left: 4px solid var(--cfg-accent, rgba(148, 163, 184, 0.45));
       border-radius: 8px;
       margin-bottom: 12px;
       overflow: hidden;
       background: rgba(30, 41, 59, 0.5);
+    }
+
+    /* 每组一个颜色，靠色条和彩色标题区分；收起时也写清楚里面有什么 */
+    details.config-group summary {
+      flex-wrap: wrap;
+      gap: 2px 10px;
+    }
+
+    details.config-group summary::after {
+      order: 1;
+      color: var(--cfg-accent, #94a3b8);
+    }
+
+    .cfg-title {
+      order: 0;
+      flex: 1 1 auto;
+      color: var(--cfg-accent, #f1f5f9);
+    }
+
+    details.config-group[open] > summary .cfg-hint {
+      display: none;
+    }
+
+    .cfg-hint {
+      order: 2;
+      flex: 1 1 100%;
+      font-size: 11px;
+      font-weight: 400;
+      line-height: 1.5;
+      color: #94a3b8;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     details.config-group summary {
@@ -2620,6 +2654,23 @@
         box-shadow: 0 10px 26px rgba(2, 6, 23, .8);
       }
 
+      /* 底部留出按钮的高度，滚到最底时最后一项不会被压住 */
+      body[data-mscreen="params"] #leftPanel {
+        padding-bottom: 96px !important;
+      }
+
+      /* 按钮浮在内容上，上方加一层渐隐，别把分组标题切成两半 */
+      body[data-mscreen="params"] #runBtn::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 100%;
+        height: 20px;
+        background: linear-gradient(180deg, rgba(11, 18, 32, 0), #0b1220 88%);
+        pointer-events: none;
+      }
+
       /* ---------- 报告默认只给一小段，想看再点 ---------- */
       .m-report-toggle {
         display: none;
@@ -2789,18 +2840,18 @@
 
   <div class="splash-screen" id="splashScreen">
     <h1 class="splash-title">全国房产金融决策仿真系统</h1>
-    <p class="splash-subtitle">V8.1 · 空间折叠引擎 ｜ 手机上的买房账本</p>
+    <p class="splash-subtitle">V8.1.1 · 空间折叠引擎 ｜ 手机上的买房账本</p>
     <button class="splash-btn" onclick="enterSystem()">进入全景中国地图</button>
   </div>
 
   <div id="map"></div>
-  <div id="appBadge">V8.1</div>
+  <div id="appBadge">V8.1.1</div>
   <div id="errBanner"></div>
   <div class="map-hint" id="mapHint">🛰️ 点省份进去 → 点城市看区县 → 点片区。也可以直接点右上角「换城市」。</div>
 
   <div class="glass-panel" id="leftPanel">
     <div class="panel-head">
-      <h2>仿真参数配置 <span class="ver-chip">V8.1</span></h2>
+      <h2>仿真参数配置 <span class="ver-chip">V8.1.1</span></h2>
       <button class="panel-close" onclick="hidePanel('leftPanel')" title="收起面板">✕</button>
     </div>
 
@@ -2897,7 +2948,7 @@
       </div>
     </details>
 
-    <details class="config-group" open>
+    <details class="config-group">
       <summary>🏙️ 城市能级与空间折叠</summary>
       <div class="config-body">
         <div class="form-item">
@@ -2927,7 +2978,7 @@
     </details>
 
     <details class="config-group" open>
-      <summary>核心资产配置</summary>
+      <summary>💰 核心资产配置</summary>
       <div class="config-body">
         <div class="form-item">
           <label>选择片区 (可在地图点击)</label>
@@ -2949,8 +3000,8 @@
       </div>
     </details>
 
-    <details class="config-group">
-      <summary>收入与开销</summary>
+    <details class="config-group" open>
+      <summary>💵 收入与开销</summary>
       <div class="config-body">
         <div class="form-item">
           <label id="incomeLabel">税后到手月收入（元）</label>
@@ -2986,7 +3037,7 @@
     </details>
 
     <details class="config-group">
-      <summary>金融与租赁假设</summary>
+      <summary>💳 金融与租赁假设</summary>
       <div class="config-body">
         <div class="form-item" id="rentBaseGroup">
           <label>基准月租金（元）</label>
@@ -3177,7 +3228,7 @@
         const el = document.getElementById("errBanner");
         if (!el) return;
         el.style.display = "block";
-        el.textContent = "⚠️ 前端运行错误：" + msg + "（版本 V8.1，请把这条发给经纬）";
+        el.textContent = "⚠️ 前端运行错误：" + msg + "（版本 V8.1.1，请把这条发给经纬）";
       }
       window.addEventListener("error", function (e) {
         showErr((e.message || "未知错误") + " @ " + (e.filename || "").split("/").pop() + ":" + (e.lineno || 0));
@@ -5880,9 +5931,9 @@
           const src = document.documentElement.dataset.citySource === "db" ? "库" : "内置";
           document.documentElement.dataset.citySourceLabel = src;
           const badge = document.getElementById("appBadge");
-          if (badge) badge.textContent = `V8.1 · ${src}`;
+          if (badge) badge.textContent = `V8.1.1 · ${src}`;
           const chip = document.querySelector(".ver-chip");
-          if (chip) chip.textContent = `V8.1 · ${src}`;
+          if (chip) chip.textContent = `V8.1.1 · ${src}`;
         })();
 
         const nn = CITY_DB.find(c => c.code === "450100");
@@ -6813,7 +6864,7 @@
         const ha = window.HousingApp || {};
         const city = ha.currentCity || null;
         const res = ha.currentResult || null;
-        const ver = ($("appBadge") && $("appBadge").textContent) || "V8.1";
+        const ver = ($("appBadge") && $("appBadge").textContent) || "V8.1.1";
 
         const ar = $("anchorRentYear"), al = $("anchorLoanYear"), ad = $("anchorDownStrategy");
         const planned = (ar && ar.value !== "" && al && al.value !== "")
@@ -7142,6 +7193,117 @@
       };
 
       init();
+    })();
+  </script>
+
+  <script id="v81-config-accent">
+    /* ============================================================
+       🎨 参数分组：七彩标题 + 收起时的一行摘要
+       ------------------------------------------------------------
+       朋友的原话：默认收起来，用户可能根本没注意到就跳过了。
+       所以：① 每组一个颜色；② 收起时也显示组里的关键数字；
+             ③ 把“必须填”的组挪到前面，进阶选项放最后。
+       ============================================================ */
+    (function () {
+      var COLORS = ["#f87171", "#fb923c", "#facc15", "#34d399", "#38bdf8", "#a78bfa", "#f472b6"];
+
+      function val(id) {
+        var el = document.getElementById(id);
+        return el ? String(el.value || "") : "";
+      }
+      function optText(id) {
+        var el = document.getElementById(id);
+        var t = el && el.selectedOptions && el.selectedOptions[0] ? el.selectedOptions[0].textContent.trim() : "";
+        // 摘要里不需要 emoji：去掉开头的符号与空白
+        return t.replace(/^[^\u4e00-\u9fa5A-Za-z0-9]+/, "");
+      }
+      function cityName() {
+        var ha = window.HousingApp || {};
+        return ha.currentCity ? ha.currentCity.name : "未选城市";
+      }
+
+      // 按“人对这套房的理解顺序”排：城市 → 房子 → 收入 → 利率 → 进阶
+      var ORDER = ["城市能级", "核心资产", "收入与开销", "金融与租赁", "进阶生活"];
+
+      function arrange() {
+        var panel = document.getElementById("leftPanel");
+        var anchor = document.getElementById("anchorGroup");
+        if (!panel || !anchor) return;
+        var groups = Array.prototype.slice.call(panel.querySelectorAll("details.config-group"));
+        groups.forEach(function (g) {
+          var title = (g.querySelector(".cfg-title") || g.querySelector("summary") || {}).textContent || "";
+          var idx = ORDER.findIndex(function (k) { return title.indexOf(k) >= 0; });
+          g.dataset.order = idx < 0 ? 99 : idx;
+        });
+        groups.sort(function (a, b) { return a.dataset.order - b.dataset.order; });
+        groups.forEach(function (g) { panel.insertBefore(g, anchor); });
+      }
+
+      function buildTitles() {
+        var groups = document.querySelectorAll("#leftPanel details.config-group, #anchorGroup");
+        Array.prototype.forEach.call(groups, function (g, i) {
+          g.style.setProperty("--cfg-accent", COLORS[i % COLORS.length]);
+          var s = g.querySelector("summary");
+          if (!s || s.querySelector(".cfg-title")) return;
+          var raw = (s.textContent || "").trim();
+          var t = document.createElement("span");
+          t.className = "cfg-title";
+          t.textContent = raw;
+          var h = document.createElement("span");
+          h.className = "cfg-hint";
+          s.textContent = "";
+          s.appendChild(t);
+          s.appendChild(h);
+        });
+      }
+
+      function hints() {
+        var v = val;
+        var data = [
+          cityName() + " · " + (optText("familyMode") || "二人世界"),
+          v("houseTotalWan") + " 万 · 首付 " + v("downRatio") + "% · 存款 " + v("initialSavingsWan") + " 万",
+          "月入 " + v("monthIncomeNet") + " · 月支 " + v("monthExp") + " · 物业 " + v("propertyFee"),
+          "利率 " + v("loanRatePct") + "% · 月租 " + v("rentBase") + " · 理财 " + v("investYieldPct") + "%",
+          (v("buyCar") === "true" ? "要买车" : "不买车") + " · " + (optText("careerType") || "企业职员")
+        ];
+        var groups = document.querySelectorAll("#leftPanel details.config-group");
+        Array.prototype.forEach.call(groups, function (g) {
+          var titleEl = g.querySelector(".cfg-title");
+          if (!titleEl) return;
+          var title = titleEl.textContent || "";
+          var idx = ORDER.findIndex(function (k) { return title.indexOf(k) >= 0; });
+          var h = g.querySelector(".cfg-hint");
+          if (h && idx >= 0 && data[idx]) h.textContent = data[idx];
+        });
+
+        // 「我的打算」也写一行：填了就写数字，没填就写“可选”
+        var ag = document.getElementById("anchorGroup");
+        if (ag) {
+          var ah = ag.querySelector(".cfg-hint");
+          var r = v("anchorRentYear"), l = v("anchorLoanYear");
+          if (ah) ah.textContent = (r && l) ? ("租 " + r + " 年 · 贷 " + l + " 年 · " + (optText("anchorDownStrategy") || "")) : "可选：把你自己的打算填进来，模型原样算一遍";
+        }
+      }
+
+      var tid = null;
+      function refresh() {
+        clearTimeout(tid);
+        tid = setTimeout(hints, 120);
+      }
+
+      function init() {
+        // 先排顺序再上色：颜色按“看到的第一组到最后一组”依次是 红橙黄绿蓝紫
+        arrange();
+        buildTitles();
+        hints();
+        document.addEventListener("input", refresh, true);
+        document.addEventListener("change", refresh, true);
+        setTimeout(hints, 1200);
+        setTimeout(hints, 3000);
+      }
+
+      if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+      else init();
     })();
   </script>
 
