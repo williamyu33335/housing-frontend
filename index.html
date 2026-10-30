@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="app-version" content="V8.1.1">
+  <meta name="app-version" content="V8.1.2">
   <title>全国房产金融 WebGIS 智能决策仿真系统</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -728,34 +728,55 @@
       background: rgba(30, 41, 59, 0.5);
     }
 
-    /* 每组一个颜色，靠色条和彩色标题区分；收起时也写清楚里面有什么 */
-    details.config-group summary {
+    /* 每组一个颜色，整条标题上色；收起时也写清楚里面有什么 */
+    #leftPanel details.config-group > summary {
       flex-wrap: wrap;
       gap: 2px 10px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, .18), rgba(0, 0, 0, .12)),
+        var(--cfg-accent, #334155);
+      color: #0b1220;
+      font-weight: 700;
     }
 
-    details.config-group summary::after {
+    #leftPanel details.config-group[open] > summary {
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, .1), rgba(0, 0, 0, .22)),
+        var(--cfg-accent, #334155);
+    }
+
+    #leftPanel details.config-group > summary::after {
       order: 1;
-      color: var(--cfg-accent, #94a3b8);
+      color: rgba(11, 18, 32, .78);
+      font-weight: 700;
     }
 
     .cfg-title {
       order: 0;
       flex: 1 1 auto;
+      color: inherit;
+    }
+
+    /* 可选组保持原来的暗色底，只把标题染成紫色，不抢戏 */
+    #anchorGroup summary .cfg-title {
       color: var(--cfg-accent, #f1f5f9);
     }
 
-    details.config-group[open] > summary .cfg-hint {
+    #leftPanel details.config-group[open] > summary .cfg-hint {
       display: none;
+    }
+
+    #anchorGroup summary .cfg-hint {
+      color: #94a3b8;
     }
 
     .cfg-hint {
       order: 2;
       flex: 1 1 100%;
       font-size: 11px;
-      font-weight: 400;
+      font-weight: 500;
       line-height: 1.5;
-      color: #94a3b8;
+      color: rgba(11, 18, 32, .72);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -2840,18 +2861,18 @@
 
   <div class="splash-screen" id="splashScreen">
     <h1 class="splash-title">全国房产金融决策仿真系统</h1>
-    <p class="splash-subtitle">V8.1.1 · 空间折叠引擎 ｜ 手机上的买房账本</p>
+    <p class="splash-subtitle">V8.1.2 · 空间折叠引擎 ｜ 手机上的买房账本</p>
     <button class="splash-btn" onclick="enterSystem()">进入全景中国地图</button>
   </div>
 
   <div id="map"></div>
-  <div id="appBadge">V8.1.1</div>
+  <div id="appBadge">V8.1.2</div>
   <div id="errBanner"></div>
   <div class="map-hint" id="mapHint">🛰️ 点省份进去 → 点城市看区县 → 点片区。也可以直接点右上角「换城市」。</div>
 
   <div class="glass-panel" id="leftPanel">
     <div class="panel-head">
-      <h2>仿真参数配置 <span class="ver-chip">V8.1.1</span></h2>
+      <h2>仿真参数配置 <span class="ver-chip">V8.1.2</span></h2>
       <button class="panel-close" onclick="hidePanel('leftPanel')" title="收起面板">✕</button>
     </div>
 
@@ -3228,7 +3249,7 @@
         const el = document.getElementById("errBanner");
         if (!el) return;
         el.style.display = "block";
-        el.textContent = "⚠️ 前端运行错误：" + msg + "（版本 V8.1.1，请把这条发给经纬）";
+        el.textContent = "⚠️ 前端运行错误：" + msg + "（版本 V8.1.2，请把这条发给经纬）";
       }
       window.addEventListener("error", function (e) {
         showErr((e.message || "未知错误") + " @ " + (e.filename || "").split("/").pop() + ":" + (e.lineno || 0));
@@ -5931,9 +5952,9 @@
           const src = document.documentElement.dataset.citySource === "db" ? "库" : "内置";
           document.documentElement.dataset.citySourceLabel = src;
           const badge = document.getElementById("appBadge");
-          if (badge) badge.textContent = `V8.1.1 · ${src}`;
+          if (badge) badge.textContent = `V8.1.2 · ${src}`;
           const chip = document.querySelector(".ver-chip");
-          if (chip) chip.textContent = `V8.1.1 · ${src}`;
+          if (chip) chip.textContent = `V8.1.2 · ${src}`;
         })();
 
         const nn = CITY_DB.find(c => c.code === "450100");
@@ -6864,7 +6885,7 @@
         const ha = window.HousingApp || {};
         const city = ha.currentCity || null;
         const res = ha.currentResult || null;
-        const ver = ($("appBadge") && $("appBadge").textContent) || "V8.1.1";
+        const ver = ($("appBadge") && $("appBadge").textContent) || "V8.1.2";
 
         const ar = $("anchorRentYear"), al = $("anchorLoanYear"), ad = $("anchorDownStrategy");
         const planned = (ar && ar.value !== "" && al && al.value !== "")
