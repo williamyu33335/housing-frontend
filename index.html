@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="app-version" content="V7.0">
+  <meta name="app-version" content="V7.10">
   <title>全国房产金融 WebGIS 智能决策仿真系统</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -1833,18 +1833,18 @@
 
   <div class="splash-screen" id="splashScreen">
     <h1 class="splash-title">全国房产金融决策仿真系统</h1>
-    <p class="splash-subtitle">V7.0 · 空间折叠引擎 ｜ 基于 WebGIS 与 PostGIS 的智能推演平台</p>
+    <p class="splash-subtitle">V7.10 · 空间折叠引擎 ｜ 基于 WebGIS 与 PostGIS 的智能推演平台</p>
     <button class="splash-btn" onclick="enterSystem()">进入全景中国地图</button>
   </div>
 
   <div id="map"></div>
-  <div id="appBadge">V7.0</div>
+  <div id="appBadge">V7.10</div>
   <div id="errBanner"></div>
   <div class="map-hint" id="mapHint">🛰️ 初始视角为中国全境，点击城市轮廓可放大，并点击具体片区探索。</div>
 
   <div class="glass-panel" id="leftPanel">
     <div class="panel-head">
-      <h2>仿真参数配置 <span class="ver-chip">V7.0</span></h2>
+      <h2>仿真参数配置 <span class="ver-chip">V7.10</span></h2>
       <button class="panel-close" onclick="hidePanel('leftPanel')" title="收起面板">✕</button>
     </div>
 
@@ -2220,7 +2220,7 @@
         const el = document.getElementById("errBanner");
         if (!el) return;
         el.style.display = "block";
-        el.textContent = "⚠️ 前端运行错误：" + msg + "（版本 V7.0，请把这条发给经纬）";
+        el.textContent = "⚠️ 前端运行错误：" + msg + "（版本 V7.10，请把这条发给经纬）";
       }
       window.addEventListener("error", function (e) {
         showErr((e.message || "未知错误") + " @ " + (e.filename || "").split("/").pop() + ":" + (e.lineno || 0));
@@ -3459,6 +3459,26 @@
       const fmtv = (v) => Number(v).toLocaleString("zh-CN", {
         minimumFractionDigits: digits, maximumFractionDigits: digits,
       });
+      const num = (r, yearly, monthly) => {
+        const v = r[yearly] !== undefined ? r[yearly] : r[monthly];
+        return Number(v || 0);
+      };
+      // V7.10：鼠标悬停能看见“月供 / 公积金 / 自付”的拆分。
+      // 不再让用户把“公积金抵扣后的自付支出”误读成“没有房贷”。
+      const detail = (r) => {
+        if (r.mortgage_wan === undefined && r.mortgage === undefined) return "";
+        const mort = num(r, "mortgage_wan", "mortgage");
+        const fund = num(r, "fund_inflow_wan", "fund_inflow");
+        const pay = num(r, "self_pay_wan", "self_pay");
+        const f = (v) => Number(v).toLocaleString("zh-CN", { maximumFractionDigits: digits });
+        if (r.phase === "rent") {
+          return `租房期：生活+房租+交通；公积金入账 ${f(fund)}${unit}，已计入现金`;
+        }
+        if (r.phase === "free") {
+          return `自由期：生活+物业+交通；公积金入账 ${f(fund)}${unit}，已计入现金`;
+        }
+        return `房贷月供 ${f(mort)}${unit}，公积金抵扣 ${f(fund)}${unit}，自付 ${f(pay)}${unit}`;
+      };
 
       let crossIdx = -1;
       for (let i = 0; i < n; i++) {
@@ -3477,13 +3497,59 @@
         const mark = (i === crossIdx) ? `<span class="cmp-cross-tag">推荐从这里反超</span>` : "";
         rows.push(`<tr class="${i === crossIdx ? "cmp-cross-row" : ""}" ${labelOf.click ? `data-year="${i + 1}" style="cursor:pointer;"` : ""}>
           <td>${labelOf.text(sysRows[i])}${mark}</td>
-          <td class="${sysOut}">${fmtv(s.outflow)}${unit}</td>
-          <td class="${userOut}">${fmtv(u.outflow)}${unit}</td>
+          <td class="${sysOut}" title="${detail(sysRows[i])}">${fmtv(s.outflow)}${unit}</td>
+          <td class="${userOut}" title="${detail(userRows[i])}">${fmtv(u.outflow)}${unit}</td>
           <td class="${sysCls}">${fmtv(s.cash)}${unit}</td>
           <td class="${userCls}">${fmtv(u.cash)}${unit}</td>
         </tr>`);
       }
       return { html: rows.join(""), crossIdx };
+    }
+
+    function outflowExplain(res) {
+      const d = res.compare_diagnostics || {};
+      const sysRows = res.best_timeline || [];
+      const userRows = (res.anchor && res.anchor.timeline) || [];
+      if (!sysRows.length || !userRows.length) return "";
+      const by = {}, uy = {};
+      sysRows.forEach(r => { by[r.year] = r; });
+      userRows.forEach(r => { uy[r.year] = r; });
+      const fmt = (v) => Number(v || 0).toFixed(2);
+      const userEnd = d.user_loan_end_year;
+      const bestFree = (sysRows.find(r => r.phase === "free") || {}).year;
+
+      // 先看“你的支出更低”——这是用户最直觉、也最该被看见的情况
+      let lowerYear = null;
+      if (userEnd) {
+        for (let y = userEnd; y <= 30; y++) {
+          const u = uy[y], b = by[y];
+          if (!u || !b || !(u.outflow_wan < b.outflow_wan - 0.01)) continue;
+          let allLower = true;
+          for (let yy = y; yy <= 30; yy++) {
+            const uu = uy[yy], bb = by[yy];
+            if (!uu || !bb || !(uu.outflow_wan < bb.outflow_wan - 0.01)) { allLower = false; break; }
+          }
+          if (allLower) { lowerYear = y; break; }
+        }
+      }
+      if (lowerYear) {
+        const diff = (by[lowerYear].outflow_wan - uy[lowerYear].outflow_wan).toFixed(2);
+        return `<div class="cmp-foot" style="color:#34d399; background:rgba(52,211,153,.08); border-left:3px solid #34d399; padding:8px 10px; border-radius:6px; margin-top:8px;">✅ 第 ${lowerYear} 年起你的房贷已还完，支出比推荐方案每年少 <b>${diff} 万</b>。这是你的方案真正的优势。</div>`;
+      }
+
+      const eq = d.outflow_equal_from_year;
+      if (!eq || !by[eq] || !uy[eq]) return "";
+      const b = by[eq];
+      if (d.equal_outflow_reason === "fund_covers") {
+        return `<div class="cmp-foot" style="color:#fbbf24; background:rgba(251,191,36,.08); border-left:3px solid #fbbf24; padding:8px 10px; border-radius:6px; margin-top:8px;">📌 第 ${eq} 年起两边支出相同，<b>不是算错</b>：推荐方案还有房贷（月供 ${fmt(b.mortgage_wan)} 万/年），但公积金每年入账 ${fmt(b.fund_inflow_wan)} 万，已经把月供全覆盖，<b>自付 0 元</b>；你的方案第 ${userEnd} 年已还完。两边剩下的都只是生活、物业、交通。</div>`;
+      }
+      if (d.equal_outflow_reason === "both_free") {
+        return `<div class="cmp-foot" style="color:#34d399; background:rgba(52,211,153,.08); border-left:3px solid #34d399; padding:8px 10px; border-radius:6px; margin-top:8px;">✅ 第 ${eq} 年起两边都还完了房贷，支出相同是正常的。你的方案第 ${userEnd} 年还完，推荐方案第 ${bestFree || "--"} 年还完。</div>`;
+      }
+      if (d.equal_outflow_reason === "unexplained") {
+        return `<div class="cmp-foot" style="color:#f87171; background:rgba(248,113,113,.08); border-left:3px solid #f87171; padding:8px 10px; border-radius:6px; margin-top:8px;">⚠️ 第 ${eq} 年起你的房贷已还完，推荐方案却还有自付房贷，两边支出却相同。这可能是算法问题，请把这一屏截图发给经纬。</div>`;
+      }
+      return "";
     }
 
     function timeSection(res) {
@@ -3500,14 +3566,16 @@
       return `<div class="cmp-section">
         <div class="cmp-title">🗓️ 逐年对比：你是在哪一年开始落后的</div>
         <table class="cmp-table tight clickable">
-          <thead><tr><th>年份</th><th>推荐 · 支出</th><th>你的 · 支出</th><th>推荐 · 现金</th><th>你的 · 现金</th></tr></thead>
+          <thead><tr><th>年份</th><th>推荐 · 自付支出</th><th>你的 · 自付支出</th><th>推荐 · 现金</th><th>你的 · 现金</th></tr></thead>
           <tbody>${yearTable.html}</tbody>
         </table>
+        <div class="cmp-foot">支出 = 生活 + 物业 + 交通 + 房贷自付。公积金抵扣掉的月供不算支出——那笔钱仍然是你的，会进现金；期末资产里也包含公积金账户余额。鼠标悬停每一格可看拆分。</div>
+        ${outflowExplain(res)}
         ${crossNote}
         <div id="cmpMonthDrill" style="display:none; margin-top:12px;">
           <div class="cmp-title" id="cmpMonthDrillTitle"></div>
           <table class="cmp-table tight">
-            <thead><tr><th>月份</th><th>推荐 · 支出</th><th>你的 · 支出</th><th>推荐 · 现金</th><th>你的 · 现金</th></tr></thead>
+            <thead><tr><th>月份</th><th>推荐 · 自付支出</th><th>你的 · 自付支出</th><th>推荐 · 现金</th><th>你的 · 现金</th></tr></thead>
             <tbody id="cmpMonthDrillBody"></tbody>
           </table>
           <div class="cmp-foot">单位：元。这一年里每个月的现金差距，比年度数字更能说明问题。</div>
@@ -3542,12 +3610,14 @@
       const s = schemeMonthly(sysItem), u = schemeMonthly(userItem);
       const spend = nv("monthExp") + nv("propertyFee");
       // 公积金抵扣后再算自付，否则会把"支出占比"算高（月供里有一半是公积金账户在还）
-      const ratio = (m) => {
-        const income = nv("monthIncomeNet");
+      const incomeAtLoan = (item) =>
+        nv("monthIncomeNet") * Math.pow(1 + nv("annualIncomeGrowthPct") / 100, item.rent_year || 0);
+      const fundAtLoan = (item) => incomeAtLoan(item) * nv("housingFundPct") / 100;
+      const selfPayMonthly = (item) => Math.max(0, schemeMonthly(item).monthly - fundAtLoan(item));
+      const ratio = (item) => {
+        const income = incomeAtLoan(item);
         if (!(income > 0)) return 0;
-        const fund = income * nv("housingFundPct") / 100;
-        const selfPay = Math.max(0, m - fund);
-        return (spend + selfPay) / income * 100;
+        return (spend + selfPayMonthly(item)) / income * 100;
       };
 
       const sections = [
@@ -3556,7 +3626,8 @@
           ["贷款本金", sysItem.loan_principal_wan, userItem.loan_principal_wan, 0, " 万", 1],
           ["30 年总利息", sysItem.total_interest_wan, userItem.total_interest_wan, -1, " 万", 2],
           ["房贷月供（估）", s.monthly, u.monthly, -1, " 元", 0],
-          ["支出占收入比", ratio(s.monthly), ratio(u.monthly), -1, " %", 1],
+          ["首年月供自付（估）", selfPayMonthly(sysItem), selfPayMonthly(userItem), -1, " 元", 0],
+          ["支出占收入比（估）", ratio(sysItem), ratio(userItem), -1, " %", 1],
           ["装修预算", sysItem.reno_budget_wan, userItem.reno_budget_wan, 0, " 万", 1],
         ]],
         ["💰 30 年后", [
@@ -4449,10 +4520,15 @@
           `<li>租 ${s.rent_year} 年 + 贷 ${s.loan_year} 年 · ${downLabel(s.down_strategy)} · 期末 ${s.liquid_asset_end_wan} 万</li>`
         ).join("");
         box.innerHTML = `
-          <div class="toggle-card" style="display:block; border-left:3px solid #f59e0b;">
-            <b>🧭 你打算：租 ${req.rent_year} 年 + 贷 ${req.loan_year} 年</b>
-            <p style="margin:8px 0; line-height:1.7;">${escapeHtml(res.reason || "这个组合过不了风控。")}</p>
-            ${near ? `<p style="margin:6px 0 4px;">同样租房年限下，最接近的可行方案：</p><ul style="margin:0 0 0 18px; line-height:1.8;">${near}</ul>` : ""}
+          <div class="toggle-card anchor-fail" data-anchor-infeasible="1"
+               style="display:block; border-left:4px solid #ef4444; background:rgba(239,68,68,.08);">
+            <b style="color:#f87171;">❌ 你这个预期实现不了</b>
+            <div class="form-hint" style="margin:6px 0 8px;">
+              你打算：租 ${req.rent_year} 年 + 贷 ${req.loan_year} 年 · ${downLabel(req.down_strategy)}
+            </div>
+            <p style="margin:8px 0; line-height:1.7; color:#fecaca;">${escapeHtml(res.reason || "这个组合过不了风控。")}</p>
+            <p style="margin:6px 0 4px; color:#cbd5e1;">这不是说你不能买房，是这个组合在首付 / 70% 红线下过不了。把年限或首付策略改一改，或者先看这些更接近可行的组合：</p>
+            ${near ? `<ul style="margin:0 0 0 18px; line-height:1.8;">${near}</ul>` : ""}
           </div>`;
         box.style.display = "block";
         return;
@@ -4658,9 +4734,9 @@
           const src = document.documentElement.dataset.citySource === "db" ? "库" : "内置";
           document.documentElement.dataset.citySourceLabel = src;
           const badge = document.getElementById("appBadge");
-          if (badge) badge.textContent = `V7.0 · ${src}`;
+          if (badge) badge.textContent = `V7.10 · ${src}`;
           const chip = document.querySelector(".ver-chip");
-          if (chip) chip.textContent = `V7.0 · ${src}`;
+          if (chip) chip.textContent = `V7.10 · ${src}`;
         })();
 
         const nn = CITY_DB.find(c => c.code === "450100");
