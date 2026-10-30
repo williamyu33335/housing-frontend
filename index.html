@@ -9,6 +9,34 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
   <style>
+    /* ===== V7.6 方案对比弹窗 ===== */
+    .cmp-head { display:flex; align-items:stretch; gap:12px; margin:4px 0 14px; }
+    .cmp-side { flex:1; padding:10px 12px; border-radius:10px; border:1px solid rgba(148,163,184,.3); }
+    .cmp-side b { display:block; font-size:15px; }
+    .cmp-side span { font-size:12px; color:#94a3b8; }
+    .cmp-side.sys { border-left:3px solid #38bdf8; }
+    .cmp-side.user { border-left:3px solid #f59e0b; }
+    .cmp-vs { align-self:center; font-weight:800; color:#64748b; }
+    .cmp-section { margin-bottom:14px; }
+    .cmp-title { font-weight:700; margin:0 0 6px; }
+    .cmp-table { width:100%; border-collapse:collapse; font-size:12.5px; }
+    .cmp-table th, .cmp-table td { padding:6px 8px; border-bottom:1px solid rgba(148,163,184,.16); text-align:right; }
+    .cmp-table th:first-child, .cmp-table td:first-child { text-align:left; }
+    .cmp-lbl { color:#cbd5e1; }
+    .cmp-table td.ok { color:#34d399; font-weight:700; }
+    .cmp-table td.bad { color:#f87171; }
+    .cmp-tag { font-size:10px; opacity:.85; }
+    .cmp-bars { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:0 0 16px; }
+    .cmp-bar-block { border:1px solid rgba(148,163,184,.22); border-radius:10px; padding:10px; }
+    .cmp-bar-label { font-size:12px; color:#94a3b8; margin-bottom:6px; }
+    .cmp-bar-line { display:flex; align-items:center; gap:8px; font-size:12px; margin:4px 0; }
+    .cmp-bar-name { width:28px; color:#94a3b8; }
+    .cmp-bar-track { flex:1; height:8px; background:rgba(148,163,184,.18); border-radius:6px; overflow:hidden; }
+    .cmp-bar-fill { display:block; height:100%; border-radius:6px; }
+    .cmp-bar-fill.win { background:#34d399; }
+    .cmp-bar-fill.lose { background:#f87171; }
+    .cmp-foot { font-size:11.5px; color:#94a3b8; line-height:1.7; }
+
     /* ========== 无方案激励弹窗 ========== */
     #failModal .modal-content {
       background: linear-gradient(135deg, rgba(30, 41, 59, 0.98), rgba(139, 92, 246, 0.15));
@@ -2035,6 +2063,33 @@
       </div>
     </details>
 
+    <!-- 🧭 V7.5 锚点方案：先算你自己的打算，再谈推荐 -->
+    <details id="anchorGroup" style="margin:14px 0 10px; border:1px solid rgba(148,163,184,.35); border-radius:10px; padding:10px 12px;">
+      <summary style="cursor:pointer; font-weight:600;">🧭 说说你自己的打算（可选）</summary>
+      <div class="form-hint" style="margin:8px 0 10px;">
+        把你心里那套方案填进来（比如“租 5 年、贷 10 年”），我们原样算一遍给你对账。
+        它不改动上面的参数，也不影响推荐结果。
+      </div>
+      <div style="display:flex; gap:10px;">
+        <div class="form-item" style="flex:1;">
+          <label>打算租几年</label>
+          <input type="number" id="anchorRentYear" min="0" max="20" placeholder="如 5">
+        </div>
+        <div class="form-item" style="flex:1;">
+          <label>打算贷几年</label>
+          <input type="number" id="anchorLoanYear" min="1" max="30" placeholder="如 10">
+        </div>
+      </div>
+      <div class="form-item">
+        <label>首付策略</label>
+        <select id="anchorDownStrategy">
+          <option value="balanced">折中（留一半现金）</option>
+          <option value="min">最低首付（钱留着理财）</option>
+          <option value="max">掏空（全砸首付）</option>
+        </select>
+      </div>
+    </details>
+
     <button id="runBtn">开始深度推演</button>
     <button id="resetParamBtn">重置为默认参数</button>
   </div>
@@ -2062,6 +2117,9 @@
     </div>
 
     <div id="globalBestBox" style="display:none;"></div>
+
+    <!-- 🧭 V7.5 你的方案 vs 推荐方案 -->
+    <div id="anchorBox" style="display:none;"></div>
 
     <div class="view-bar" id="viewBar" style="display:none;">
       <span class="view-bar-label">🎛️ 选择决策视角</span>
@@ -2833,6 +2891,20 @@
 
     function initMap() {
       map = L.map("map", { zoomControl: false }).setView([34.5, 108.9], 4);
+      // ?anchor=5,10,balanced 预填“我的打算”（便于分享与验收）
+      const anchorParam = new URLSearchParams(location.search).get("anchor");
+      if (anchorParam) {
+        const ap = anchorParam.split(",");
+        const ar = document.getElementById("anchorRentYear");
+        const al = document.getElementById("anchorLoanYear");
+        const ad = document.getElementById("anchorDownStrategy");
+        if (ar && ap[0] !== undefined) ar.value = ap[0].trim();
+        if (al && ap[1] !== undefined) al.value = ap[1].trim();
+        if (ad && ap[2]) ad.value = ap[2].trim();
+        const grp = document.getElementById("anchorGroup");
+        if (grp) grp.open = true;
+      }
+
       // ?enter=1 跳过启动页直达地图（分享/无头验收用，不影响正常流程）
       if (new URLSearchParams(location.search).get("enter") === "1") {
         setTimeout(() => {
@@ -3193,9 +3265,126 @@
       };
     }
 
+    // =================================================================
+    // 🧭 V7.6 方案对比弹窗：左边系统推荐，右边你的方案
+    //   规则：同一行谁更好谁绿，另一个红；中性指标（首付/本金）不上色。
+    // =================================================================
+    function cmpClass(sysVal, userVal, dir) {
+      if (dir === 0 || !isFinite(sysVal) || !isFinite(userVal) || sysVal === userVal) return ["", ""];
+      const sysBetter = dir > 0 ? sysVal > userVal : sysVal < userVal;
+      return sysBetter ? ["ok", "bad"] : ["bad", "ok"];
+    }
+
+    function cmpRow(label, sysVal, userVal, dir, unit, digits) {
+      const f = (v) => (v === undefined || v === null || isNaN(v))
+        ? "--" : Number(v).toLocaleString("zh-CN", { minimumFractionDigits: digits || 0, maximumFractionDigits: digits || 0 }) + (unit || "");
+      const [cs, cu] = cmpClass(Number(sysVal), Number(userVal), dir);
+      const tagFor = (c) => (!c ? "" : (c === "ok" ? " ▲ 更优" : " ▼ 更差"));
+      return `<tr>
+        <td class="cmp-lbl">${label}</td>
+        <td class="${cs}">${f(sysVal)}<span class="cmp-tag">${tagFor(cs)}</span></td>
+        <td class="${cu}">${f(userVal)}<span class="cmp-tag">${tagFor(cu)}</span></td>
+      </tr>`;
+    }
+
+    function cmpBar(label, sysVal, userVal, lowerBetter) {
+      const a = Math.max(Number(sysVal) || 0, 0), c = Math.max(Number(userVal) || 0, 0);
+      const max = Math.max(a, c, 1);
+      const sysPct = Math.round(a / max * 100), userPct = Math.round(c / max * 100);
+      const sysWin = lowerBetter ? a < c : a > c;
+      return `<div class="cmp-bar-block">
+        <div class="cmp-bar-label">${label}${sysWin ? "（推荐更优）" : "（你的更优）"}</div>
+        <div class="cmp-bar-line"><span class="cmp-bar-name">推荐</span>
+          <span class="cmp-bar-track"><span class="cmp-bar-fill ${sysWin ? "win" : "lose"}" style="width:${sysPct}%"></span></span>
+          <b>${a.toFixed(2)} 万</b></div>
+        <div class="cmp-bar-line"><span class="cmp-bar-name">你的</span>
+          <span class="cmp-bar-track"><span class="cmp-bar-fill ${sysWin ? "lose" : "win"}" style="width:${userPct}%"></span></span>
+          <b>${c.toFixed(2)} 万</b></div>
+      </div>`;
+    }
+
+    function schemeMonthly(item) {
+      const loanP = item.loan_principal_wan || 0;
+      const years = item.loan_year || 0;
+      const repay = document.getElementById("repayKind").value;
+      const calc = calcComboMortgage(loanP, nv("loanRatePct"), nv("providentLoanCapWan"), 3.1, years, repay);
+      return { monthly: calc.monthly, interestWan: calc.totalInterest / 10000 };
+    }
+
+    function openCompareModal(sysItem, userItem) {
+      const dsText = (k) => k === "max" ? "掏空首付" : (k === "balanced" ? "折中首付" : "最低首付");
+      const s = schemeMonthly(sysItem), u = schemeMonthly(userItem);
+      const spend = nv("monthExp") + nv("propertyFee");
+      // 公积金抵扣后再算自付，否则会把"支出占比"算高（月供里有一半是公积金账户在还）
+      const ratio = (m) => {
+        const income = nv("monthIncomeNet");
+        if (!(income > 0)) return 0;
+        const fund = income * nv("housingFundPct") / 100;
+        const selfPay = Math.max(0, m - fund);
+        return (spend + selfPay) / income * 100;
+      };
+
+      const sections = [
+        ["🏠 购房与贷款", [
+          ["实际首付", sysItem.down_payment_wan, userItem.down_payment_wan, 0, " 万", 1],
+          ["贷款本金", sysItem.loan_principal_wan, userItem.loan_principal_wan, 0, " 万", 1],
+          ["30 年总利息", sysItem.total_interest_wan, userItem.total_interest_wan, -1, " 万", 2],
+          ["房贷月供（估）", s.monthly, u.monthly, -1, " 元", 0],
+          ["支出占收入比", ratio(s.monthly), ratio(u.monthly), -1, " %", 1],
+          ["装修预算", sysItem.reno_budget_wan, userItem.reno_budget_wan, 0, " 万", 1],
+        ]],
+        ["💰 30 年后", [
+          ["期末资产（名义）", sysItem.liquid_asset_end_wan, userItem.liquid_asset_end_wan, 1, " 万", 2],
+          ["期末资产（今日购买力）", sysItem.real_asset_wan, userItem.real_asset_wan, 1, " 万", 2],
+          ["最低现金可撑", sysItem.buffer_months, userItem.buffer_months, 1, " 个月", 1],
+        ]],
+        ["📊 五维评分", [
+          ["抗风险稳健度", sysItem.adapt_score, userItem.adapt_score, 1, "", 1],
+          ["居住舒适度", sysItem.comfort_score, userItem.comfort_score, 1, "", 1],
+          ["结余幸福感", sysItem.surplus_happiness, userItem.surplus_happiness, 1, "", 1],
+          ["时间效率", sysItem.time_efficiency, userItem.time_efficiency, 1, "", 1],
+          ["熵权综合得分", sysItem.comprehensive_score, userItem.comprehensive_score, 1, "", 2],
+        ]],
+      ];
+
+      const body = sections.map(([title, rows]) => `
+        <div class="cmp-section">
+          <div class="cmp-title">${title}</div>
+          <table class="cmp-table">
+            <thead><tr><th>指标</th><th>推荐：租 ${sysItem.rent_year} 年 + 贷 ${sysItem.loan_year} 年</th>
+              <th>你的：租 ${userItem.rent_year} 年 + 贷 ${userItem.loan_year} 年</th></tr></thead>
+            <tbody>${rows.map(r => cmpRow(...r)).join("")}</tbody>
+          </table>
+        </div>`).join("");
+
+      document.getElementById("modalBody").innerHTML = `
+        <div class="cmp-head">
+          <div class="cmp-side sys"><b>系统推荐</b><span>租 ${sysItem.rent_year} 年 + 贷 ${sysItem.loan_year} 年 · ${dsText(sysItem.down_strategy)}</span></div>
+          <div class="cmp-vs">VS</div>
+          <div class="cmp-side user"><b>你的方案</b><span>租 ${userItem.rent_year} 年 + 贷 ${userItem.loan_year} 年 · ${dsText(userItem.down_strategy)}</span></div>
+        </div>
+        <div class="cmp-bars">
+          ${cmpBar("期末资产", sysItem.liquid_asset_end_wan, userItem.liquid_asset_end_wan, false)}
+          ${cmpBar("30 年总利息", sysItem.total_interest_wan, userItem.total_interest_wan, true)}
+        </div>
+        ${body}
+        <div class="cmp-foot">绿 = 这一项更优，红 = 更差。首付、贷款本金属于中性指标，不判优劣：首付多则本金少，是一体两面。
+          ${(Number(sysItem.adapt_score) === 0 && Number(userItem.adapt_score) === 0)
+            ? "<br>⚠️ 两套方案抗风险稳健度都是 0：说明它们都贴着 70% 红线，安全余量为 0，只是勉强可行。"
+            : ""}</div>
+      `;
+      document.getElementById("modalTitle").innerText = "📊 方案对比 | 系统推荐 vs 你的方案";
+      document.getElementById("detailModal").style.display = "flex";
+    }
+
     /* ============ 详情弹窗逻辑 ============ */
     function openModal(item) {
       if (!item) return;
+
+      // 🧭 V7.6：这次推演带了"我的方案"，明细直接变左右对比
+      const anchorItem = (currentResult && currentResult.mode === "anchor"
+        && currentResult.feasible && currentResult.anchor) ? currentResult.anchor : null;
+      if (anchorItem) { openCompareModal(item, anchorItem); return; }
 
       const regionName = document.getElementById("regionSel").value || "目标片区";
       const houseTotalWan = nv("houseTotalWan");
@@ -3974,6 +4163,120 @@
       }
     }
 
+    // =================================================================
+    // 🧭 V7.5 锚点方案卡片
+    //   原则：先承认他的判断有道理（利息确实省了），再摆出周期末端的差距。
+    //   不恐吓、不吹，只把两套方案的数字并排放。
+    // =================================================================
+    function clearAnchorBox() {
+      const box = document.getElementById("anchorBox");
+      if (box) { box.style.display = "none"; box.innerHTML = ""; }
+    }
+
+    function anchorWan(v) {
+      return (v >= 0 ? "+" : "") + Number(v).toFixed(2);
+    }
+
+    function d2(x, y) {
+      return Number((x - y).toFixed(2));
+    }
+
+    // 先肯定他算对的部分，再摆出差距；如果推荐方案其实有代价，也照实说。
+    function anchorStory(a, b, d) {
+      const interestLine = d.interest_wan > 0
+        ? `你的方案利息 <b>${a.total_interest_wan} 万</b>，比推荐方案少 ${Math.abs(d.interest_wan)} 万——这一点你算得没错。`
+        : `利息上你其实没占到便宜：你的方案 <b>${a.total_interest_wan} 万</b>，反而比推荐方案多 ${Math.abs(d.interest_wan)} 万，因为首付留得多、贷款本金反而更大。`;
+      const assetLine = d.asset_wan > 0
+        ? `把 30 年拉通看，期末资产 ${a.liquid_asset_end_wan} 万 对 ${b.liquid_asset_end_wan} 万，你少 ${Math.abs(d.asset_wan)} 万（按今天物价算少 ${Math.abs(d.real_asset_wan)} 万）。`
+        : `把 30 年拉通看，期末资产你是 ${a.liquid_asset_end_wan} 万、推荐方案 ${b.liquid_asset_end_wan} 万——<b>单看钱，你的方案反而多 ${Math.abs(d.asset_wan)} 万</b>。它排名靠前，是因为“综合最优”不是“资产最多”：五维加权里还算了居住舒适度、通勤时间、结余幸福感，不只看期末存款。`;
+      const costLine = b.buffer_months + 1 < a.buffer_months
+        ? `但推荐方案不是白拿的：它把首付掏到 ${b.down_payment_wan} 万，手上现金只够撑 <b>${b.buffer_months} 个月</b>；你的方案留了 ${a.buffer_months} 个月。这就是它的代价。`
+        : `推荐方案的现金缓冲是 ${b.buffer_months} 个月，你的方案是 ${a.buffer_months} 个月，承压能力差不多。`;
+      return interestLine + assetLine + costLine;
+    }
+
+    function downLabel(key) {
+      return key === "min" ? "最低首付" : key === "max" ? "掏空首付" : "折中首付";
+    }
+
+    function renderAnchorBox(res) {
+      const box = document.getElementById("anchorBox");
+      if (!box) return;
+      const req = res.anchor_request || {};
+
+      if (!res.feasible) {
+        const near = (res.near_feasible || []).slice(0, 3).map(s =>
+          `<li>租 ${s.rent_year} 年 + 贷 ${s.loan_year} 年 · ${downLabel(s.down_strategy)} · 期末 ${s.liquid_asset_end_wan} 万</li>`
+        ).join("");
+        box.innerHTML = `
+          <div class="toggle-card" style="display:block; border-left:3px solid #f59e0b;">
+            <b>🧭 你打算：租 ${req.rent_year} 年 + 贷 ${req.loan_year} 年</b>
+            <p style="margin:8px 0; line-height:1.7;">${escapeHtml(res.reason || "这个组合过不了风控。")}</p>
+            ${near ? `<p style="margin:6px 0 4px;">同样租房年限下，最接近的可行方案：</p><ul style="margin:0 0 0 18px; line-height:1.8;">${near}</ul>` : ""}
+          </div>`;
+        box.style.display = "block";
+        return;
+      }
+
+      const a = res.anchor, b = res.best, d = res.delta || {};
+      const rows = [
+        ["首付", `${a.down_payment_wan} 万`, `${b.down_payment_wan} 万`, `${anchorWan(d2(b.down_payment_wan, a.down_payment_wan))} 万`],
+        ["贷款本金", `${a.loan_principal_wan} 万`, `${b.loan_principal_wan} 万`, `${anchorWan(d2(b.loan_principal_wan, a.loan_principal_wan))} 万`],
+        ["30 年总利息", `${a.total_interest_wan} 万`, `${b.total_interest_wan} 万`, `${anchorWan(d.interest_wan)} 万`],
+        ["期末资产（名义）", `${a.liquid_asset_end_wan} 万`, `${b.liquid_asset_end_wan} 万`, `${anchorWan(d.asset_wan)} 万`],
+        ["期末资产（今日购买力）", `${a.real_asset_wan} 万`, `${b.real_asset_wan} 万`, `${anchorWan(d.real_asset_wan)} 万`],
+        ["抗风险稳健度（越高越稳）", `${a.adapt_score}`, `${b.adapt_score}`, `${anchorWan(d2(b.adapt_score, a.adapt_score))}`],
+        ["最低现金可撑月数", `${a.buffer_months} 个月`, `${b.buffer_months} 个月`, `${anchorWan(d.buffer_months)} 个月`],
+      ].map(([k, x, y, z]) => `<tr><td>${k}</td><td>${x}</td><td>${y}</td><td>${z}</td></tr>`).join("");
+
+      const timeline = (res.timeline || []).map(t => `
+        <tr>
+          <td>第 ${t.year} 年</td>
+          <td>${t.phase === "rent" ? "租房" : t.phase === "loan" ? "还贷" : "自由"}</td>
+          <td>${t.income_wan}</td>
+          <td>${t.outflow_wan}</td>
+          <td>${t.surplus_wan}</td>
+          <td>${t.end_cash_wan}</td>
+        </tr>`).join("");
+
+      box.innerHTML = `
+        <div class="toggle-card" style="display:block; border-left:3px solid #38bdf8;">
+          <b>🧭 你打算：租 ${req.rent_year} 年 + 贷 ${req.loan_year} 年 · ${downLabel(req.down_strategy)}</b>
+          <div class="form-hint" style="margin:6px 0 10px;">
+            这套组合我们原样算了一遍，没有替你改任何参数。它在 ${res.total} 个可行方案里排第 <b>${res.rank}</b>。
+          </div>
+          <p style="line-height:1.8; margin:0 0 10px;">
+            ${anchorStory(a, b, d)}
+          </p>
+          <table class="mini-table" style="width:100%; font-size:12.5px; border-collapse:collapse;">
+            <thead><tr><th style="text-align:left;">指标</th><th>你的方案</th><th>综合最优</th><th>差额</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+          <button id="anchorTimelineBtn" style="margin-top:10px;">展开逐年明细（30 年）</button>
+          <div id="anchorTimelineWrap" style="display:none; margin-top:10px; max-height:320px; overflow:auto;">
+            <table class="mini-table" style="width:100%; font-size:12px; border-collapse:collapse;">
+              <thead><tr><th>年份</th><th>阶段</th><th>年收入</th><th>年支出</th><th>年结余</th><th>年末现金</th></tr></thead>
+              <tbody>${timeline}</tbody>
+            </table>
+            <div class="form-hint" style="margin-top:6px;">单位：万元。年末现金已计入理财收益（年化 0.9%）。</div>
+          </div>
+        </div>`;
+      box.style.display = "block";
+
+      // ?compare=1 自动弹出对比明细（验收与分享用）
+      if (new URLSearchParams(location.search).get("compare") === "1") {
+        setTimeout(() => openCompareModal(res.best, res.anchor), 600);
+      }
+
+      const btn = document.getElementById("anchorTimelineBtn");
+      if (btn) btn.onclick = () => {
+        const w = document.getElementById("anchorTimelineWrap");
+        const open = w.style.display !== "none";
+        w.style.display = open ? "none" : "block";
+        btn.textContent = open ? "展开逐年明细（30 年）" : "收起逐年明细";
+      };
+    }
+
     function renderResult(res) {
       document.getElementById("emptyState").style.display = "none";
 
@@ -4268,7 +4571,19 @@
       payload.house_price_growth_pct = parseFloat(document.getElementById("housePriceGrowthPct").value || 0);
 
 
-      const endpoint = currentMode === "relative" ? "/api/simulate" : "/api/simulate/absolute";
+      // 🧭 V7.5：填了“我的打算”就走锚点接口，一次请求同时拿回“你的方案”和“最优方案”
+      const anchorRentEl = document.getElementById("anchorRentYear");
+      const anchorLoanEl = document.getElementById("anchorLoanYear");
+      const anchorRent = anchorRentEl ? anchorRentEl.value.trim() : "";
+      const anchorLoan = anchorLoanEl ? anchorLoanEl.value.trim() : "";
+      const useAnchor = currentMode === "relative" && anchorRent !== "" && anchorLoan !== "";
+      let endpoint = currentMode === "relative" ? "/api/simulate" : "/api/simulate/absolute";
+      if (useAnchor) {
+        payload.anchor_rent_year = Math.max(0, Math.min(20, parseInt(anchorRent, 10) || 0));
+        payload.anchor_loan_year = Math.max(1, Math.min(30, parseInt(anchorLoan, 10) || 10));
+        payload.anchor_down_strategy = document.getElementById("anchorDownStrategy").value;
+        endpoint = "/api/simulate/anchor";
+      }
 
       try {
         const res = await fetch(`${API_HOST}${endpoint}`, {
@@ -4307,6 +4622,8 @@
 
         // 渲染表格与分析（先把 DOM 与 ECharts 的重活干完）
         renderResult(result);
+        if (useAnchor && result.mode === "anchor") renderAnchorBox(result);
+        else clearAnchorBox();
         showToast("推演计算完成！");
 
         // 🎉 撒花放在渲染之后：不再和表格 / ECharts 的重绘抢帧
