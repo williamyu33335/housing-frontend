@@ -41,6 +41,12 @@
       padding:5px 12px; border-radius:8px; font-size:12px; cursor:pointer; }
     .cmp-tab.active { background:#2563eb; border-color:#2563eb; color:#fff; }
     .cmp-table.tight td, .cmp-table.tight th { padding:4px 8px; }
+    .anchor-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; text-align:center; }
+    .anchor-stats div { background:rgba(148,163,184,.1); border-radius:10px; padding:8px 4px; }
+    .anchor-stats span { display:block; font-size:11px; color:#94a3b8; }
+    .anchor-stats b { font-size:16px; color:#38bdf8; }
+    .cmp-cross-row { background:rgba(251,191,36,.12); }
+    .cmp-cross-tag { font-size:10px; color:#fbbf24; margin-left:6px; }
 
     /* ========== 无方案激励弹窗 ========== */
     #failModal .modal-content {
@@ -3314,46 +3320,72 @@
       return { monthly: calc.monthly, interestWan: calc.totalInterest / 10000 };
     }
 
-    // 逐月（前 24 个月）+ 逐年（30 年）：按"你的方案"实际现金流摊开
-    function timeSection(item) {
-      const phaseName = (ph) => ph === "rent" ? "租房" : ph === "loan" ? "还贷" : "自由";
-      const months = item.months || [];
-      const years = item.timeline || [];
-      const monthRows = months.map(m => `<tr>
-          <td>第 ${m.month} 个月</td><td>${phaseName(m.phase)}</td>
-          <td>${Number(m.income).toLocaleString("zh-CN")}</td>
-          <td>${Number(m.outflow).toLocaleString("zh-CN")}</td>
-          <td>${Number(m.surplus).toLocaleString("zh-CN")}</td>
-          <td>${Number(m.end_cash).toLocaleString("zh-CN")}</td>
-        </tr>`).join("");
-      const yearRows = years.map(y => `<tr>
-          <td>第 ${y.year} 年</td><td>${phaseName(y.phase)}</td>
-          <td>${y.income_wan}</td><td>${y.outflow_wan}</td>
-          <td>${y.surplus_wan}</td><td>${y.end_cash_wan}</td>
-        </tr>`).join("");
+    // 逐月 / 逐年：两套方案并排，谁的钱多谁绿；标出第一次"反超"的位置
+    function flowCompare(sysRows, userRows, opts) {
+      const { unit, digits, label } = opts;
+      const n = Math.min(sysRows.length, userRows.length);
+      if (!n) return `<p class="cmp-foot">暂无${label}数据</p>`;
+
+      const get = (r) => ({
+        income: r.income_wan !== undefined ? r.income_wan : r.income,
+        outflow: r.outflow_wan !== undefined ? r.outflow_wan : r.outflow,
+        surplus: r.surplus_wan !== undefined ? r.surplus_wan : r.surplus,
+        cash: r.end_cash_wan !== undefined ? r.end_cash_wan : r.end_cash,
+      });
+
+      let crossIdx = -1;
+      for (let i = 0; i < n; i++) {
+        if (get(sysRows[i]).cash > get(userRows[i]).cash) { crossIdx = i; break; }
+      }
+
+      const fmtv = (v) => Number(v).toLocaleString("zh-CN", {
+        minimumFractionDigits: digits, maximumFractionDigits: digits,
+      });
+      const rows = [];
+      for (let i = 0; i < n; i++) {
+        const s = get(sysRows[i]), u = get(userRows[i]);
+        const sysBetter = s.cash >= u.cash;
+        const mark = (i === crossIdx)
+          ? `<span class="cmp-cross-tag">推荐从这里反超</span>` : "";
+        rows.push(`<tr class="${i === crossIdx ? "cmp-cross-row" : ""}">
+          <td>${sysRows[i].year ? "第 " + sysRows[i].year + " 年" : "第 " + sysRows[i].month + " 个月"}${mark}</td>
+          <td>${fmtv(s.outflow)}${unit}</td>
+          <td>${fmtv(u.outflow)}${unit}</td>
+          <td class="${sysBetter ? "ok" : "bad"}">${fmtv(s.cash)}${unit}</td>
+          <td class="${sysBetter ? "bad" : "ok"}">${fmtv(u.cash)}${unit}</td>
+        </tr>`);
+      }
+
+      const crossNote = crossIdx >= 0
+        ? `<div class="cmp-foot" style="color:#fbbf24;">📌 关键节点：${sysRows[crossIdx].year ? "第 " + sysRows[crossIdx].year + " 年" : "第 " + sysRows[crossIdx].month + " 个月"}起，推荐方案的现金第一次超过你的方案，并且之后再没被反超。</div>`
+        : `<div class="cmp-foot">你的方案在这段时间里现金一直领先，这就是它值得保留的地方。</div>`;
+
+      return `<table class="cmp-table tight">
+          <thead><tr><th>${label}</th><th>推荐 · 支出</th><th>你的 · 支出</th><th>推荐 · 现金</th><th>你的 · 现金</th></tr></thead>
+          <tbody>${rows.join("")}</tbody>
+        </table>${crossNote}`;
+    }
+
+    function timeSection(res) {
+      const sysMonths = res.best_months || [], userMonths = (res.anchor && res.anchor.months) || [];
+      const sysYears = res.best_timeline || [], userYears = (res.anchor && res.anchor.timeline) || [];
       return `<div class="cmp-section">
-        <div class="cmp-title">🗓️ 你的方案 · 钱是怎么流动的</div>
+        <div class="cmp-title">🗓️ 逐月 / 逐年对比：你是在哪一步开始落后的</div>
         <div class="cmp-tabs">
-          <button class="cmp-tab active" data-tab="monthly">逐月（前 ${months.length} 个月）</button>
-          <button class="cmp-tab" data-tab="yearly">逐年（${years.length} 年）</button>
+          <button class="cmp-tab active" data-tab="monthly">逐月（前 ${Math.min(sysMonths.length, userMonths.length)} 个月）</button>
+          <button class="cmp-tab" data-tab="yearly">逐年（30 年）</button>
         </div>
-        <div id="cmpMonthly">
-          <table class="cmp-table tight">
-            <thead><tr><th>月份</th><th>阶段</th><th>月收入(元)</th><th>月支出(元)</th><th>月结余(元)</th><th>月末现金(元)</th></tr></thead>
-            <tbody>${monthRows || '<tr><td colspan="6">暂无逐月数据</td></tr>'}</tbody>
-          </table>
-        </div>
-        <div id="cmpYearly" style="display:none;">
-          <table class="cmp-table tight">
-            <thead><tr><th>年份</th><th>阶段</th><th>年收入(万)</th><th>年支出(万)</th><th>年结余(万)</th><th>年末现金(万)</th></tr></thead>
-            <tbody>${yearRows || '<tr><td colspan="6">暂无逐年数据</td></tr>'}</tbody>
-          </table>
-        </div>
-        <div class="cmp-foot">逐月数据只列前 24 个月（前两年最紧，看得清首付后到底剩多少）；逐年覆盖完整 30 年。</div>
+        <div id="cmpMonthly">${flowCompare(sysMonths, userMonths, { unit: " 元", digits: 0, label: "月份" })}</div>
+        <div id="cmpYearly" style="display:none;">${flowCompare(sysYears, userYears, { unit: " 万", digits: 2, label: "年份" })}</div>
+        <div class="cmp-foot">单位：支出与现金。绿 = 这一期现金更多，红 = 更少。只列前 24 个月与完整的 30 年。</div>
       </div>`;
     }
 
-    function openCompareModal(sysItem, userItem) {
+    function openCompareModal(res) {
+      const sysItem = res.best, userItem = res.anchor;
+      // 两个方案并排，需要更宽的窗口：800 → 1180
+      const _mc = document.querySelector("#detailModal .modal-content");
+      if (_mc) _mc.style.maxWidth = "1180px";
       const dsText = (k) => k === "max" ? "掏空首付" : (k === "balanced" ? "折中首付" : "最低首付");
       const s = schemeMonthly(sysItem), u = schemeMonthly(userItem);
       const spend = nv("monthExp") + nv("propertyFee");
@@ -3410,7 +3442,7 @@
           ${cmpBar("30 年总利息", sysItem.total_interest_wan, userItem.total_interest_wan, true)}
         </div>
         ${body}
-        ${timeSection(userItem)}
+        ${timeSection(res)}
         <div class="cmp-foot">绿 = 这一项更优，红 = 更差。首付、贷款本金属于中性指标，不判优劣：首付多则本金少，是一体两面。
           ${(Number(sysItem.adapt_score) === 0 && Number(userItem.adapt_score) === 0)
             ? "<br>⚠️ 两套方案抗风险稳健度都是 0：说明它们都贴着 70% 红线，安全余量为 0，只是勉强可行。"
@@ -3433,11 +3465,13 @@
     /* ============ 详情弹窗逻辑 ============ */
     function openModal(item) {
       if (!item) return;
+      const _mc0 = document.querySelector("#detailModal .modal-content");
+      if (_mc0) _mc0.style.maxWidth = "800px";
 
       // 🧭 V7.6：这次推演带了"我的方案"，明细直接变左右对比
       const anchorItem = (currentResult && currentResult.mode === "anchor"
         && currentResult.feasible && currentResult.anchor) ? currentResult.anchor : null;
-      if (anchorItem) { openCompareModal(item, anchorItem); return; }
+      if (anchorItem) { openCompareModal(currentResult); return; }
 
       const regionName = document.getElementById("regionSel").value || "目标片区";
       const houseTotalWan = nv("houseTotalWan");
@@ -4272,25 +4306,12 @@
       }
 
       const a = res.anchor, b = res.best, d = res.delta || {};
-      const rows = [
-        ["首付", `${a.down_payment_wan} 万`, `${b.down_payment_wan} 万`, `${anchorWan(d2(b.down_payment_wan, a.down_payment_wan))} 万`],
-        ["贷款本金", `${a.loan_principal_wan} 万`, `${b.loan_principal_wan} 万`, `${anchorWan(d2(b.loan_principal_wan, a.loan_principal_wan))} 万`],
-        ["30 年总利息", `${a.total_interest_wan} 万`, `${b.total_interest_wan} 万`, `${anchorWan(d.interest_wan)} 万`],
-        ["期末资产（名义）", `${a.liquid_asset_end_wan} 万`, `${b.liquid_asset_end_wan} 万`, `${anchorWan(d.asset_wan)} 万`],
-        ["期末资产（今日购买力）", `${a.real_asset_wan} 万`, `${b.real_asset_wan} 万`, `${anchorWan(d.real_asset_wan)} 万`],
-        ["抗风险稳健度（越高越稳）", `${a.adapt_score}`, `${b.adapt_score}`, `${anchorWan(d2(b.adapt_score, a.adapt_score))}`],
-        ["最低现金可撑月数", `${a.buffer_months} 个月`, `${b.buffer_months} 个月`, `${anchorWan(d.buffer_months)} 个月`],
-      ].map(([k, x, y, z]) => `<tr><td>${k}</td><td>${x}</td><td>${y}</td><td>${z}</td></tr>`).join("");
-
-      const timeline = (res.timeline || []).map(t => `
-        <tr>
-          <td>第 ${t.year} 年</td>
-          <td>${t.phase === "rent" ? "租房" : t.phase === "loan" ? "还贷" : "自由"}</td>
-          <td>${t.income_wan}</td>
-          <td>${t.outflow_wan}</td>
-          <td>${t.surplus_wan}</td>
-          <td>${t.end_cash_wan}</td>
-        </tr>`).join("");
+      const interestLine = d.interest_wan > 0
+        ? `你的方案利息 <b>${a.total_interest_wan} 万</b>，比推荐方案少 ${Math.abs(d.interest_wan)} 万——这一点你算得没错。`
+        : `利息上你其实没占到便宜：你的方案 <b>${a.total_interest_wan} 万</b>，反而比推荐方案多 ${Math.abs(d.interest_wan)} 万。`;
+      const assetLine = d.asset_wan > 0
+        ? `把 30 年拉通看，期末资产 ${a.liquid_asset_end_wan} 万 对 ${b.liquid_asset_end_wan} 万，你少 ${Math.abs(d.asset_wan)} 万（按今天物价算少 ${Math.abs(d.real_asset_wan)} 万）。`
+        : `把 30 年拉通看，期末资产你是 ${a.liquid_asset_end_wan} 万、推荐方案 ${b.liquid_asset_end_wan} 万——单看钱，你的方案反而多 ${Math.abs(d.asset_wan)} 万。`;
 
       box.innerHTML = `
         <div class="toggle-card" style="display:block; border-left:3px solid #38bdf8;">
@@ -4298,37 +4319,26 @@
           <div class="form-hint" style="margin:6px 0 10px;">
             这套组合我们原样算了一遍，没有替你改任何参数。它在 ${res.total} 个可行方案里排第 <b>${res.rank}</b>。
           </div>
-          <p style="line-height:1.8; margin:0 0 10px;">
-            ${anchorStory(a, b, d)}
-          </p>
-          <table class="mini-table" style="width:100%; font-size:12.5px; border-collapse:collapse;">
-            <thead><tr><th style="text-align:left;">指标</th><th>你的方案</th><th>综合最优</th><th>差额</th></tr></thead>
-            <tbody>${rows}</tbody>
-          </table>
-          <button id="anchorTimelineBtn" style="margin-top:10px;">展开逐年明细（30 年）</button>
-          <div id="anchorTimelineWrap" style="display:none; margin-top:10px; max-height:320px; overflow:auto;">
-            <table class="mini-table" style="width:100%; font-size:12px; border-collapse:collapse;">
-              <thead><tr><th>年份</th><th>阶段</th><th>年收入</th><th>年支出</th><th>年结余</th><th>年末现金</th></tr></thead>
-              <tbody>${timeline}</tbody>
-            </table>
-            <div class="form-hint" style="margin-top:6px;">单位：万元。年末现金已计入理财收益（年化 0.9%）。</div>
+          <div class="anchor-stats">
+            <div><span>30 年总利息</span><b>${a.total_interest_wan} 万</b></div>
+            <div><span>期末资产（名义）</span><b>${a.liquid_asset_end_wan} 万</b></div>
+            <div><span>期末资产（今日购买力）</span><b>${a.real_asset_wan} 万</b></div>
           </div>
+          <p style="line-height:1.8; margin:10px 0;">
+            ${interestLine}${assetLine}
+          </p>
+          <button id="anchorCompareBtn">📊 查看逐月 / 逐年详细对比</button>
         </div>`;
       box.style.display = "block";
 
-      // ?compare=1 自动弹出对比明细（验收与分享用）
-      if (new URLSearchParams(location.search).get("compare") === "1") {
-        setTimeout(() => openCompareModal(res.best, res.anchor), 600);
-      }
+      const btn = document.getElementById("anchorCompareBtn");
+      if (btn) btn.onclick = () => openCompareModal(res);
 
-      const btn = document.getElementById("anchorTimelineBtn");
-      if (btn) btn.onclick = () => {
-        const w = document.getElementById("anchorTimelineWrap");
-        const open = w.style.display !== "none";
-        w.style.display = open ? "none" : "block";
-        btn.textContent = open ? "展开逐年明细（30 年）" : "收起逐年明细";
-      };
+      if (new URLSearchParams(location.search).get("compare") === "1") {
+        setTimeout(() => openCompareModal(res), 600);
+      }
     }
+
 
     function renderResult(res) {
       document.getElementById("emptyState").style.display = "none";
