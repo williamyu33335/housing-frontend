@@ -36,6 +36,11 @@
     .cmp-bar-fill.win { background:#34d399; }
     .cmp-bar-fill.lose { background:#f87171; }
     .cmp-foot { font-size:11.5px; color:#94a3b8; line-height:1.7; }
+    .cmp-tabs { display:flex; gap:8px; margin:0 0 8px; }
+    .cmp-tab { background:rgba(148,163,184,.12); border:1px solid rgba(148,163,184,.3); color:#cbd5e1;
+      padding:5px 12px; border-radius:8px; font-size:12px; cursor:pointer; }
+    .cmp-tab.active { background:#2563eb; border-color:#2563eb; color:#fff; }
+    .cmp-table.tight td, .cmp-table.tight th { padding:4px 8px; }
 
     /* ========== 无方案激励弹窗 ========== */
     #failModal .modal-content {
@@ -2100,13 +2105,7 @@
       <button class="panel-close" onclick="hidePanel('rightPanel')" title="收起面板">✕</button>
     </div>
 
-    <div class="entropy-wrapper">
-      <button class="toggle-block" id="toggleEntropyBtn">
-        <span>📊 底层算法：五维熵权详情</span>
-        <span id="entropyArrow">▼</span>
-      </button>
-      <div class="toggle-card" id="entropyCard"></div>
-    </div>
+    <!-- 五维权重属于内部算法，不对用户展示 -->
 
     <div class="assumption-wrapper">
       <button class="toggle-block" id="toggleAssumptionBtn">
@@ -3083,9 +3082,11 @@
       [600, 2000, 4000].forEach(ms => setTimeout(syncCountyLayer, ms));
     }
 
-    document.getElementById("toggleEntropyBtn").onclick = function () {
+    const _entropyBtn = document.getElementById("toggleEntropyBtn");
+    if (_entropyBtn) _entropyBtn.onclick = function () {
       entropyOpen = !entropyOpen;
-      document.getElementById("entropyCard").style.display = entropyOpen ? "block" : "none";
+      const _ec = document.getElementById("entropyCard");
+    if (_ec) _ec.style.display = entropyOpen ? "block" : "none";
       document.getElementById("entropyArrow").textContent = entropyOpen ? "▲" : "▼";
     };
     document.getElementById("toggleAssumptionBtn").onclick = function () {
@@ -3215,8 +3216,10 @@
     function clearResults() {
       entropyOpen = false; assumptionOpen = false;
       currentTopItem = null;
-      document.getElementById("entropyCard").style.display = "none";
-      document.getElementById("entropyArrow").textContent = "▼";
+      const _ec2 = document.getElementById("entropyCard");
+    if (_ec2) _ec2.style.display = "none";
+      const _ea = document.getElementById("entropyArrow");
+      if (_ea) _ea.textContent = "▼";
       document.getElementById("assumptionCard").style.display = "none";
       document.getElementById("assumptionArrow").textContent = "▼";
       document.getElementById("warningBox").innerHTML = "";
@@ -3311,6 +3314,45 @@
       return { monthly: calc.monthly, interestWan: calc.totalInterest / 10000 };
     }
 
+    // 逐月（前 24 个月）+ 逐年（30 年）：按"你的方案"实际现金流摊开
+    function timeSection(item) {
+      const phaseName = (ph) => ph === "rent" ? "租房" : ph === "loan" ? "还贷" : "自由";
+      const months = item.months || [];
+      const years = item.timeline || [];
+      const monthRows = months.map(m => `<tr>
+          <td>第 ${m.month} 个月</td><td>${phaseName(m.phase)}</td>
+          <td>${Number(m.income).toLocaleString("zh-CN")}</td>
+          <td>${Number(m.outflow).toLocaleString("zh-CN")}</td>
+          <td>${Number(m.surplus).toLocaleString("zh-CN")}</td>
+          <td>${Number(m.end_cash).toLocaleString("zh-CN")}</td>
+        </tr>`).join("");
+      const yearRows = years.map(y => `<tr>
+          <td>第 ${y.year} 年</td><td>${phaseName(y.phase)}</td>
+          <td>${y.income_wan}</td><td>${y.outflow_wan}</td>
+          <td>${y.surplus_wan}</td><td>${y.end_cash_wan}</td>
+        </tr>`).join("");
+      return `<div class="cmp-section">
+        <div class="cmp-title">🗓️ 你的方案 · 钱是怎么流动的</div>
+        <div class="cmp-tabs">
+          <button class="cmp-tab active" data-tab="monthly">逐月（前 ${months.length} 个月）</button>
+          <button class="cmp-tab" data-tab="yearly">逐年（${years.length} 年）</button>
+        </div>
+        <div id="cmpMonthly">
+          <table class="cmp-table tight">
+            <thead><tr><th>月份</th><th>阶段</th><th>月收入(元)</th><th>月支出(元)</th><th>月结余(元)</th><th>月末现金(元)</th></tr></thead>
+            <tbody>${monthRows || '<tr><td colspan="6">暂无逐月数据</td></tr>'}</tbody>
+          </table>
+        </div>
+        <div id="cmpYearly" style="display:none;">
+          <table class="cmp-table tight">
+            <thead><tr><th>年份</th><th>阶段</th><th>年收入(万)</th><th>年支出(万)</th><th>年结余(万)</th><th>年末现金(万)</th></tr></thead>
+            <tbody>${yearRows || '<tr><td colspan="6">暂无逐年数据</td></tr>'}</tbody>
+          </table>
+        </div>
+        <div class="cmp-foot">逐月数据只列前 24 个月（前两年最紧，看得清首付后到底剩多少）；逐年覆盖完整 30 年。</div>
+      </div>`;
+    }
+
     function openCompareModal(sysItem, userItem) {
       const dsText = (k) => k === "max" ? "掏空首付" : (k === "balanced" ? "折中首付" : "最低首付");
       const s = schemeMonthly(sysItem), u = schemeMonthly(userItem);
@@ -3343,7 +3385,7 @@
           ["居住舒适度", sysItem.comfort_score, userItem.comfort_score, 1, "", 1],
           ["结余幸福感", sysItem.surplus_happiness, userItem.surplus_happiness, 1, "", 1],
           ["时间效率", sysItem.time_efficiency, userItem.time_efficiency, 1, "", 1],
-          ["熵权综合得分", sysItem.comprehensive_score, userItem.comprehensive_score, 1, "", 2],
+          ["综合得分", sysItem.comprehensive_score, userItem.comprehensive_score, 1, "", 2],
         ]],
       ];
 
@@ -3368,6 +3410,7 @@
           ${cmpBar("30 年总利息", sysItem.total_interest_wan, userItem.total_interest_wan, true)}
         </div>
         ${body}
+        ${timeSection(userItem)}
         <div class="cmp-foot">绿 = 这一项更优，红 = 更差。首付、贷款本金属于中性指标，不判优劣：首付多则本金少，是一体两面。
           ${(Number(sysItem.adapt_score) === 0 && Number(userItem.adapt_score) === 0)
             ? "<br>⚠️ 两套方案抗风险稳健度都是 0：说明它们都贴着 70% 红线，安全余量为 0，只是勉强可行。"
@@ -3375,6 +3418,16 @@
       `;
       document.getElementById("modalTitle").innerText = "📊 方案对比 | 系统推荐 vs 你的方案";
       document.getElementById("detailModal").style.display = "flex";
+
+      document.querySelectorAll(".cmp-tab").forEach(btn => {
+        btn.onclick = () => {
+          document.querySelectorAll(".cmp-tab").forEach(x => x.classList.remove("active"));
+          btn.classList.add("active");
+          const monthly = btn.dataset.tab === "monthly";
+          document.getElementById("cmpMonthly").style.display = monthly ? "block" : "none";
+          document.getElementById("cmpYearly").style.display = monthly ? "none" : "block";
+        };
+      });
     }
 
     /* ============ 详情弹窗逻辑 ============ */
@@ -3471,7 +3524,7 @@
           <div><div style="font-size:18px;font-weight:800;color:#8b5cf6;">${fmt(item.surplus_happiness, 1)}</div><div style="font-size:11px;color:#94a3b8;">结余幸福</div></div>
           <div><div style="font-size:18px;font-weight:800;color:#0ea5e9;">${fmt(item.time_efficiency, 1)}</div><div style="font-size:11px;color:#94a3b8;">时间效率</div></div>
           <div><div style="font-size:18px;font-weight:800;color:#ec4899;">${fmt(item.suitability_score, 1)}</div><div style="font-size:11px;color:#94a3b8;">综合合适度</div></div>
-          <div><div style="font-size:18px;font-weight:800;color:#10b981;">${fmt(item.comprehensive_score, 1)}</div><div style="font-size:11px;color:#94a3b8;">熵权综合得分</div></div>
+          <div><div style="font-size:18px;font-weight:800;color:#10b981;">${fmt(item.comprehensive_score, 1)}</div><div style="font-size:11px;color:#94a3b8;">综合得分</div></div>
         </div>
         <div style="margin-top:12px;">
           ${row("30年期末流动资产（名义）", `${fmt(item.liquid_asset_end_wan, 2)} 万元`, "ok")}
@@ -3811,22 +3864,22 @@
         3. <strong>稳步削减债务：</strong>有余钱别去乱投资，优先提前还贷。无债一身轻，是你未来十年最坚硬的铠甲。
       `;
       }
-      // ==================== 维度5：平衡型 ====================
-      else if (viewTag === "平衡型") {
+      // ==================== 维度5：速度型 ====================
+      else if (viewTag === "速度型") {
         text = `
-        <span class="section-title">一、 历经千帆后的终极圆满：做个自由穿梭的六边形战士</span>
-        世人总爱走极端，要么内卷苦行，要么月光享乐。而你，我的朋友，却在这套【平衡型】方案中展现了大师级的平衡美学。以 <span style="${cGreen}">${score} 分</span> 优雅落地的它，没有让你在前期 ${rentYears} 年的租房中流浪，也没有让你在后期 ${loanYears} 年的还贷中窒息。面对 ${houseTotalWan} 万总价的房子，${dsDesc} 在资产增值、抗险防线、居住舒适、幸福指数四个维度上，勾勒出了近乎完美的正六边形。它像一首平仄极其工整的十四行诗，这就是属于普通人的最高级生活艺术——左手烟火，右手远方，在世俗的泥泞中踩出一条优雅的康庄大道。生活不需要你每次都拿满分，但每个维度都拿 80 分，就已经超越了 90% 的人。
-        
-        <span class="section-title">二、 圆满数据的全景扫描</span>
-        <strong>1. 完美的黄金分割：</strong>首付 ${downPaymentWan.toFixed(1)} 万，贷 ${loanPrincipalWan.toFixed(1)} 万。${triggerLoanShort} 期间你需要承担${interestPhrase}。<br>
-        <strong>2. 现金流与抗风险的握手：</strong>${expenseHtml}。你不会因为还贷而连一顿外卖都不敢点。<br>
-        <strong>3. 毫无短板的舒适：</strong>每月结余 <span style="${cBlue}">${formatNum(remainingCash, 0)} 元</span>，${surplusHtml}。30年后还有 ${assetText} 撑腰。<br>
-        <strong>4. 时间的魔法：</strong>${triggerRentShort} 这套方案没有哪个维度是突兀的，它能稳稳地运行30年，保护你的生活不被任何中等风险击穿。
-        
+        <span class="section-title">一、 不做最猛的赌徒，做最早收工的人</span>
+        这套【速度型】有个前提必须说在前面：它不是"谁冲得最快"，而是<b>先把四个维度都拉过及格线，再看谁最早把房子变成自己的</b>。租 ${rentYears} 年、贷 ${loanYears} 年，全程 ${rentYears + loanYears} 年收工——比大多数方案早了整整 ${Math.max(0, 30 - (rentYears + loanYears))} 年。这几年的差距，不是账面上的数字，是你四十岁时还背不背月供的差别。方案综合得分 <span style="${cGreen}">${score} 分</span>，${dsDesc}，没有为了快把抗风险、舒适、幸福感任何一项拉爆，这才是"速度"这两个字的分量。
+
+        <span class="section-title">二、 速度型的数据解剖</span>
+        <strong>1. 首付与杠杆：</strong>首付 ${downPaymentWan.toFixed(1)} 万，贷 ${loanPrincipalWan.toFixed(1)} 万。${triggerLoanShort} 期间你需要承担${interestPhrase}。<br>
+        <strong>2. 收工时间表：</strong>租房 ${rentYears} 年 + 还贷 ${loanYears} 年 = ${rentYears + loanYears} 年。之后那 ${Math.max(0, 30 - (rentYears + loanYears))} 年，你的工资不再有月供这个出口。<br>
+        <strong>3. 及格线以上的人生：</strong>${expenseHtml}。每月结余 <span style="${cBlue}">${formatNum(remainingCash, 0)} 元</span>，${surplusHtml}。<br>
+        <strong>4. 时间效率的兑现：</strong>时间效率 ${timeText}。省下来的不是利息，是"还没老就先自由"的那段时间；30 年后你手上还有 ${assetText}。
+
         <span class="section-title">三、 写给你的生活指南</span>
-        1. <strong>珍惜当下的平衡：</strong>不要轻易打破这个状态。别心血来潮去买豪车，别盲目去跟风创业。保持现状，就是在赢。<br>
-        2. <strong>设立两个账户：</strong>一个是还贷的“定海神针”，一个是理财的“诗和远方”。让它们各司其职，你的生活齿轮就会永远顺滑。<br>
-        3. <strong>每年做一次复盘：</strong>带上爱人，用这套系统重新跑一次数据。随着收入的增加，你们可以去寻找更优的解。
+        1. <strong>把"收工年"标在日历上：</strong>${rentYears + loanYears} 年后你不再有月供。从今天起，所有关于换工作、换城市的决定，都可以按"那时候我已经没有债"来规划。<br>
+        2. <strong>别在收工前加杠杆：</strong>速度型最怕中途加码。车、装修贷、消费贷，任何一笔都会把这 ${rentYears + loanYears} 年往后推。<br>
+        3. <strong>收工之后才是开始：</strong>那 ${Math.max(0, 30 - (rentYears + loanYears))} 年不要再拿去补消费，转成指数基金或第二套房的首付，你才真正从"还完"走到"跑赢"。
       `;
       }
       // ==================== 维度6：进取型 ====================
@@ -4280,14 +4333,12 @@
     function renderResult(res) {
       document.getElementById("emptyState").style.display = "none";
 
-      if (res.entropy_result) renderEntropy(res.entropy_result);
 
       if (res.assumptions && Array.isArray(res.assumptions)) {
         let liHtml = res.assumptions.map(item => `<li>${escapeHtml(item)}</li>`).join("");
         document.getElementById("assumptionCard").innerHTML = `<ul class="assumption-list">${liHtml}</ul>`;
       }
 
-      if (entropyOpen) document.getElementById("entropyCard").style.display = "block";
       if (assumptionOpen) document.getElementById("assumptionCard").style.display = "block";
 
       if (res.warning) document.getElementById("warningBox").innerHTML = `<div class="warning-box">⚠️ ${escapeHtml(res.warning)}</div>`;
@@ -4339,7 +4390,7 @@
 
       const style = res.style_boards ?? {};
       const styleSteady = style["稳健型"] ?? [];
-      const styleBalance = style["平衡型"] ?? [];
+      const styleSpeed = style["速度型"] ?? [];
       const styleAggressive = style["进取型"] ?? [];
 
       const viewBar = document.getElementById("viewBar");
@@ -4349,7 +4400,7 @@
         { id: "tab-comfort", label: "舒适度TOP", render: el => renderTableInto(el, topComfort), list: topComfort, tag: "舒适度TOP" },
         { id: "tab-wealth", label: "资产积蓄TOP", render: el => renderTableInto(el, topAsset), list: topAsset, tag: "资产积蓄TOP" },
         { id: "tab-steady", label: "🛡️稳健型", render: el => renderTableInto(el, styleSteady), list: styleSteady, tag: "稳健型" },
-        { id: "tab-balance", label: "⚖️平衡型", render: el => renderTableInto(el, styleBalance), list: styleBalance, tag: "平衡型" },
+        { id: "tab-speed", label: "⚡速度型", render: el => renderTableInto(el, styleSpeed), list: styleSpeed, tag: "速度型" },
         { id: "tab-aggressive", label: "🚀进取型", render: el => renderTableInto(el, styleAggressive), list: styleAggressive, tag: "进取型" },
         { id: "tab-all", label: "全部方案", render: el => renderTableInto(el, allScheme), list: allScheme, tag: "全部方案" }
       ]);
@@ -4357,7 +4408,10 @@
       showPanel('rightPanel');
     }
 
+    // 熵权细节仅内部使用，前端不再渲染
     function renderEntropy(ew) {
+      // 熵权细节不再对外展示（V7.7）：保留函数以免旧调用点报错，但直接返回
+      if (!document.getElementById("entropyCard")) return;
       const labels = { asset: "期末资产", adapt: "抗风险", comfort: "舒适度", happiness: "幸福感", time: "时间效率" };
       let html = `<div style="font-weight:600;color:#60a5fa;margin-bottom:12px;font-size:13px;">熵权法自动计算出的五维指标权重</div><div class="ew-grid">`;
       Object.keys(labels).forEach(k => {
@@ -4622,8 +4676,9 @@
 
         // 渲染表格与分析（先把 DOM 与 ECharts 的重活干完）
         renderResult(result);
-        if (useAnchor && result.mode === "anchor") renderAnchorBox(result);
-        else clearAnchorBox();
+        if (useAnchor && result.mode === "anchor") {
+          renderAnchorBox(result);
+        } else clearAnchorBox();
         showToast("推演计算完成！");
 
         // 🎉 撒花放在渲染之后：不再和表格 / ECharts 的重绘抢帧
