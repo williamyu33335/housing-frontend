@@ -2101,6 +2101,12 @@
       </div>
     </details>
 
+    <label style="display:flex;align-items:center;gap:8px;margin:10px 0 4px;font-size:13px;cursor:pointer;">
+      <input type="checkbox" id="showListings" style="width:16px;height:16px;">
+      🏠 在地图上显示本区真实房源
+    </label>
+    <div class="form-hint" style="margin:0 0 10px;">当前库里有 34 套南宁真实在售房源，按总价分档着色。</div>
+
     <button id="runBtn">开始深度推演</button>
     <button id="resetParamBtn">重置为默认参数</button>
   </div>
@@ -2337,6 +2343,17 @@
     let countyRenderer = null;
     let currentProvincePrefix = null;   // 用户点开的是哪个省
     let countyCity = null;              // 当前画的是哪个市（区划码前 4 位）
+
+    // 🏠 V7.9 房源图钉
+    let listingsLayer = null;
+    let listingsData = [];
+    let listingsLoading = false;
+    const LISTING_BUCKETS = [
+      { max: 600000, color: "#38bdf8", label: "60 万以下" },
+      { max: 900000, color: "#34d399", label: "60~90 万" },
+      { max: 1200000, color: "#fbbf24", label: "90~120 万" },
+      { max: Infinity, color: "#f87171", label: "120 万以上" },
+    ];
     const COUNTY_DIR = 'county/';
     let regionList = [];
     let calcAbortCtrl = null;
@@ -2496,6 +2513,104 @@
       countyLayer.addTo(map);
     }
 
+    function priceColor(yuan) {
+      const b = LISTING_BUCKETS.find(x => yuan <= x.max);
+      return b ? b.color : "#94a3b8";
+    }
+
+    async function loadListings(cityCode) {
+      if (!cityCode || listingsLoading) return;
+      listingsLoading = true;
+      try {
+        const res = await fetch(`${API_HOST}/api/listings?city_code=${cityCode}&limit=500`, {
+          signal: (window.AbortSignal && AbortSignal.timeout) ? AbortSignal.timeout(4000) : undefined
+        });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const json = await res.json();
+        listingsData = (json.data || []).filter(x => x.lat && x.lng);
+        document.documentElement.dataset.listings = String(listingsData.length);
+        renderListingMarkers();
+      } catch (e) {
+        console.warn("[V7.9] 房源接口不可用，地图上不显示房源", e);
+        document.documentElement.dataset.listings = "failed";
+      } finally {
+        listingsLoading = false;
+      }
+    }
+
+    function renderListingMarkers() {
+      if (!map) return;
+      if (!listingsLayer) { listingsLayer = L.layerGroup(); }
+      listingsLayer.clearLayers();
+      if (!listingsData.length) return;
+
+      // 没有经纬度的房源只到"区位"精度：同一区位聚成一个点，避免画出一堆假精度
+      const exact = listingsData.filter(x => !x.geo_approximate);
+      const approx = listingsData.filter(x => x.geo_approximate);
+
+      const popupFor = (item) => {
+        const priceWan = (item.total_price / 10000).toFixed(1);
+        return `<div style="margin:6px 0;padding-bottom:6px;border-bottom:1px dashed #e2e8f0;">
+          <b>${escapeHtml(item.community || "未命名小区")}</b><br>
+          总价 <b>${priceWan} 万</b> · ${item.area_sqm} ㎡ · ${item.bedrooms || "-"} 室 ·
+          ${Math.round(item.price_sqm)} 元/㎡
+          ${item.geo_approximate ? '<span style="color:#f59e0b;">（区位中心）</span>' : ""}
+        </div>`;
+      };
+
+      // 1) 精确坐标：一房一点
+      exact.forEach(item => {
+        const color = priceColor(item.total_price);
+        const m = L.marker([item.lat, item.lng], {
+          pane: "markers",
+          icon: L.divIcon({ className: "", html:
+            `<div style="width:12px;height:12px;border-radius:50%;background:${color};border:2px solid rgba(15,23,42,.85);box-shadow:0 0 8px ${color}"></div>`,
+            iconSize: [12, 12], iconAnchor: [6, 6] }),
+        });
+        m.bindPopup(`<div style="color:#1e293b;font-size:13px;">${popupFor(item)}</div>`);
+        listingsLayer.addLayer(m);
+      });
+
+      // 2) 区位精度：同区聚一个，点开列清单
+      const byDistrict = {};
+      approx.forEach(item => {
+        const k = item.district_name || "未知区位";
+        (byDistrict[k] = byDistrict[k] || []).push(item);
+      });
+      Object.entries(byDistrict).forEach(([name, items]) => {
+        const lat = items[0].lat, lng = items[0].lng;
+        const prices = items.map(x => x.total_price / 10000);
+        const lo = Math.min(...prices).toFixed(0), hi = Math.max(...prices).toFixed(0);
+        const m = L.marker([lat, lng], {
+          pane: "markers",
+          icon: L.divIcon({ className: "", html:
+            `<div style="min-width:44px;height:26px;padding:0 6px;border-radius:13px;background:rgba(15,23,42,.86);
+              border:2px solid #38bdf8;color:#e2e8f0;font-size:12px;display:flex;align-items:center;justify-content:center;
+              box-shadow:0 0 10px rgba(56,189,248,.6);">🏠 ${items.length}</div>`,
+            iconSize: [44, 26], iconAnchor: [22, 13] }),
+        });
+        const list = items.slice(0, 12).map(popupFor).join("");
+        m.bindPopup(`<div style="color:#1e293b;font-size:13px;max-height:320px;overflow:auto;">
+          <b>📍 ${escapeHtml(name)} · ${items.length} 套在售</b>
+          <div style="color:#64748b;font-size:12px;margin:4px 0;">总价 ${lo}~${hi} 万 · 坐标为区位中心近似</div>
+          ${list}
+          ${items.length > 12 ? `<div style="color:#64748b;">… 还有 ${items.length - 12} 套</div>` : ""}
+        </div>`, { maxWidth: 320 });
+        listingsLayer.addLayer(m);
+      });
+    }
+
+    function toggleListings(on) {
+      if (!map) return;
+      if (on) {
+        if (!listingsLayer) listingsLayer = L.layerGroup();
+        listingsLayer.addTo(map);
+        if (currentCity) loadListings(currentCity.code);
+      } else if (listingsLayer && map.hasLayer(listingsLayer)) {
+        map.removeLayer(listingsLayer);
+      }
+    }
+
     function syncCountyLayer() {
       if (!map) return;
       const ad4 = currentViewCityAdcode4();
@@ -2527,6 +2642,9 @@
       renderRegionMarkers();
       syncZoneToForm(true);
       syncCountyLayer();
+      if (document.getElementById("showListings") && document.getElementById("showListings").checked) {
+        loadListings(city.code);
+      }
       const citySel = document.getElementById("citySel");
       if (citySel) citySel.value = city.code;
       if (map) {
@@ -2910,6 +3028,14 @@
         if (grp) grp.open = true;
       }
 
+      // ?listings=1 自动打开房源图钉（验收/分享用）
+      if (new URLSearchParams(location.search).get("listings") === "1") {
+        setTimeout(() => {
+          const cb = document.getElementById("showListings");
+          if (cb) { cb.checked = true; toggleListings(true); }
+        }, 1500);
+      }
+
       // ?enter=1 跳过启动页直达地图（分享/无头验收用，不影响正常流程）
       if (new URLSearchParams(location.search).get("enter") === "1") {
         setTimeout(() => {
@@ -3087,6 +3213,9 @@
       // 首屏 setView 早于 zoomend 监听、拿不到事件，这里兜底补几次
       [600, 2000, 4000].forEach(ms => setTimeout(syncCountyLayer, ms));
     }
+
+    const _listingsToggle = document.getElementById("showListings");
+    if (_listingsToggle) _listingsToggle.onchange = (e) => toggleListings(e.target.checked);
 
     const _entropyBtn = document.getElementById("toggleEntropyBtn");
     if (_entropyBtn) _entropyBtn.onclick = function () {
@@ -3320,17 +3449,15 @@
       return { monthly: calc.monthly, interestWan: calc.totalInterest / 10000 };
     }
 
-    // 逐月 / 逐年：两套方案并排，谁的钱多谁绿；标出第一次"反超"的位置
-    function flowCompare(sysRows, userRows, opts) {
-      const { unit, digits, label } = opts;
+    // 逐年 / 逐月：先给 30 年，点哪一年再看那一年的 12 个月
+    function flowRows(sysRows, userRows, unit, digits, labelOf) {
       const n = Math.min(sysRows.length, userRows.length);
-      if (!n) return `<p class="cmp-foot">暂无${label}数据</p>`;
-
       const get = (r) => ({
-        income: r.income_wan !== undefined ? r.income_wan : r.income,
         outflow: r.outflow_wan !== undefined ? r.outflow_wan : r.outflow,
-        surplus: r.surplus_wan !== undefined ? r.surplus_wan : r.surplus,
         cash: r.end_cash_wan !== undefined ? r.end_cash_wan : r.end_cash,
+      });
+      const fmtv = (v) => Number(v).toLocaleString("zh-CN", {
+        minimumFractionDigits: digits, maximumFractionDigits: digits,
       });
 
       let crossIdx = -1;
@@ -3338,47 +3465,69 @@
         if (get(sysRows[i]).cash > get(userRows[i]).cash) { crossIdx = i; break; }
       }
 
-      const fmtv = (v) => Number(v).toLocaleString("zh-CN", {
-        minimumFractionDigits: digits, maximumFractionDigits: digits,
-      });
       const rows = [];
       for (let i = 0; i < n; i++) {
         const s = get(sysRows[i]), u = get(userRows[i]);
-        const sysBetter = s.cash >= u.cash;
-        const mark = (i === crossIdx)
-          ? `<span class="cmp-cross-tag">推荐从这里反超</span>` : "";
-        rows.push(`<tr class="${i === crossIdx ? "cmp-cross-row" : ""}">
-          <td>${sysRows[i].year ? "第 " + sysRows[i].year + " 年" : "第 " + sysRows[i].month + " 个月"}${mark}</td>
+        // 相等时两栏都绿（不再一红一绿）
+        const sysCls = s.cash >= u.cash ? "ok" : "bad";
+        const userCls = u.cash >= s.cash ? "ok" : "bad";
+        const mark = (i === crossIdx) ? `<span class="cmp-cross-tag">推荐从这里反超</span>` : "";
+        rows.push(`<tr class="${i === crossIdx ? "cmp-cross-row" : ""}" ${labelOf.click ? `data-year="${i + 1}" style="cursor:pointer;"` : ""}>
+          <td>${labelOf.text(sysRows[i])}${mark}</td>
           <td>${fmtv(s.outflow)}${unit}</td>
           <td>${fmtv(u.outflow)}${unit}</td>
-          <td class="${sysBetter ? "ok" : "bad"}">${fmtv(s.cash)}${unit}</td>
-          <td class="${sysBetter ? "bad" : "ok"}">${fmtv(u.cash)}${unit}</td>
+          <td class="${sysCls}">${fmtv(s.cash)}${unit}</td>
+          <td class="${userCls}">${fmtv(u.cash)}${unit}</td>
         </tr>`);
       }
-
-      const crossNote = crossIdx >= 0
-        ? `<div class="cmp-foot" style="color:#fbbf24;">📌 关键节点：${sysRows[crossIdx].year ? "第 " + sysRows[crossIdx].year + " 年" : "第 " + sysRows[crossIdx].month + " 个月"}起，推荐方案的现金第一次超过你的方案，并且之后再没被反超。</div>`
-        : `<div class="cmp-foot">你的方案在这段时间里现金一直领先，这就是它值得保留的地方。</div>`;
-
-      return `<table class="cmp-table tight">
-          <thead><tr><th>${label}</th><th>推荐 · 支出</th><th>你的 · 支出</th><th>推荐 · 现金</th><th>你的 · 现金</th></tr></thead>
-          <tbody>${rows.join("")}</tbody>
-        </table>${crossNote}`;
+      return { html: rows.join(""), crossIdx };
     }
 
     function timeSection(res) {
       const sysMonths = res.best_months || [], userMonths = (res.anchor && res.anchor.months) || [];
       const sysYears = res.best_timeline || [], userYears = (res.anchor && res.anchor.timeline) || [];
+
+      const yearTable = flowRows(sysYears, userYears, " 万", 2, {
+        text: (r) => `第 ${r.year} 年`, click: true,
+      });
+      const crossNote = yearTable.crossIdx >= 0
+        ? `<div class="cmp-foot" style="color:#fbbf24;">📌 关键节点：第 ${yearTable.crossIdx + 1} 年起，推荐方案的现金第一次超过你的方案。点这一行，看它当年每个月的具体变化。</div>`
+        : `<div class="cmp-foot">你的方案在这 30 年里现金一直不落下风，这就是它值得保留的地方。</div>`;
+
       return `<div class="cmp-section">
-        <div class="cmp-title">🗓️ 逐月 / 逐年对比：你是在哪一步开始落后的</div>
-        <div class="cmp-tabs">
-          <button class="cmp-tab active" data-tab="monthly">逐月（前 ${Math.min(sysMonths.length, userMonths.length)} 个月）</button>
-          <button class="cmp-tab" data-tab="yearly">逐年（30 年）</button>
+        <div class="cmp-title">🗓️ 逐年对比：你是在哪一年开始落后的</div>
+        <table class="cmp-table tight clickable">
+          <thead><tr><th>年份</th><th>推荐 · 支出</th><th>你的 · 支出</th><th>推荐 · 现金</th><th>你的 · 现金</th></tr></thead>
+          <tbody>${yearTable.html}</tbody>
+        </table>
+        ${crossNote}
+        <div id="cmpMonthDrill" style="display:none; margin-top:12px;">
+          <div class="cmp-title" id="cmpMonthDrillTitle"></div>
+          <table class="cmp-table tight">
+            <thead><tr><th>月份</th><th>推荐 · 支出</th><th>你的 · 支出</th><th>推荐 · 现金</th><th>你的 · 现金</th></tr></thead>
+            <tbody id="cmpMonthDrillBody"></tbody>
+          </table>
+          <div class="cmp-foot">单位：元。这一年里每个月的现金差距，比年度数字更能说明问题。</div>
         </div>
-        <div id="cmpMonthly">${flowCompare(sysMonths, userMonths, { unit: " 元", digits: 0, label: "月份" })}</div>
-        <div id="cmpYearly" style="display:none;">${flowCompare(sysYears, userYears, { unit: " 万", digits: 2, label: "年份" })}</div>
-        <div class="cmp-foot">单位：支出与现金。绿 = 这一期现金更多，红 = 更少。只列前 24 个月与完整的 30 年。</div>
       </div>`;
+    }
+
+    function bindYearDrill(res) {
+      const sysMonths = res.best_months || [], userMonths = (res.anchor && res.anchor.months) || [];
+      document.querySelectorAll("#detailModal .cmp-table.clickable tbody tr").forEach(tr => {
+        tr.onclick = () => {
+          const y = parseInt(tr.dataset.year, 10);
+          if (!y) return;
+          const from = (y - 1) * 12, to = y * 12;
+          const s = sysMonths.slice(from, to), u = userMonths.slice(from, to);
+          const body = flowRows(s, u, " 元", 0, { text: (r) => `第 ${r.month} 个月`, click: false }).html;
+          document.getElementById("cmpMonthDrillTitle").innerText = `📅 第 ${y} 年 · 逐月`;
+          document.getElementById("cmpMonthDrillBody").innerHTML = body;
+          const box = document.getElementById("cmpMonthDrill");
+          box.style.display = "block";
+          box.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        };
+      });
     }
 
     function openCompareModal(res) {
@@ -3450,6 +3599,7 @@
       `;
       document.getElementById("modalTitle").innerText = "📊 方案对比 | 系统推荐 vs 你的方案";
       document.getElementById("detailModal").style.display = "flex";
+      bindYearDrill(res);
 
       document.querySelectorAll(".cmp-tab").forEach(btn => {
         btn.onclick = () => {
