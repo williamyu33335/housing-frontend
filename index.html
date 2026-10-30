@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 
 <head>
   <meta charset="UTF-8">
-  <meta name="app-version" content="V7.10.1">
+  <meta name="app-version" content="V7.10.2">
   <title>全国房产金融 WebGIS 智能决策仿真系统</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -26,7 +26,7 @@
     .cmp-table td.ok { color:#34d399; font-weight:700; }
     .cmp-table td.bad { color:#f87171; }
     .cmp-tag { font-size:10px; opacity:.85; }
-    .cmp-bars { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:0 0 16px; }
+    .cmp-bars { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:14px; margin:0 0 16px; }
     .cmp-bar-block { border:1px solid rgba(148,163,184,.22); border-radius:10px; padding:10px; }
     .cmp-bar-label { font-size:12px; color:#94a3b8; margin-bottom:6px; }
     .cmp-bar-line { display:flex; align-items:center; gap:8px; font-size:12px; margin:4px 0; }
@@ -35,6 +35,24 @@
     .cmp-bar-fill { display:block; height:100%; border-radius:6px; }
     .cmp-bar-fill.win { background:#34d399; }
     .cmp-bar-fill.lose { background:#f87171; }
+    .cmp-score-strip { border:1px solid rgba(56,189,248,.35); border-radius:12px;
+      background:linear-gradient(135deg, rgba(56,189,248,.10), rgba(139,92,246,.08));
+      padding:12px 14px; margin:0 0 16px; }
+    .cmp-score-head { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; }
+    .cmp-score-head .lbl { font-size:13px; color:#cbd5e1; font-weight:700; }
+    .cmp-score-head .sys { font-size:24px; color:#34d399; font-weight:800; }
+    .cmp-score-head .user { font-size:24px; color:#f87171; font-weight:800; }
+    .cmp-score-head .delta { font-size:12px; color:#94a3b8; }
+    .cmp-score-dims { display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; margin-top:10px; }
+    .cmp-score-dim { background:rgba(148,163,184,.08); border-radius:8px; padding:8px; text-align:center; }
+    .cmp-score-dim .name { display:block; font-size:11px; color:#94a3b8; margin-bottom:3px; }
+    .cmp-score-dim .nums { font-size:13px; }
+    .cmp-score-dim .nums b.sys { color:#34d399; }
+    .cmp-score-dim .nums b.user { color:#f87171; }
+    .cmp-score-dim .nums b.tie { color:#6ee7b7; }
+    .cmp-score-dim .d { display:block; font-size:10.5px; color:#94a3b8; margin-top:2px; }
+    .cmp-score-tradeoff { margin-top:10px; font-size:11.5px; line-height:1.7; color:#cbd5e1; }
+    @media (max-width: 760px) { .cmp-score-dims { grid-template-columns:1fr 1fr; } }
     .cmp-foot { font-size:11.5px; color:#94a3b8; line-height:1.7; }
     .cmp-tabs { display:flex; gap:8px; margin:0 0 8px; }
     .cmp-tab { background:rgba(148,163,184,.12); border:1px solid rgba(148,163,184,.3); color:#cbd5e1;
@@ -1833,18 +1851,18 @@
 
   <div class="splash-screen" id="splashScreen">
     <h1 class="splash-title">全国房产金融决策仿真系统</h1>
-    <p class="splash-subtitle">V7.10.1 · 空间折叠引擎 ｜ 基于 WebGIS 与 PostGIS 的智能推演平台</p>
+    <p class="splash-subtitle">V7.10.2 · 空间折叠引擎 ｜ 基于 WebGIS 与 PostGIS 的智能推演平台</p>
     <button class="splash-btn" onclick="enterSystem()">进入全景中国地图</button>
   </div>
 
   <div id="map"></div>
-  <div id="appBadge">V7.10.1</div>
+  <div id="appBadge">V7.10.2</div>
   <div id="errBanner"></div>
   <div class="map-hint" id="mapHint">🛰️ 初始视角为中国全境，点击城市轮廓可放大，并点击具体片区探索。</div>
 
   <div class="glass-panel" id="leftPanel">
     <div class="panel-head">
-      <h2>仿真参数配置 <span class="ver-chip">V7.10.1</span></h2>
+      <h2>仿真参数配置 <span class="ver-chip">V7.10.2</span></h2>
       <button class="panel-close" onclick="hidePanel('leftPanel')" title="收起面板">✕</button>
     </div>
 
@@ -2220,7 +2238,7 @@
         const el = document.getElementById("errBanner");
         if (!el) return;
         el.style.display = "block";
-        el.textContent = "⚠️ 前端运行错误：" + msg + "（版本 V7.10.1，请把这条发给经纬）";
+        el.textContent = "⚠️ 前端运行错误：" + msg + "（版本 V7.10.2，请把这条发给经纬）";
       }
       window.addEventListener("error", function (e) {
         showErr((e.message || "未知错误") + " @ " + (e.filename || "").split("/").pop() + ":" + (e.lineno || 0));
@@ -3425,19 +3443,85 @@
       </tr>`;
     }
 
-    function cmpBar(label, sysVal, userVal, lowerBetter) {
+    function cmpBar(label, sysVal, userVal, lowerBetter, unit = " 万", digits = 2) {
       const a = Math.max(Number(sysVal) || 0, 0), c = Math.max(Number(userVal) || 0, 0);
       const max = Math.max(a, c, 1);
       const sysPct = Math.round(a / max * 100), userPct = Math.round(c / max * 100);
-      const sysWin = lowerBetter ? a < c : a > c;
+      const equal = Math.abs(a - c) < 1e-9;
+      const sysWin = !equal && (lowerBetter ? a < c : a > c);
+      const suffix = equal ? "（持平）" : (sysWin ? "（推荐更优）" : "（你的更优）");
+      const f = (v) => Number(v).toLocaleString("zh-CN", {
+        minimumFractionDigits: digits, maximumFractionDigits: digits,
+      }) + unit;
       return `<div class="cmp-bar-block">
-        <div class="cmp-bar-label">${label}${sysWin ? "（推荐更优）" : "（你的更优）"}</div>
+        <div class="cmp-bar-label">${label}${suffix}</div>
         <div class="cmp-bar-line"><span class="cmp-bar-name">推荐</span>
-          <span class="cmp-bar-track"><span class="cmp-bar-fill ${sysWin ? "win" : "lose"}" style="width:${sysPct}%"></span></span>
-          <b>${a.toFixed(2)} 万</b></div>
+          <span class="cmp-bar-track"><span class="cmp-bar-fill ${equal ? "win" : (sysWin ? "win" : "lose")}" style="width:${sysPct}%"></span></span>
+          <b>${f(a)}</b></div>
         <div class="cmp-bar-line"><span class="cmp-bar-name">你的</span>
-          <span class="cmp-bar-track"><span class="cmp-bar-fill ${sysWin ? "lose" : "win"}" style="width:${userPct}%"></span></span>
-          <b>${c.toFixed(2)} 万</b></div>
+          <span class="cmp-bar-track"><span class="cmp-bar-fill ${equal ? "win" : (sysWin ? "lose" : "win")}" style="width:${userPct}%"></span></span>
+          <b>${f(c)}</b></div>
+      </div>`;
+    }
+
+    function scoreStrip(sysItem, userItem) {
+      const dims = [
+        { key: "time_efficiency", label: "时间效率", digits: 1 },
+        { key: "comfort_score", label: "居住舒适度", digits: 1 },
+        { key: "adapt_score", label: "抗风险稳健度", digits: 1 },
+        { key: "surplus_happiness", label: "结余幸福感", digits: 1 },
+      ];
+      const fmt = (v, d) => Number(v || 0).toFixed(d);
+      const sysScore = Number(sysItem.comprehensive_score || 0);
+      const userScore = Number(userItem.comprehensive_score || 0);
+      const scoreDiff = sysScore - userScore;
+      const scoreWinner = Math.abs(scoreDiff) < 0.01 ? "tie" : (scoreDiff > 0 ? "sys" : "user");
+      const dimHtml = dims.map(d => {
+        const s = Number(sysItem[d.key] || 0), u = Number(userItem[d.key] || 0);
+        const diff = s - u;
+        const tie = Math.abs(diff) < 0.05;
+        const sCls = tie ? "tie" : (diff > 0 ? "sys" : "user");
+        const uCls = tie ? "tie" : (diff > 0 ? "user" : "sys");
+        const dTxt = tie ? "持平" : `${diff > 0 ? "推荐高" : "你的高"} ${Math.abs(diff).toFixed(d.digits)}`;
+        return `<div class="cmp-score-dim">
+          <span class="name">${d.label}</span>
+          <div class="nums"><b class="${sCls}">${fmt(s, d.digits)}</b> <span class="d">vs</span> <b class="${uCls}">${fmt(u, d.digits)}</b></div>
+          <span class="d">${dTxt}</span>
+        </div>`;
+      }).join("");
+
+      const sysWins = [], userWins = [];
+      const cmp = (label, s, u, higherBetter, unit = "", digits = 2) => {
+        const diff = s - u;
+        if (Math.abs(diff) < 0.01) return;
+        const sysBetter = higherBetter ? diff > 0 : diff < 0;
+        const word = higherBetter ? "高" : "低";
+        const txt = `${label}${word} ${Math.abs(diff).toFixed(digits)}${unit}`;
+        (sysBetter ? sysWins : userWins).push(txt);
+      };
+      cmp("综合得分", sysScore, userScore, true, "", 2);
+      dims.forEach(d => cmp(d.label, Number(sysItem[d.key] || 0), Number(userItem[d.key] || 0), true, "", d.digits));
+      cmp("期末资产", Number(sysItem.liquid_asset_end_wan || 0), Number(userItem.liquid_asset_end_wan || 0), true, " 万", 2);
+      cmp("30 年总利息", Number(sysItem.total_interest_wan || 0), Number(userItem.total_interest_wan || 0), false, " 万", 2);
+
+      const winnerText = scoreWinner === "sys"
+        ? `推荐方案 <b class="ok">+${Math.abs(scoreDiff).toFixed(2)}</b> 分`
+        : scoreWinner === "user"
+          ? `你的方案 <b class="ok">+${Math.abs(scoreDiff).toFixed(2)}</b> 分`
+          : "两边持平";
+      const trade = `你的优势：${userWins.length ? userWins.join("、") : "无"}；推荐的优势：${sysWins.length ? sysWins.join("、") : "无"}。`;
+      return `<div class="cmp-score-strip">
+        <div class="cmp-score-head">
+          <span class="lbl">综合得分</span>
+          <span class="sys">${fmt(sysScore, 2)}</span>
+          <span class="delta">vs</span>
+          <span class="user">${fmt(userScore, 2)}</span>
+          <span class="delta">${winnerText}</span>
+        </div>
+        <div class="cmp-score-dims">${dimHtml}</div>
+        <div class="cmp-score-tradeoff">${trade}<br>
+          综合得分不是资产排行：它把时间、舒适、抗风险、结余幸福感一起加权。要不要为了这些非现金维度，接受资产/利息上的差距，是你自己的选择。
+        </div>
       </div>`;
     }
 
@@ -3480,10 +3564,22 @@
         return `房贷月供 ${f(mort)}${unit}，公积金抵扣 ${f(fund)}${unit}，自付 ${f(pay)}${unit}`;
       };
 
-      let crossIdx = -1;
-      for (let i = 0; i < n; i++) {
-        if (get(sysRows[i]).cash > get(userRows[i]).cash) { crossIdx = i; break; }
+      const sign = (d) => Math.abs(d) < 0.005 ? 0 : (d > 0 ? 1 : -1);
+      let finalLeader = 0;
+      for (let i = n - 1; i >= 0; i--) {
+        const d = get(sysRows[i]).cash - get(userRows[i]).cash;
+        if (Math.abs(d) >= 0.005) { finalLeader = d > 0 ? 1 : -1; break; }
       }
+      let crossIdx = -1;
+      if (finalLeader !== 0) {
+        for (let i = n - 1; i >= 1; i--) {
+          const cur = sign(get(sysRows[i]).cash - get(userRows[i]).cash);
+          const prev = sign(get(sysRows[i - 1]).cash - get(userRows[i - 1]).cash);
+          if (cur === finalLeader && prev !== finalLeader) { crossIdx = i; break; }
+        }
+      }
+      const crossWinner = finalLeader > 0 ? "sys" : finalLeader < 0 ? "user" : null;
+      const finalDiff = n ? get(sysRows[n - 1]).cash - get(userRows[n - 1]).cash : 0;
 
       const rows = [];
       for (let i = 0; i < n; i++) {
@@ -3494,7 +3590,9 @@
         // 支出：越低越好，相等时两边都绿
         const sysOut = s.outflow <= u.outflow ? "ok" : "bad";
         const userOut = u.outflow <= s.outflow ? "ok" : "bad";
-        const mark = (i === crossIdx) ? `<span class="cmp-cross-tag">推荐从这里反超</span>` : "";
+        const mark = (i === crossIdx)
+          ? `<span class="cmp-cross-tag">${crossWinner === "sys" ? "推荐从这里反超" : "你的方案从这里反超"}</span>`
+          : "";
         rows.push(`<tr class="${i === crossIdx ? "cmp-cross-row" : ""}" ${labelOf.click ? `data-year="${i + 1}" style="cursor:pointer;"` : ""}>
           <td>${labelOf.text(sysRows[i])}${mark}</td>
           <td class="${sysOut}" title="${detail(sysRows[i])}">${fmtv(s.outflow)}${unit}</td>
@@ -3503,7 +3601,7 @@
           <td class="${userCls}">${fmtv(u.cash)}${unit}</td>
         </tr>`);
       }
-      return { html: rows.join(""), crossIdx };
+      return { html: rows.join(""), crossIdx, crossWinner, finalDiff };
     }
 
     function outflowExplain(res) {
@@ -3537,12 +3635,12 @@
         const bestPhase = d.best_phase_at_equal || b.phase;
         if (d.equal_outflow_reason === "fund_covers") {
           let text = `📌 第 ${eq} 年起两边支出相同，<b>不是算错</b>：`;
-          if (bestPhase === "loan") {
+          if (bestPhase === "loan" && Number(b.mortgage_wan || 0) > 0.005) {
             text += `推荐方案还有房贷（月供 ${fmt(b.mortgage_wan)} 万/年），但公积金每年入账 ${fmt(b.fund_inflow_wan)} 万，自付 0；`;
           } else {
-            text += `推荐方案第 ${bestFree || "--"} 年已还完；`;
+            text += `推荐方案第 ${bestFree || "--"} 年已不用还房贷；`;
           }
-          if (userPhase === "loan") {
+          if (userPhase === "loan" && Number(u.mortgage_wan || 0) > 0.005) {
             text += `你的方案虽然还有房贷，但公积金也已覆盖月供，自付 0。`;
           } else {
             text += `你的方案第 ${userEnd || "--"} 年已还完。`;
@@ -3566,9 +3664,12 @@
       const yearTable = flowRows(sysYears, userYears, " 万", 2, {
         text: (r) => `第 ${r.year} 年`, click: true,
       });
+      const winnerName = yearTable.crossWinner === "sys" ? "推荐方案"
+        : yearTable.crossWinner === "user" ? "你的方案" : "两边";
+      const finalAbs = Math.abs(Number(yearTable.finalDiff || 0)).toFixed(2);
       const crossNote = yearTable.crossIdx >= 0
-        ? `<div class="cmp-foot" style="color:#fbbf24;">📌 关键节点：第 ${yearTable.crossIdx + 1} 年起，推荐方案的现金第一次超过你的方案。点这一行，看它当年每个月的具体变化。</div>`
-        : `<div class="cmp-foot">你的方案在这 30 年里现金一直不落下风，这就是它值得保留的地方。</div>`;
+        ? `<div class="cmp-foot" style="color:#fbbf24;">📌 第 ${yearTable.crossIdx + 1} 年起，${winnerName}的现金领先并保持到第 30 年；最终${winnerName}多 <b>${finalAbs} 万</b>。点这一行，看它当年每个月的具体变化。</div>`
+        : `<div class="cmp-foot">30 年里现金领先权没有切换；最终${winnerName}多 <b>${finalAbs} 万</b>。点某一年可看逐月变化。</div>`;
 
       return `<div class="cmp-section">
         <div class="cmp-title">🗓️ 逐年对比：你是在哪一年开始落后的</div>
@@ -3663,11 +3764,13 @@
 
       document.getElementById("modalBody").innerHTML = `
         <div class="cmp-head">
-          <div class="cmp-side sys"><b>系统推荐</b><span>租 ${sysItem.rent_year} 年 + 贷 ${sysItem.loan_year} 年 · ${dsText(sysItem.down_strategy)}</span></div>
+          <div class="cmp-side sys"><b>系统推荐</b><span>租 ${sysItem.rent_year} 年 + 贷 ${sysItem.loan_year} 年 · ${dsText(sysItem.down_strategy)} · 综合 ${Number(sysItem.comprehensive_score || 0).toFixed(2)}</span></div>
           <div class="cmp-vs">VS</div>
-          <div class="cmp-side user"><b>你的方案</b><span>租 ${userItem.rent_year} 年 + 贷 ${userItem.loan_year} 年 · ${dsText(userItem.down_strategy)}</span></div>
+          <div class="cmp-side user"><b>你的方案</b><span>租 ${userItem.rent_year} 年 + 贷 ${userItem.loan_year} 年 · ${dsText(userItem.down_strategy)} · 综合 ${Number(userItem.comprehensive_score || 0).toFixed(2)}</span></div>
         </div>
+        ${scoreStrip(sysItem, userItem)}
         <div class="cmp-bars">
+          ${cmpBar("综合得分", sysItem.comprehensive_score, userItem.comprehensive_score, false, "", 2)}
           ${cmpBar("期末资产", sysItem.liquid_asset_end_wan, userItem.liquid_asset_end_wan, false)}
           ${cmpBar("30 年总利息", sysItem.total_interest_wan, userItem.total_interest_wan, true)}
         </div>
@@ -4741,9 +4844,9 @@
           const src = document.documentElement.dataset.citySource === "db" ? "库" : "内置";
           document.documentElement.dataset.citySourceLabel = src;
           const badge = document.getElementById("appBadge");
-          if (badge) badge.textContent = `V7.10.1 · ${src}`;
+          if (badge) badge.textContent = `V7.10.2 · ${src}`;
           const chip = document.querySelector(".ver-chip");
-          if (chip) chip.textContent = `V7.10.1 · ${src}`;
+          if (chip) chip.textContent = `V7.10.2 · ${src}`;
         })();
 
         const nn = CITY_DB.find(c => c.code === "450100");
