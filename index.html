@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="app-version" content="V7.10">
+  <meta name="app-version" content="V7.10.1">
   <title>全国房产金融 WebGIS 智能决策仿真系统</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -1833,18 +1833,18 @@
 
   <div class="splash-screen" id="splashScreen">
     <h1 class="splash-title">全国房产金融决策仿真系统</h1>
-    <p class="splash-subtitle">V7.10 · 空间折叠引擎 ｜ 基于 WebGIS 与 PostGIS 的智能推演平台</p>
+    <p class="splash-subtitle">V7.10.1 · 空间折叠引擎 ｜ 基于 WebGIS 与 PostGIS 的智能推演平台</p>
     <button class="splash-btn" onclick="enterSystem()">进入全景中国地图</button>
   </div>
 
   <div id="map"></div>
-  <div id="appBadge">V7.10</div>
+  <div id="appBadge">V7.10.1</div>
   <div id="errBanner"></div>
   <div class="map-hint" id="mapHint">🛰️ 初始视角为中国全境，点击城市轮廓可放大，并点击具体片区探索。</div>
 
   <div class="glass-panel" id="leftPanel">
     <div class="panel-head">
-      <h2>仿真参数配置 <span class="ver-chip">V7.10</span></h2>
+      <h2>仿真参数配置 <span class="ver-chip">V7.10.1</span></h2>
       <button class="panel-close" onclick="hidePanel('leftPanel')" title="收起面板">✕</button>
     </div>
 
@@ -1997,9 +1997,9 @@
       <summary>收入与开销</summary>
       <div class="config-body">
         <div class="form-item">
-          <label id="incomeLabel">税后月收入（元）</label>
+          <label id="incomeLabel">税后到手月收入（元）</label>
           <input type="number" id="monthIncomeNet" value="6500" min="1">
-          <div class="form-hint" id="incomeHint">双人/三人模式请填「家庭合计收入」，并选择就业人数；模型会按人均起薪推算各自的薪资曲线。</div>
+          <div class="form-hint" id="incomeHint">填你实际能支配的到手收入（已扣个人公积金）。双人/三人模式请填「家庭合计收入」，并选择就业人数；模型会按人均起薪推算各自的薪资曲线。</div>
         </div>
         <div class="form-item">
           <label>家庭就业人数</label>
@@ -2019,7 +2019,7 @@
         <div class="form-item">
           <label>公积金缴存比例 %（个人+企业合计）</label>
           <input type="number" id="housingFundPct" value="16" min="0" max="24">
-          <div class="form-hint">买房后公积金按月进账，可直接抵扣月供。</div>
+          <div class="form-hint">公积金只能用于购房/还贷，不计入每月可支配现金。比例按「个人+企业合计」填（双边上限 24%）；不交公积金时你只省个人部分，企业配缴同时消失，本模型暂不模拟这个开关。</div>
         </div>
         <div class="form-item">
           <label>隐形支出摊销（元/月）</label>
@@ -2220,7 +2220,7 @@
         const el = document.getElementById("errBanner");
         if (!el) return;
         el.style.display = "block";
-        el.textContent = "⚠️ 前端运行错误：" + msg + "（版本 V7.10，请把这条发给经纬）";
+        el.textContent = "⚠️ 前端运行错误：" + msg + "（版本 V7.10.1，请把这条发给经纬）";
       }
       window.addEventListener("error", function (e) {
         showErr((e.message || "未知错误") + " @ " + (e.filename || "").split("/").pop() + ":" + (e.lineno || 0));
@@ -3472,10 +3472,10 @@
         const pay = num(r, "self_pay_wan", "self_pay");
         const f = (v) => Number(v).toLocaleString("zh-CN", { maximumFractionDigits: digits });
         if (r.phase === "rent") {
-          return `租房期：生活+房租+交通；公积金入账 ${f(fund)}${unit}，已计入现金`;
+          return `租房期：生活+房租+交通；公积金入账 ${f(fund)}${unit}（专款专用，不计入现金）`;
         }
         if (r.phase === "free") {
-          return `自由期：生活+物业+交通；公积金入账 ${f(fund)}${unit}，已计入现金`;
+          return `自由期：生活+物业+交通；公积金入账 ${f(fund)}${unit}（专款专用，不计入现金）`;
         }
         return `房贷月供 ${f(mort)}${unit}，公积金抵扣 ${f(fund)}${unit}，自付 ${f(pay)}${unit}`;
       };
@@ -3516,40 +3516,47 @@
       userRows.forEach(r => { uy[r.year] = r; });
       const fmt = (v) => Number(v || 0).toFixed(2);
       const userEnd = d.user_loan_end_year;
-      const bestFree = (sysRows.find(r => r.phase === "free") || {}).year;
+      const bestFree = d.best_loan_end_year || (sysRows.find(r => r.phase === "free") || {}).year;
+      const eq = d.outflow_equal_from_year;
+      const lowerFrom = d.user_lower_from_year;
+      const lowerTo = d.user_lower_to_year;
+      const lowerAvg = d.user_lower_avg_wan;
 
-      // 先看“你的支出更低”——这是用户最直觉、也最该被看见的情况
-      let lowerYear = null;
-      if (userEnd) {
-        for (let y = userEnd; y <= 30; y++) {
-          const u = uy[y], b = by[y];
-          if (!u || !b || !(u.outflow_wan < b.outflow_wan - 0.01)) continue;
-          let allLower = true;
-          for (let yy = y; yy <= 30; yy++) {
-            const uu = uy[yy], bb = by[yy];
-            if (!uu || !bb || !(uu.outflow_wan < bb.outflow_wan - 0.01)) { allLower = false; break; }
+      // 真 bug：还有明显自付，支出却相同
+      if (d.unexplained_from_year) {
+        return `<div class="cmp-foot" style="color:#f87171; background:rgba(248,113,113,.08); border-left:3px solid #f87171; padding:8px 10px; border-radius:6px; margin-top:8px;">⚠️ 第 ${d.unexplained_from_year} 年起，两边明明还有自付房贷，支出却相同。这可能是算法问题，请把这一屏截图发给经纬。</div>`;
+      }
+
+      const parts = [];
+      if (lowerFrom && lowerTo) {
+        parts.push(`✅ 第 ${lowerFrom}–${lowerTo} 年你的支出更低，平均每年少 <b>${fmt(lowerAvg)} 万</b>。`);
+      }
+      if (eq && by[eq] && uy[eq]) {
+        const b = by[eq], u = uy[eq];
+        const userPhase = d.user_phase_at_equal || u.phase;
+        const bestPhase = d.best_phase_at_equal || b.phase;
+        if (d.equal_outflow_reason === "fund_covers") {
+          let text = `📌 第 ${eq} 年起两边支出相同，<b>不是算错</b>：`;
+          if (bestPhase === "loan") {
+            text += `推荐方案还有房贷（月供 ${fmt(b.mortgage_wan)} 万/年），但公积金每年入账 ${fmt(b.fund_inflow_wan)} 万，自付 0；`;
+          } else {
+            text += `推荐方案第 ${bestFree || "--"} 年已还完；`;
           }
-          if (allLower) { lowerYear = y; break; }
+          if (userPhase === "loan") {
+            text += `你的方案虽然还有房贷，但公积金也已覆盖月供，自付 0。`;
+          } else {
+            text += `你的方案第 ${userEnd || "--"} 年已还完。`;
+          }
+          text += `两边剩下的都只是生活、物业、交通。`;
+          parts.push(text);
+        } else if (d.equal_outflow_reason === "both_free") {
+          parts.push(`✅ 第 ${eq} 年起两边都还完了房贷，支出相同是正常的。你的方案第 ${userEnd || "--"} 年还完，推荐方案第 ${bestFree || "--"} 年还完。`);
         }
       }
-      if (lowerYear) {
-        const diff = (by[lowerYear].outflow_wan - uy[lowerYear].outflow_wan).toFixed(2);
-        return `<div class="cmp-foot" style="color:#34d399; background:rgba(52,211,153,.08); border-left:3px solid #34d399; padding:8px 10px; border-radius:6px; margin-top:8px;">✅ 第 ${lowerYear} 年起你的房贷已还完，支出比推荐方案每年少 <b>${diff} 万</b>。这是你的方案真正的优势。</div>`;
-      }
-
-      const eq = d.outflow_equal_from_year;
-      if (!eq || !by[eq] || !uy[eq]) return "";
-      const b = by[eq];
-      if (d.equal_outflow_reason === "fund_covers") {
-        return `<div class="cmp-foot" style="color:#fbbf24; background:rgba(251,191,36,.08); border-left:3px solid #fbbf24; padding:8px 10px; border-radius:6px; margin-top:8px;">📌 第 ${eq} 年起两边支出相同，<b>不是算错</b>：推荐方案还有房贷（月供 ${fmt(b.mortgage_wan)} 万/年），但公积金每年入账 ${fmt(b.fund_inflow_wan)} 万，已经把月供全覆盖，<b>自付 0 元</b>；你的方案第 ${userEnd} 年已还完。两边剩下的都只是生活、物业、交通。</div>`;
-      }
-      if (d.equal_outflow_reason === "both_free") {
-        return `<div class="cmp-foot" style="color:#34d399; background:rgba(52,211,153,.08); border-left:3px solid #34d399; padding:8px 10px; border-radius:6px; margin-top:8px;">✅ 第 ${eq} 年起两边都还完了房贷，支出相同是正常的。你的方案第 ${userEnd} 年还完，推荐方案第 ${bestFree || "--"} 年还完。</div>`;
-      }
-      if (d.equal_outflow_reason === "unexplained") {
-        return `<div class="cmp-foot" style="color:#f87171; background:rgba(248,113,113,.08); border-left:3px solid #f87171; padding:8px 10px; border-radius:6px; margin-top:8px;">⚠️ 第 ${eq} 年起你的房贷已还完，推荐方案却还有自付房贷，两边支出却相同。这可能是算法问题，请把这一屏截图发给经纬。</div>`;
-      }
-      return "";
+      if (!parts.length) return "";
+      const color = d.equal_outflow_reason === "fund_covers" ? "#fbbf24" : "#34d399";
+      const bg = d.equal_outflow_reason === "fund_covers" ? "rgba(251,191,36,.08)" : "rgba(52,211,153,.08)";
+      return `<div class="cmp-foot" style="color:${color}; background:${bg}; border-left:3px solid ${color}; padding:8px 10px; border-radius:6px; margin-top:8px;">${parts.join("<br>")}</div>`;
     }
 
     function timeSection(res) {
@@ -3569,7 +3576,7 @@
           <thead><tr><th>年份</th><th>推荐 · 自付支出</th><th>你的 · 自付支出</th><th>推荐 · 现金</th><th>你的 · 现金</th></tr></thead>
           <tbody>${yearTable.html}</tbody>
         </table>
-        <div class="cmp-foot">支出 = 生活 + 物业 + 交通 + 房贷自付。公积金抵扣掉的月供不算支出——那笔钱仍然是你的，会进现金；期末资产里也包含公积金账户余额。鼠标悬停每一格可看拆分。</div>
+        <div class="cmp-foot">支出 = 生活 + 物业 + 交通 + 房贷自付。公积金只能用于购房/还贷，抵扣掉的月供不算支出；期末资产只算现金，不含公积金账户余额和房子净值。鼠标悬停每一格可看拆分。</div>
         ${outflowExplain(res)}
         ${crossNote}
         <div id="cmpMonthDrill" style="display:none; margin-top:12px;">
@@ -3763,7 +3770,7 @@
       <div class="dr-section">
         <div class="dr-title">💵 月度现金流</div>
         ${row("税后月收入", `${fmt(monthIncomeNet, 0)} 元`)}
-        ${row("公积金月入账", `${fmt(housingFundMonthly, 0)} 元`)}
+        ${row("公积金账户月入账（专款专用）", `${fmt(housingFundMonthly, 0)} 元`)}
         ${row("公积金抵扣月供", `${fmt(fundDeduct, 0)} 元`)}
         ${row("真实自付月供", `${fmt(realSelfPay, 0)} 元`)}
         ${row("基础生活开销", `${fmt(monthExp, 0)} 元`)}
@@ -4050,7 +4057,7 @@
         ${buyCar ? `<strong>🚗 进阶生活：</strong>${carComment}<br>` : ''} <!-- 🌟 加上车 -->
         ${growthRate > 0 ? `<strong>📈 职场复利：</strong>${growthComment}<br>` : ''} <!-- 🌟 加上涨薪 -->
         <strong>1. 资本与杠杆的共舞：</strong>这套避风港总价值 <span style="${cBlue}">${houseTotalWan} 万元</span>，你将用 <span style="${cBlue}">${downPaymentWan.toFixed(1)} 万元</span> 首付敲开大门。剩下的 <span style="${cBlue}">${loanPrincipalWan.toFixed(1)} 万元</span> 贷款，通过${repayKind === "equal_principal" ? "等额本金" : "等额本息"}方式在 ${loanYears} 年中偿还。虽然要支付${interestPhrase}，但这是跨越阶层的必经之路。<br>
-        <strong>2. 现金流的呼吸感：</strong>公积金的进账（约 <span style="${cBlue}">${formatNum(housingFundMonthly, 0)} 元</span>）如同温柔的缓冲垫，让真实的自付月供降至 <span style="${cBlue}">${formatNum(actualNetMortgage, 0)} 元</span>。${expenseHtml}。<br>
+        <strong>2. 现金流的呼吸感：</strong>公积金账户的进账（约 <span style="${cBlue}">${formatNum(housingFundMonthly, 0)} 元</span>）只能用于购房/还贷，<b>不是可支配现金</b>；它把真实的自付月供压到 <span style="${cBlue}">${formatNum(actualNetMortgage, 0)} 元</span>。${expenseHtml}。<br>
         <strong>3. 抵御风险的温柔铠甲：</strong>每月还能剩下 <span style="${cBlue}">${formatNum(remainingCash, 0)} 元</span> 纯现金，${surplusHtml}。你距离残酷的 70% 破产红线，还有 <span style="${redlineMargin > 0 ? cGreen : cRed}">${formatNum(redlineMargin, 0)} 元</span> 的安全余量。<br>
         <strong>4. 时间的玫瑰：</strong>30 年后，当你彻底卸下债务，手里将握着 ${assetText}，那是时间与复利给你的最高奖赏。
         
@@ -4734,9 +4741,9 @@
           const src = document.documentElement.dataset.citySource === "db" ? "库" : "内置";
           document.documentElement.dataset.citySourceLabel = src;
           const badge = document.getElementById("appBadge");
-          if (badge) badge.textContent = `V7.10 · ${src}`;
+          if (badge) badge.textContent = `V7.10.1 · ${src}`;
           const chip = document.querySelector(".ver-chip");
-          if (chip) chip.textContent = `V7.10 · ${src}`;
+          if (chip) chip.textContent = `V7.10.1 · ${src}`;
         })();
 
         const nn = CITY_DB.find(c => c.code === "450100");
