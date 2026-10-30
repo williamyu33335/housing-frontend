@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="app-version" content="V8.0.1">
+  <meta name="app-version" content="V8.1">
   <title>全国房产金融 WebGIS 智能决策仿真系统</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -632,6 +632,39 @@
       .mobile-panel-toggle {
         display: flex;
       }
+    }
+
+    /* 报告默认只露一小段（两端一致）：想看完整解释自己点 */
+    #rightPanel .ai-report-content {
+      max-height: 16em;
+      overflow: hidden;
+      -webkit-mask-image: linear-gradient(180deg, #000 60%, transparent 100%);
+      mask-image: linear-gradient(180deg, #000 60%, transparent 100%);
+    }
+
+    body.m-report-open #rightPanel .ai-report-content {
+      max-height: none;
+      overflow: visible;
+      -webkit-mask-image: none;
+      mask-image: none;
+    }
+
+    .table-more-btn {
+      display: block;
+      width: 100%;
+      margin-top: 8px;
+      padding: 9px;
+      border-radius: 8px;
+      border: 1px dashed rgba(148, 163, 184, .35);
+      background: transparent;
+      color: #93c5fd;
+      font-size: 12.5px;
+      font-family: inherit;
+      cursor: pointer;
+    }
+
+    .table-more-btn:hover {
+      background: rgba(37, 99, 235, .12);
     }
 
     .map-hint {
@@ -1751,6 +1784,24 @@
     }
 
     /* ========== WebGIS 地图标签与图钉 ========== */
+    /* 📱 手机端：缩小时只留小圆点，避免 8 个标签叠成一坨 */
+    .custom-dot {
+      width: 34px;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .custom-dot::after {
+      content: "";
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #3b82f6;
+      border: 2px solid #fff;
+      box-shadow: 0 0 10px rgba(59, 130, 246, .95);
+    }
     /* 省/市行政区文字标签 */
     .map-label-province,
     .map-label-city {
@@ -1847,6 +1898,7 @@
     #mTabBar,
     .m-screen,
     #mSummary,
+    #mSchemes,
     .m-scroll-hint {
       display: none;
     }
@@ -2469,19 +2521,118 @@
         font-size: 11px;
       }
 
+      /* ---------- 先给 7 套方案卡，表格收起来 ---------- */
+      body[data-mscreen="result"] #mSchemes {
+        display: block;
+        margin: 0 0 10px;
+      }
+
+      .m-scheme {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        margin-bottom: 8px;
+        padding: 11px 12px;
+        border-radius: 12px;
+        border: 1px solid rgba(148, 163, 184, .18);
+        background: rgba(30, 41, 59, .5);
+        color: #e2e8f0;
+        font-family: inherit;
+        text-align: left;
+      }
+
+      .m-scheme .rank {
+        flex: 0 0 22px;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        color: #7dd3fc;
+        background: rgba(56, 189, 248, .14);
+      }
+
+      .m-scheme .main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .m-scheme .main b {
+        display: block;
+        font-size: 13.5px;
+        font-weight: 600;
+      }
+
+      .m-scheme .main small {
+        display: block;
+        margin-top: 2px;
+        font-size: 11.5px;
+        color: #94a3b8;
+      }
+
+      .m-scheme .score {
+        font-size: 16px;
+        font-weight: 700;
+        color: #34d399;
+      }
+
+      .m-scheme .score span {
+        margin-left: 1px;
+        font-size: 10px;
+        font-weight: 400;
+        color: #64748b;
+      }
+
+      .m-show-all {
+        width: 100%;
+        margin: 2px 0 12px;
+        padding: 11px;
+        border-radius: 12px;
+        border: 1px dashed rgba(148, 163, 184, .35);
+        background: transparent;
+        color: #93c5fd;
+        font-size: 13px;
+        font-family: inherit;
+      }
+
+      /* 大表默认收起来，点「看全部」才出现 */
+      body[data-mscreen="result"] #tabContents {
+        display: none;
+      }
+
+      body.m-show-all #tabContents {
+        display: block !important;
+      }
+
+      body:not(.m-show-all) .m-scroll-hint {
+        display: none;
+      }
+
+      /* 参数页很长，把「开始推演」钉在底部，别让人滑到底才找得到 */
+      body[data-mscreen="params"] #runBtn {
+        position: sticky;
+        bottom: 6px;
+        z-index: 8;
+        margin-top: 14px;
+        box-shadow: 0 10px 26px rgba(2, 6, 23, .8);
+      }
+
       /* ---------- 报告默认只给一小段，想看再点 ---------- */
       .m-report-toggle {
         display: none;
       }
 
-      body[data-mscreen="result"] .ai-report-content {
+      #rightPanel .ai-report-content {
         max-height: 16em;
         overflow: hidden;
         -webkit-mask-image: linear-gradient(180deg, #000 60%, transparent 100%);
         mask-image: linear-gradient(180deg, #000 60%, transparent 100%);
       }
 
-      body.m-report-open .ai-report-content {
+      body.m-report-open #rightPanel .ai-report-content {
         max-height: none;
         overflow: visible;
         -webkit-mask-image: none;
@@ -2490,6 +2641,7 @@
 
       .m-report-toggle {
         display: block;
+        align-self: stretch;
         width: 100%;
         margin-top: 8px;
         padding: 10px;
@@ -2637,18 +2789,18 @@
 
   <div class="splash-screen" id="splashScreen">
     <h1 class="splash-title">全国房产金融决策仿真系统</h1>
-    <p class="splash-subtitle">V8.0.1 · 空间折叠引擎 ｜ 手机上的买房账本</p>
+    <p class="splash-subtitle">V8.1 · 空间折叠引擎 ｜ 手机上的买房账本</p>
     <button class="splash-btn" onclick="enterSystem()">进入全景中国地图</button>
   </div>
 
   <div id="map"></div>
-  <div id="appBadge">V8.0.1</div>
+  <div id="appBadge">V8.1</div>
   <div id="errBanner"></div>
-  <div class="map-hint" id="mapHint">🛰️ 初始视角为中国全境，点击城市轮廓可放大，并点击具体片区探索。</div>
+  <div class="map-hint" id="mapHint">🛰️ 点省份进去 → 点城市看区县 → 点片区。也可以直接点右上角「换城市」。</div>
 
   <div class="glass-panel" id="leftPanel">
     <div class="panel-head">
-      <h2>仿真参数配置 <span class="ver-chip">V8.0.1</span></h2>
+      <h2>仿真参数配置 <span class="ver-chip">V8.1</span></h2>
       <button class="panel-close" onclick="hidePanel('leftPanel')" title="收起面板">✕</button>
     </div>
 
@@ -2964,6 +3116,7 @@
       <button class="export-btn" id="exportCsvBtn">📥 导出全部方案 CSV</button>
     </div>
 
+    <div id="mSchemes"></div>
     <div class="m-scroll-hint">👈 表格可左右滑动，看完整列</div>
     <div id="tabContents"></div>
 
@@ -2985,10 +3138,9 @@
         <div class="fail-icon">💖🏇💖</div>
         <div class="fail-quote">“只要路是对的，就不怕路远。”</div>
         <div class="fail-desc">
-          亲爱的朋友，在当前的参数下，系统跑遍了所有组合，却无奈地发现：<br>
-          <b>以我们目前的薪资与现金流，还不足以轻松拿下这套梦想中的房子。</b><br><br>
-          但请不要灰心，更不要觉得是被系统卡住了。这只是现实在温柔地提醒我们：<br>
-          梦想的果实有些昂贵，需要我们再拼搏一把。不妨先调低一下目标房屋的总价，或者给未来的自己一点涨薪的空间。只要你不放弃向上攀登，我们终会在这座城市点亮属于你的那盏灯！
+          <b>这套参数下，所有组合都过不了红线。</b><br><br>
+          不是系统卡住你，是这套房子现在还有点贵。<br>
+          把总价调低一点，或者给未来的自己留点涨薪的空间——灯总会亮的。
         </div>
         <div class="fail-reason" id="failReasonBox">
           <!-- 这里动态填入后台的报错原因 -->
@@ -3025,7 +3177,7 @@
         const el = document.getElementById("errBanner");
         if (!el) return;
         el.style.display = "block";
-        el.textContent = "⚠️ 前端运行错误：" + msg + "（版本 V8.0.1，请把这条发给经纬）";
+        el.textContent = "⚠️ 前端运行错误：" + msg + "（版本 V8.1，请把这条发给经纬）";
       }
       window.addEventListener("error", function (e) {
         showErr((e.message || "未知错误") + " @ " + (e.filename || "").split("/").pop() + ":" + (e.lineno || 0));
@@ -3450,6 +3602,12 @@
       currentZone = regionList[0] || null;
       renderRegionMarkers();
       syncZoneToForm(true);
+      // 📍 从「换城市」直接飞过来时，省界→市界这层从没画过，
+      //    结果地图上只有虚线县界、看不出这个市的轮廓。这里补一次。
+      if (window.__drawCitiesByProvince && String(city.code || "").length >= 4) {
+        const prov = Number(String(city.code).slice(0, 2) + "0000");
+        try { window.__drawCitiesByProvince(prov, null); } catch (_) { }
+      }
       syncCountyLayer();
       if (document.getElementById("showListings") && document.getElementById("showListings").checked) {
         loadListings(city.code);
@@ -3474,18 +3632,27 @@
       if (!regionMarkersGroup) return;
       regionMarkersGroup.clearLayers();
       allMapMarkers = [];
+      // 手机上 z<11 只画圆点（手指点得准，也不互相压字）；放大了再出名字
+      const dotMode = window.innerWidth <= 760 && map && map.getZoom() < 11;
       regionList.forEach(r => {
-        const customIcon = L.divIcon({
-          className: '',
-          html: `
+        const customIcon = dotMode
+          ? L.divIcon({
+            className: '',
+            html: '<div class="custom-dot"></div>',
+            iconSize: [34, 34],
+            iconAnchor: [17, 17]
+          })
+          : L.divIcon({
+            className: '',
+            html: `
           <div class="custom-pin">
             <div class="custom-pin-icon"><span>📍</span></div>
             <div class="custom-pin-label">${escapeHtml(r.name)}</div>
           </div>
         `,
-          iconSize: [80, 50],
-          iconAnchor: [40, 50]
-        });
+            iconSize: [80, 50],
+            iconAnchor: [40, 50]
+          });
         const m = L.marker([r.lat, r.lng], { icon: customIcon });
 
         const popupDom = document.createElement('div');
@@ -3925,6 +4092,7 @@
         currentProvinceLayer = L.geoJSON(globalProvinceData, {
           style: baseStyle,
           onEachFeature: function (feature, layer) {
+            try { feature.__bounds = layer.getBounds(); } catch (_) { }
             const name = feature.properties.name || "未知省份";
             const adcode = feature.properties.adcode;
             layer.bindTooltip(name, { direction: 'center', className: 'region-tooltip' });
@@ -3968,6 +4136,8 @@
         if (bounds) map.fitBounds(bounds, { padding: [20, 20] });
       }
 
+      window.__drawCitiesByProvince = drawCitiesByProvince;
+
       function syncCityFromMap() {
         if (!globalCityData || currentCity) return;
         if (map.getZoom() < 8) return;
@@ -4000,7 +4170,31 @@
         return best;
       }
 
+      // 🖐️ 手机兜底：手指不一定正好落在省界多边形里。
+      //    省视图（z<7）下，点地图任意位置都按“点中了哪个省”处理，
+      //    这跟电脑端点省界的效果一致，不要求像素级准确。
+      map.on('click', function (e) {
+        if (map.getZoom() >= 7 || !globalProvinceData) return;
+        let best = null;
+        for (const f of globalProvinceData.features) {
+          const b = f.__bounds;
+          if (!b || !b.contains(e.latlng)) continue;
+          const area = Math.abs((b.getNorth() - b.getSouth()) * (b.getEast() - b.getWest()));
+          if (!best || area < best.area) best = { f, area };
+        }
+        if (!best) return;
+        const adcode = best.f.properties.adcode;
+        if (!adcode || adcode === 100000) return;
+        currentProvincePrefix = String(adcode).slice(0, 2) + "0000";
+        const bounds = best.f.__bounds;
+        map.flyToBounds(bounds, { duration: 1.1, padding: [20, 20], easeLinearity: 0.25 });
+        setTimeout(() => { drawCitiesByProvince(adcode, bounds); }, 300);
+        setTimeout(syncCountyLayer, 340);
+      });
+
       setTimeout(() => map.invalidateSize(), 200);
+
+      let pinDotState = null;
 
       map.on('zoomend', function () {
         const z = map.getZoom();
@@ -4019,6 +4213,13 @@
         }
         // 省视图（z≥7）就该看到县界；晚一点，等 syncCityFromMap 把城市定下来
         setTimeout(syncCountyLayer, 120);
+
+        // 圆点 ↔ 带名字的图钉：跨过阈值时重画一次
+        const wantDot = window.innerWidth <= 760 && z < 11;
+        if (wantDot !== pinDotState) {
+          pinDotState = wantDot;
+          renderRegionMarkers();
+        }
       });
 
       // 首屏 setView 早于 zoomend 监听、拿不到事件，这里兜底补几次
@@ -5227,8 +5428,13 @@
       cols.forEach(c => { const th = document.createElement("th"); th.textContent = c.label; trh.appendChild(th); });
       const thead = document.createElement("thead"); thead.appendChild(trh); table.appendChild(thead);
 
+      // 7 是队长的号码，也是“一眼能扫完”的上限：先给前 7 条，想要再展开
+      const LIMIT = window.innerWidth <= 760 ? arr.length : 7;
+      const showAll = container.dataset.expanded === "1";
+      const rows = showAll ? arr : arr.slice(0, LIMIT);
+
       const tbody = document.createElement("tbody");
-      arr.forEach(item => {
+      rows.forEach(item => {
         const tr = document.createElement("tr");
         cols.forEach(c => {
           const td = document.createElement("td");
@@ -5258,6 +5464,18 @@
         tbody.appendChild(tr);
       });
       table.appendChild(tbody); wrap.appendChild(table); container.appendChild(wrap);
+
+      if (!showAll && arr.length > LIMIT) {
+        const more = document.createElement("button");
+        more.type = "button";
+        more.className = "table-more-btn";
+        more.textContent = `展开全部 ${arr.length} 条 ↓`;
+        more.onclick = () => {
+          container.dataset.expanded = "1";
+          renderTableInto(container, arr);
+        };
+        container.appendChild(more);
+      }
     }
 
     function drawChart(topItem, topArr) {
@@ -5569,7 +5787,9 @@
 
       // 📱 V8.0：手机端把同一份结果收成一张结论卡（桌面端不执行）
       if (window.MApp) {
-        try { window.MApp.onResult(res); } catch (e) { console.warn("[V8.0] 结论卡渲染失败", e); }
+        setTimeout(() => {
+          try { window.MApp.onResult(res); } catch (e) { console.warn("[V8.0] 结论卡渲染失败", e); }
+        }, 0);
       }
     }
 
@@ -5660,9 +5880,9 @@
           const src = document.documentElement.dataset.citySource === "db" ? "库" : "内置";
           document.documentElement.dataset.citySourceLabel = src;
           const badge = document.getElementById("appBadge");
-          if (badge) badge.textContent = `V8.0.1 · ${src}`;
+          if (badge) badge.textContent = `V8.1 · ${src}`;
           const chip = document.querySelector(".ver-chip");
-          if (chip) chip.textContent = `V8.0.1 · ${src}`;
+          if (chip) chip.textContent = `V8.1 · ${src}`;
         })();
 
         const nn = CITY_DB.find(c => c.code === "450100");
@@ -6406,32 +6626,37 @@
         return html ? '<div class="m-chips">' + html + '</div>' : "";
       }
 
+      // 两句话说完：你赢在哪 / 你输在哪 + 推荐方案的代价。
+      // 更细的逐项解释放「逐项对比」，不在这里堆。
       function verdictFor(a, b, d) {
-        const out = [];
         const ai = Number(a.total_interest_wan) || 0;
         const bi = Number(b.total_interest_wan) || 0;
-        if (ai < bi - 0.05) {
-          out.push("利息这项你算得没错：<b>" + wan(ai) + " 万</b>，比推荐少 <b>" + wan(bi - ai) + " 万</b>。");
-        } else if (ai > bi + 0.05) {
-          out.push("利息这项你没占到便宜：比推荐多 <b>" + wan(ai - bi) + " 万</b>。");
+        const da = Number(d.asset_wan) || 0;
+
+        let s1;
+        if (Math.abs(ai - bi) < 0.05) {
+          s1 = "两边利息一样（<b>" + wan(ai) + " 万</b>）";
+        } else if (ai < bi) {
+          s1 = "你利息省了 <b>" + wan(bi - ai) + " 万</b>";
         } else {
-          out.push("两套方案的 30 年利息几乎一样，都是 " + wan(ai) + " 万。");
+          s1 = "你利息多了 <b>" + wan(ai - bi) + " 万</b>";
         }
 
-        const da = Number(d.asset_wan) || 0;
+        let s2;
         if (da > 0.05) {
-          out.push("但把 30 年拉通，你的期末资产少 <b>" + wan(da) + " 万</b>" +
-            (d.real_asset_wan != null ? "（按今日物价少 " + wan(d.real_asset_wan) + " 万）" : "") + "。");
+          s2 = "，但 30 年后少 <b>" + wan(da) + " 万</b>" +
+            (d.real_asset_wan != null ? "（今天的 " + wan(d.real_asset_wan) + " 万）" : "") + "。";
         } else if (da < -0.05) {
-          out.push("单看钱，你的方案反而多 <b>" + wan(-da) + " 万</b>；推荐排前面，是因为综合最优不等于资产最多。");
+          s2 = "，钱反而多 <b>" + wan(-da) + " 万</b>；推荐是赢在别的维度。";
+        } else {
+          s2 = "，期末资产也几乎一样。";
         }
 
         const cost = [];
         const dd = Number(b.down_payment_wan) - Number(a.down_payment_wan);
         if (dd > 0.5) cost.push("首付多 " + wan(dd) + " 万");
-        cost.push("最低现金只剩 " + wan(b.min_cash_wan) + " 万，可撑 " + wan(b.buffer_months, 1) + " 个月");
-        out.push("推荐方案的代价：" + cost.join("，") + "。");
-        return out.join("");
+        cost.push("现金最低 " + wan(b.min_cash_wan) + " 万（撑 " + wan(b.buffer_months, 1) + " 个月）");
+        return s1 + s2 + "推荐方案的代价：" + cost.join("，") + "。";
       }
 
       function renderSummary(res) {
@@ -6469,8 +6694,8 @@
           verdict = verdictFor(a, b, d);
         } else {
           sub = "首付 " + wan(b.down_payment_wan) + " 万 · 贷款 " + wan(b.loan_principal_wan) + " 万";
-          verdict = "五个维度里综合最优：抗风险 <b>" + wan(b.adapt_score) + "</b>、居住舒适 <b>" +
-            wan(b.comfort_score) + "</b>、结余幸福 <b>" + wan(b.surplus_happiness) + "</b>、时间效率 <b>" +
+          verdict = "五维综合最优：抗风险 <b>" + wan(b.adapt_score) + "</b>、舒适 <b>" +
+            wan(b.comfort_score) + "</b>、结余 <b>" + wan(b.surplus_happiness) + "</b>、时间 <b>" +
             wan(b.time_efficiency) + "</b>。";
         }
 
@@ -6588,7 +6813,7 @@
         const ha = window.HousingApp || {};
         const city = ha.currentCity || null;
         const res = ha.currentResult || null;
-        const ver = ($("appBadge") && $("appBadge").textContent) || "V8.0.1";
+        const ver = ($("appBadge") && $("appBadge").textContent) || "V8.1";
 
         const ar = $("anchorRentYear"), al = $("anchorLoanYear"), ad = $("anchorDownStrategy");
         const planned = (ar && ar.value !== "" && al && al.value !== "")
@@ -6610,20 +6835,76 @@
           '<button class="m-btn plain" data-mact="go-anchor">' + (planned ? "改我的打算" : "填我的打算") + "</button></div></div>" +
 
           '<div class="m-card"><h4>我们守的四条线</h4>' +
-          "<p><b>50% 小康线</b>：扣掉生存与隐形成本后，每月纯结余要到总收入的一半，才算有余地。</p>" +
-          "<p><b>70% 破产红线</b>：真实月供加生活开销超过月收入 70%，方案直接否决——那是留给“万一”的钱。</p>" +
-          "<p><b>0.9% 活期收益</b>：不给你编 3% 的理财收益，降息周期里普通人就这么多。</p>" +
-          "<p><b>2.5% 通胀</b>：30 年后的一万块不是今天的一万块，所以每个资产数字都配一个“今日购买力”。</p></div>" +
+          "<p><b>50% 小康线</b>：扣掉生存成本，每月还能剩一半，才算有余地。</p>" +
+          "<p><b>70% 红线</b>：月供加开销不超过收入的 70%，剩下的留给“万一”。</p>" +
+          "<p><b>0.9% 活期</b>：不给你编 3% 的收益，降息年代就这么点。</p>" +
+          "<p><b>2.5% 通胀</b>：30 年后的一万块，不是今天的一万块。</p></div>" +
 
           '<div class="m-card"><h4>数据与口径</h4>' +
-          "<p>42 城基准 + 全国 2890 个区县底图；房源来自库里真实在售，坐标只到区的会标区位中心。</p>" +
-          "<p>公积金不进现金：租房期只累积，还贷期只抵月供，还完之后留在账户里——它不是工资。</p>" +
-          "<p>新房与二手房目前共用一套基准价，两套口径还没拆开，这是 V8 后面要还的债。</p></div>" +
+          "<p>42 城基准 + 2890 个区县；房源是库里在售，只到区的会标“区位中心”。</p>" +
+          "<p>公积金不算现金：租房只累积，还贷只抵月供。</p>" +
+          "<p>新房和二手房还共用一套基准价，这是下一版要还的债。</p></div>" +
 
           '<div class="m-card"><h4>免责</h4>' +
-          "<p>这是决策参考，不是投资建议。利率、房价、收入都会变，模型只能替你把这笔账算清楚，不能替你签字。</p></div>" +
+          "<p>决策参考，不是投资建议。利率会变、收入会变，模型只帮你把账算清楚，不替你签字。</p></div>" +
 
           '<div class="m-actions stack"><button class="m-btn plain" data-mact="reset">重置为默认参数</button></div>';
+      }
+
+      /* ---------- 前 7 套方案（默认只给这些，大表收起来） ---------- */
+      let schemeLists = null;
+      const TAB_ORDER = ["tab-comp", "tab-comfort", "tab-wealth", "tab-steady", "tab-speed", "tab-aggressive", "tab-all"];
+
+      function buildSchemeLists(res) {
+        const all = res.all_scheme || [];
+        const byKey = (k) => all.slice().sort((a, b) => (b[k] || 0) - (a[k] || 0)).slice(0, 20);
+        const sb = res.style_boards || {};
+        schemeLists = {
+          "tab-comp": res.top_comprehensive || [],
+          "tab-comfort": byKey("comfort_score"),
+          "tab-wealth": byKey("liquid_asset_end_wan"),
+          "tab-steady": sb["稳健型"] || [],
+          "tab-speed": sb["速度型"] || [],
+          "tab-aggressive": sb["进取型"] || [],
+          "tab-all": all.slice().sort((a, b) => (b.comprehensive_score || 0) - (a.comprehensive_score || 0))
+        };
+        schemeLists.__total = all.length;
+      }
+
+      function activeTabId() {
+        const tabs = Array.prototype.slice.call(document.querySelectorAll("#tabWrap .tab"));
+        const i = tabs.findIndex((t) => t.classList.contains("active"));
+        return TAB_ORDER[i < 0 ? 0 : i] || "tab-comp";
+      }
+
+      function monthlyPayFor(it) {
+        try {
+          const sm = schemeMonthly(it);
+          const fundM = Number(nv("monthIncomeNet") || 0) * Number(nv("housingFundPct") || 0) / 100;
+          return Math.max(0, Math.round(sm.monthly - Math.min(sm.monthly, fundM)));
+        } catch (_) { return null; }
+      }
+
+      function renderSchemeCards() {
+        const box = $("mSchemes");
+        if (!box || !schemeLists) return;
+        const list = (schemeLists[activeTabId()] || []).slice(0, 7);
+        if (!list.length) {
+          box.innerHTML = '<div class="m-empty">这个视角暂时没有可行方案。</div>';
+          return;
+        }
+        const rows = list.map((it, i) => {
+          const pay = monthlyPayFor(it);
+          return '<button class="m-scheme" data-scheme="' + i + '">' +
+            '<span class="rank">' + (i + 1) + "</span>" +
+            '<span class="main"><b>租 ' + it.rent_year + " 年 · 贷 " + it.loan_year + " 年</b>" +
+            "<small>首付 " + wan(it.down_payment_wan) + " 万 · 每月 " +
+            (pay == null ? "—" : pay.toLocaleString()) + " 元</small></span>" +
+            '<span class="score">' + wan(it.comprehensive_score, 1) + "<span>分</span></span>" +
+            "</button>";
+        }).join("");
+        box.innerHTML = rows +
+          '<button class="m-show-all" data-mact="show-all">看全部 ' + (schemeLists.__total || 0) + " 个方案（大表）</button>";
       }
 
       /* ---------- 地图控件：缩放 + 选城市 ---------- */
@@ -6676,6 +6957,24 @@
         const mask = $("mSheetMask");
         if (mask) mask.addEventListener("click", closeCitySheet);
 
+        const schemes = $("mSchemes");
+        if (schemes) {
+          schemes.addEventListener("click", (e) => {
+            const btn = e.target.closest("[data-scheme]");
+            if (!btn || !schemeLists) return;
+            const list = (schemeLists[activeTabId()] || []).slice(0, 7);
+            const item = list[Number(btn.getAttribute("data-scheme"))];
+            if (item && window.openModal) window.openModal(item);
+          });
+        }
+
+        const tabWrap = $("tabWrap");
+        if (tabWrap) {
+          tabWrap.addEventListener("click", () => {
+            setTimeout(() => { if (isMobile()) renderSchemeCards(); }, 30);
+          });
+        }
+
         const search = $("mCitySearch");
         if (search) search.addEventListener("input", (e) => renderCityList(e.target.value));
 
@@ -6702,22 +7001,35 @@
        * 所以手机上把「方案 / 图 / 解释」提到结论卡后面，
        * 长分析（薪资曲线、空间折叠、模型假设）留在最后。
        */
-      function arrangeResult() {
+      function arrangeResult(isMob) {
         const rp = $("rightPanel");
-        const sum = $("mSummary");
-        if (!rp || !sum) return;
+        if (!rp) return;
         document.body.classList.remove("m-report-open");
+        document.body.classList.remove("m-show-all");
+
+        // 锚点：手机是结论卡；电脑是“你的方案”卡，没有就挂到标题下
+        let anchor = isMob ? $("mSummary") : null;
+        if (!anchor) {
+          const cands = [$("anchorBox"), $("globalBestBox"), rp.querySelector(".panel-head")];
+          anchor = cands.find((el) => el && getComputedStyle(el).display !== "none") || rp.firstElementChild;
+        }
+        if (!anchor) return;
+
         const chain = [
+          $("globalBestBox"),
           $("viewBar"),
+          $("mSchemes"),
           rp.querySelector(".m-scroll-hint"),
           $("tabContents"),
           rp.querySelector(".chart-toolbar"),
           $("chartDom"),
           $("aiReportBox")
         ];
-        let anchor = sum;
         chain.forEach((el) => {
           if (!el || el === anchor) return;
+          // 面板此刻可能还是 display:none，子元素的 computed display 全是 none，
+          // 所以只按显式的 inline 开关判断（全局最优卡是 display:none 内联）
+          if (el.id === "globalBestBox" && el.style.display === "none") return;
           rp.insertBefore(el, anchor.nextSibling);
           anchor = el;
         });
@@ -6726,9 +7038,12 @@
       }
 
       function onResult(res) {
-        if (!isMobile() || !res) return;
+        if (!res) return;
+        if (!isMobile()) { arrangeResult(false); return; }
         renderSummary(res);
-        arrangeResult();
+        buildSchemeLists(res);
+        renderSchemeCards();
+        arrangeResult(true);
         setScreen("result");
         setTab("sim");
         // ?expand=1：验收/分享时直接看全量（默认收成结论卡）
@@ -6764,6 +7079,11 @@
             t.textContent = open ? "收起完整解释 ↑" : "展开完整解释 ↓";
           }
           else if (act === "close-city") closeCitySheet();
+          else if (act === "show-all") {
+            const on = document.body.classList.toggle("m-show-all");
+            t.textContent = on ? "收起大表，只看前 7 套" : ("看全部 " + ((schemeLists && schemeLists.__total) || 0) + " 个方案（大表）");
+            if (on) bumpViz();
+          }
           else if (act === "go-sim") { setTab("sim"); setScreen("params"); }
           else if (act === "go-anchor") {
             setTab("sim"); setScreen("params");
