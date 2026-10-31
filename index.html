@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="app-version" content="V8.1.3">
+  <meta name="app-version" content="V8.2">
   <title>全国房产金融 WebGIS 智能决策仿真系统</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -717,6 +717,43 @@
       background: var(--accent-color);
       color: #fff;
       box-shadow: 0 2px 8px var(--glow-color);
+    }
+
+    /* 🏠 V8.2 新房 / 二手房切换 */
+    .type-switch {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .type-btn {
+      flex: 1;
+      padding: 10px 8px;
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, .35);
+      background: rgba(30, 41, 59, .7);
+      color: #94a3b8;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+    }
+
+    .type-btn.active {
+      border-color: #60a5fa;
+      background: rgba(37, 99, 235, .22);
+      color: #dbeafe;
+    }
+
+    .type-note {
+      margin: 0 0 12px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      font-size: 11.5px;
+      line-height: 1.65;
+      color: #cbd5e1;
+      background: rgba(15, 23, 42, .55);
+      border: 1px dashed rgba(148, 163, 184, .28);
     }
 
     details.config-group {
@@ -2826,20 +2863,27 @@
 
   <div class="splash-screen" id="splashScreen">
     <h1 class="splash-title">全国房产金融决策仿真系统</h1>
-    <p class="splash-subtitle">V8.1.3 · 空间折叠引擎 ｜ 手机上的买房账本</p>
+    <p class="splash-subtitle">V8.2 · 空间折叠引擎 ｜ 手机上的买房账本</p>
     <button class="splash-btn" onclick="enterSystem()">进入全景中国地图</button>
   </div>
 
   <div id="map"></div>
-  <div id="appBadge">V8.1.3</div>
+  <div id="appBadge">V8.2</div>
   <div id="errBanner"></div>
   <div class="map-hint" id="mapHint">🛰️ 点省份进去 → 点城市看区县 → 点片区。也可以直接点右上角「换城市」。</div>
 
   <div class="glass-panel" id="leftPanel">
     <div class="panel-head">
-      <h2>仿真参数配置 <span class="ver-chip">V8.1.3</span></h2>
+      <h2>仿真参数配置 <span class="ver-chip">V8.2</span></h2>
       <button class="panel-close" onclick="hidePanel('leftPanel')" title="收起面板">✕</button>
     </div>
+
+    <!-- 🏠 V8.2 新房 / 二手房：两套交易成本口径 -->
+    <div class="type-switch">
+      <button class="type-btn active" data-htype="used">🏚️ 二手房</button>
+      <button class="type-btn" data-htype="new">🆕 新房</button>
+    </div>
+    <div class="type-note" id="typeNote">二手房：契税＋个税＋中介费约 4.5%，通常带装修；要重装就把预算填进去。</div>
 
     <div class="mode-switch">
       <button class="mode-btn active" data-mode="relative">📍 相对推演</button>
@@ -2982,6 +3026,29 @@
           <label>最低首付比例 %（15~80）</label>
           <input type="number" id="downRatio" value="30" min="15" max="80">
           <div class="form-hint">系统会以此为底线，智能推演掏空首付等策略。</div>
+        </div>
+        <div class="form-item">
+          <label>房屋状态</label>
+          <select id="houseDecoration">
+            <option value="finished">已装修（精装 / 带装修）</option>
+            <option value="rough">毛坯（要自己装）</option>
+          </select>
+          <div class="form-hint">选「毛坯」，装修这笔钱会从首付后的现金里扣；不够会记缺口，不枪毙方案。</div>
+        </div>
+        <div id="renoFields" style="display:none;">
+          <div class="form-item">
+            <label>装修档次</label>
+            <select id="renoLevel">
+              <option value="simple">简装（过渡 / 出租）</option>
+              <option value="standard" selected>标准（自住中档）</option>
+              <option value="quality">品质（材料好一点）</option>
+            </select>
+          </div>
+          <div class="form-item">
+            <label>装修预算（万元，0 = 按当地水平估算）</label>
+            <input type="number" id="renoBudgetWan" value="0" min="0">
+            <div class="form-hint">填 0 就按南宁全包价估（约 1500 元/㎡，随城市与面积浮动）。</div>
+          </div>
         </div>
       </div>
     </details>
@@ -3216,7 +3283,7 @@
         const el = document.getElementById("errBanner");
         if (!el) return;
         el.style.display = "block";
-        el.textContent = "⚠️ 前端运行错误：" + msg + "（版本 V8.1.3，请把这条发给经纬）";
+        el.textContent = "⚠️ 前端运行错误：" + msg + "（版本 V8.2，请把这条发给经纬）";
       }
       window.addEventListener("error", function (e) {
         showErr((e.message || "未知错误") + " @ " + (e.filename || "").split("/").pop() + ":" + (e.lineno || 0));
@@ -4298,6 +4365,7 @@
       rn.innerHTML = "70% 红线：还贷期真实支出不超过收入的 70%，替你守住 30% 的呼吸空间——那里装着生病、失业、和突然要随的份子钱。";
       commuteManual = false;
       if (currentCity) applyCity(currentCity);
+      applyHouseType("used");
       showToast("参数已重置为默认值");
       const sel = document.getElementById("regionSel");
       if (sel && sel.value && regionList.length > 0) {
@@ -4365,6 +4433,48 @@
       const blob = new Blob(['\uFEFF' + csvStr], { type: 'text/csv;charset=utf-8' });
       const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `房产推演_${currentMode}_${ts}.csv`; a.click();
     }
+
+    /* ============ 🏠 V8.2 新房 / 二手房 ============ */
+    let houseType = "used";
+    const HOUSE_TYPE_CONF = {
+      new: {
+        note: "新房：契税＋维修基金约 3.5%，多为毛坯，记得把装修钱留出来。",
+        deco: "rough",
+      },
+      used: {
+        note: "二手房：契税＋个税＋中介费约 4.5%，通常带装修；要重装就把预算填进去。",
+        deco: "finished",
+      },
+    };
+
+    function syncRenoFields() {
+      const deco = document.getElementById("houseDecoration");
+      const wrap = document.getElementById("renoFields");
+      if (!deco || !wrap) return;
+      wrap.style.display = deco.value === "rough" ? "block" : "none";
+    }
+
+    function applyHouseType(t) {
+      houseType = HOUSE_TYPE_CONF[t] ? t : "used";
+      const conf = HOUSE_TYPE_CONF[houseType];
+      document.querySelectorAll(".type-btn").forEach((b) => {
+        b.classList.toggle("active", b.getAttribute("data-htype") === houseType);
+      });
+      const note = document.getElementById("typeNote");
+      if (note) note.textContent = conf.note;
+      const deco = document.getElementById("houseDecoration");
+      if (deco) deco.value = conf.deco;
+      syncRenoFields();
+    }
+
+    document.querySelectorAll(".type-btn").forEach((b) => {
+      b.onclick = () => applyHouseType(b.getAttribute("data-htype"));
+    });
+    (function () {
+      const deco = document.getElementById("houseDecoration");
+      if (deco) deco.onchange = syncRenoFields;
+      syncRenoFields();
+    })();
 
     document.querySelectorAll(".mode-btn").forEach(btn => {
       btn.onclick = () => {
@@ -4772,8 +4882,9 @@
           ["装修预算", sysItem.reno_budget_wan, userItem.reno_budget_wan, 0, " 万", 1],
         ]],
         ["💰 30 年后", [
-          ["期末资产（名义）", sysItem.liquid_asset_end_wan, userItem.liquid_asset_end_wan, 1, " 万", 2],
-          ["期末资产（今日购买力）", sysItem.real_asset_wan, userItem.real_asset_wan, 1, " 万", 2],
+          ["30 年后净值（现金＋房子）", sysItem.net_worth_end_wan, userItem.net_worth_end_wan, 1, " 万", 2],
+          ["其中现金", sysItem.liquid_asset_end_wan, userItem.liquid_asset_end_wan, 1, " 万", 2],
+          ["净值（今日购买力）", sysItem.real_net_worth_end_wan, userItem.real_net_worth_end_wan, 1, " 万", 2],
           ["最低现金可撑", sysItem.buffer_months, userItem.buffer_months, 1, " 个月", 1],
         ]],
         ["📊 五维评分", [
@@ -4804,7 +4915,7 @@
         ${scoreStrip(sysItem, userItem)}
         <div class="cmp-bars">
           ${cmpBar("综合得分", sysItem.comprehensive_score, userItem.comprehensive_score, false, "", 2)}
-          ${cmpBar("期末资产", sysItem.liquid_asset_end_wan, userItem.liquid_asset_end_wan, false)}
+          ${cmpBar("30 年后净值", sysItem.net_worth_end_wan, userItem.net_worth_end_wan, false)}
           ${cmpBar("30 年总利息", sysItem.total_interest_wan, userItem.total_interest_wan, true)}
         </div>
         ${body}
@@ -4928,8 +5039,10 @@
           <div><div style="font-size:18px;font-weight:800;color:#10b981;">${fmt(item.comprehensive_score, 1)}</div><div style="font-size:11px;color:#94a3b8;">综合得分</div></div>
         </div>
         <div style="margin-top:12px;">
-          ${row("30年期末流动资产（名义）", `${fmt(item.liquid_asset_end_wan, 2)} 万元`, "ok")}
-          ${row("真实购买力（按今日物价）", item.real_asset_wan !== undefined ? `${fmt(item.real_asset_wan, 2)} 万元` : "--", "warn")}
+          ${row("30 年后现金（名义）", `${fmt(item.liquid_asset_end_wan, 2)} 万元`, "ok")}
+          ${row("房子价值（按买入价与年增值估算）", item.house_value_end_wan !== undefined ? `${fmt(item.house_value_end_wan, 2)} 万元` : "--")}
+          ${row("30 年后净值（现金＋房子）", item.net_worth_end_wan !== undefined ? `${fmt(item.net_worth_end_wan, 2)} 万元` : "--", "ok")}
+          ${row("净值按今日物价", item.real_net_worth_end_wan !== undefined ? `${fmt(item.real_net_worth_end_wan, 2)} 万元` : "--", "warn")}
           ${row("周期最低现金余额", item.min_cash_wan !== undefined ? `${fmt(item.min_cash_wan, 2)} 万元` : "--")}
         </div>
       </div>
@@ -5042,8 +5155,8 @@
       const comfort = topItem.comfort_score;
       const happy = topItem.surplus_happiness;
       const time = topItem.time_efficiency;
-      const nominalAssetWan = topItem.liquid_asset_end_wan;
-      const realAssetWan = (typeof topItem.real_asset_wan === "number") ? topItem.real_asset_wan : null;
+      const nominalAssetWan = topItem.net_worth_end_wan;
+      const realAssetWan = (typeof topItem.real_net_worth_end_wan === "number") ? topItem.real_net_worth_end_wan : null;
       const inflationFactor = (res.spatial && res.spatial.inflation_factor_30y) ? res.spatial.inflation_factor_30y : 2.098;
       const asset = formatNum(nominalAssetWan, 2);
 
@@ -5094,7 +5207,7 @@
       const realAssetText = realAssetWan !== null
         ? `，按今日物价约 <span style="${cBlue}">${formatNum(realAssetWan, 2)} 万元</span>`
         : "";
-      let assetText = topItem.liquid_asset_end_wan > 100
+      let assetText = topItem.net_worth_end_wan > 100
         ? `高达 <span style="${cGreen}">${asset} 万元</span> 的流动现金${realAssetText}`
         : `<span style="${cBlue}">${asset} 万元</span> 的流动现金${realAssetText}`;
 
@@ -5438,8 +5551,8 @@
       { key: "loan_year", label: "贷年", dec: 0 },
       { key: "down_payment_wan", label: "真实首付(万)", dec: 1 },
       { key: "loan_principal_wan", label: "贷款本金(万)", dec: 1 },
-      { key: "liquid_asset_end_wan", label: "名义资产(万)", dec: 2, barMax: 300, color: "rgba(59,130,246,0.3)" },
-      { key: "real_asset_wan", label: "购买力(万)", dec: 2, barMax: 300, color: "rgba(251,191,36,0.3)" },
+      { key: "net_worth_end_wan", label: "净值(万)", dec: 2, barMax: 420, color: "rgba(59,130,246,0.3)" },
+      { key: "real_net_worth_end_wan", label: "净值今日(万)", dec: 2, barMax: 420, color: "rgba(251,191,36,0.3)" },
       { key: "buffer_months", label: "缓冲(月)", dec: 1, barMax: 12, color: "rgba(16,185,129,0.3)" },
       { key: "adapt_score", label: "稳健", dec: 2, barMax: 100, color: "rgba(16,185,129,0.3)" },
       { key: "comfort_score", label: "舒适", dec: 2, barMax: 100, color: "rgba(245,158,11,0.3)" },
@@ -5524,9 +5637,9 @@
       if (currentChartType === "bar") {
         if (!topArr || topArr.length === 0) return;
         const top10 = topArr.slice(0, 10);
-        const assetKey = currentAssetView === "real" ? "real_asset_wan" : "liquid_asset_end_wan";
-        const assetName = currentAssetView === "real" ? "今日购买力(万)" : "期末资产(万)";
-        const assetData = top10.map(i => (typeof i[assetKey] === "number" ? i[assetKey] : i.liquid_asset_end_wan));
+        const assetKey = currentAssetView === "real" ? "real_net_worth_end_wan" : "net_worth_end_wan";
+        const assetName = currentAssetView === "real" ? "净值·今日购买力(万)" : "30年后净值(万)";
+        const assetData = top10.map(i => (typeof i[assetKey] === "number" ? i[assetKey] : i.net_worth_end_wan));
         const scoreData = top10.map(i => i.comprehensive_score);
         // 📱 390px 上 10 根柱子 + 双轴，标签必须倾斜，否则会叠成一团
         const narrow = window.innerWidth <= 760;
@@ -5637,9 +5750,9 @@
         if (!topItem) {
           chart.clear(); chart.setOption({ title: { text: "暂无数据", left: "center", top: "center", textStyle: { color: "#94a3b8" } } }, true); return;
         }
-        const maxAsset = topArr && topArr.length > 0 ? Math.max(...topArr.map(x => x.liquid_asset_end_wan), 1) : 300;
+        const maxAsset = topArr && topArr.length > 0 ? Math.max(...topArr.map(x => x.net_worth_end_wan || 0), 1) : 300;
         const dataArr = [
-          Math.min(100, Math.max(0, (topItem.liquid_asset_end_wan / maxAsset) * 100)),
+          Math.min(100, Math.max(0, ((topItem.net_worth_end_wan || 0) / maxAsset) * 100)),
           topItem.adapt_score, topItem.comfort_score, topItem.surplus_happiness, topItem.time_efficiency
         ];
         const opt = {
@@ -5676,8 +5789,8 @@
         ? `你的方案利息 <b>${a.total_interest_wan} 万</b>，比推荐方案少 ${Math.abs(d.interest_wan)} 万——这一点你算得没错。`
         : `利息上你其实没占到便宜：你的方案 <b>${a.total_interest_wan} 万</b>，反而比推荐方案多 ${Math.abs(d.interest_wan)} 万，因为首付留得多、贷款本金反而更大。`;
       const assetLine = d.asset_wan > 0
-        ? `把 30 年拉通看，期末资产 ${a.liquid_asset_end_wan} 万 对 ${b.liquid_asset_end_wan} 万，你少 ${Math.abs(d.asset_wan)} 万（按今天物价算少 ${Math.abs(d.real_asset_wan)} 万）。`
-        : `把 30 年拉通看，期末资产你是 ${a.liquid_asset_end_wan} 万、推荐方案 ${b.liquid_asset_end_wan} 万——<b>单看钱，你的方案反而多 ${Math.abs(d.asset_wan)} 万</b>。它排名靠前，是因为“综合最优”不是“资产最多”：五维加权里还算了居住舒适度、通勤时间、结余幸福感，不只看期末存款。`;
+        ? `把 30 年拉通看，净值（现金＋房子）${a.net_worth_end_wan} 万 对 ${b.net_worth_end_wan} 万，你少 ${Math.abs(d.asset_wan)} 万（按今天物价算少 ${Math.abs(d.real_asset_wan)} 万）。`
+        : `把 30 年拉通看，净值你是 ${a.net_worth_end_wan} 万、推荐方案 ${b.net_worth_end_wan} 万——<b>单看钱，你的方案反而多 ${Math.abs(d.asset_wan)} 万</b>。它排名靠前，是因为“综合最优”不是“资产最多”：五维加权里还算了居住舒适度、通勤时间、结余幸福感，不只看净值。`;
       const costLine = b.buffer_months + 1 < a.buffer_months
         ? `但推荐方案不是白拿的：它把首付掏到 ${b.down_payment_wan} 万，手上现金只够撑 <b>${b.buffer_months} 个月</b>；你的方案留了 ${a.buffer_months} 个月。这就是它的代价。`
         : `推荐方案的现金缓冲是 ${b.buffer_months} 个月，你的方案是 ${a.buffer_months} 个月，承压能力差不多。`;
@@ -5695,7 +5808,7 @@
 
       if (!res.feasible) {
         const near = (res.near_feasible || []).slice(0, 3).map(s =>
-          `<li>租 ${s.rent_year} 年 + 贷 ${s.loan_year} 年 · ${downLabel(s.down_strategy)} · 期末 ${s.liquid_asset_end_wan} 万</li>`
+          `<li>租 ${s.rent_year} 年 + 贷 ${s.loan_year} 年 · ${downLabel(s.down_strategy)} · 净值 ${s.net_worth_end_wan} 万</li>`
         ).join("");
         box.innerHTML = `
           <div class="toggle-card anchor-fail" data-anchor-infeasible="1"
@@ -5717,7 +5830,7 @@
         ? `你的方案利息 <b>${a.total_interest_wan} 万</b>，比推荐方案少 ${Math.abs(d.interest_wan)} 万——这一点你算得没错。`
         : `利息上你其实没占到便宜：你的方案 <b>${a.total_interest_wan} 万</b>，反而比推荐方案多 ${Math.abs(d.interest_wan)} 万。`;
       const assetLine = d.asset_wan > 0
-        ? `把 30 年拉通看，期末资产 ${a.liquid_asset_end_wan} 万 对 ${b.liquid_asset_end_wan} 万，你少 ${Math.abs(d.asset_wan)} 万（按今天物价算少 ${Math.abs(d.real_asset_wan)} 万）。`
+        ? `把 30 年拉通看，净值（现金＋房子）${a.net_worth_end_wan} 万 对 ${b.net_worth_end_wan} 万，你少 ${Math.abs(d.asset_wan)} 万（按今天物价算少 ${Math.abs(d.real_asset_wan)} 万）。`
         : `把 30 年拉通看，期末资产你是 ${a.liquid_asset_end_wan} 万、推荐方案 ${b.liquid_asset_end_wan} 万——单看钱，你的方案反而多 ${Math.abs(d.asset_wan)} 万。`;
 
       box.innerHTML = `
@@ -5728,8 +5841,8 @@
           </div>
           <div class="anchor-stats">
             <div><span>30 年总利息</span><b>${a.total_interest_wan} 万</b></div>
-            <div><span>期末资产（名义）</span><b>${a.liquid_asset_end_wan} 万</b></div>
-            <div><span>期末资产（今日购买力）</span><b>${a.real_asset_wan} 万</b></div>
+            <div><span>净值（现金＋房子）</span><b>${a.net_worth_end_wan} 万</b></div>
+            <div><span>净值（今日购买力）</span><b>${a.real_net_worth_end_wan} 万</b></div>
           </div>
           <p style="line-height:1.8; margin:10px 0;">
             ${interestLine}${assetLine}
@@ -5776,8 +5889,8 @@
           <div class="metric"><div class="val">${gb.rent_year} 年</div><div class="lbl">租房年限</div></div>
           <div class="metric"><div class="val">${gb.loan_year} 年</div><div class="lbl">贷款年限</div></div>
           <div class="metric"><div class="val">${formatNum(gb.comprehensive_score, 2)}</div><div class="lbl">综合得分</div></div>
-          <div class="metric"><div class="val">${formatNum(gb.liquid_asset_end_wan, 2)}万</div><div class="lbl">期末资产（名义）</div></div>
-          <div class="metric"><div class="val" style="color:#fbbf24">${gb.real_asset_wan !== undefined ? formatNum(gb.real_asset_wan, 2) : "--"}万</div><div class="lbl">按今日物价</div></div>
+          <div class="metric"><div class="val">${formatNum(gb.net_worth_end_wan, 2)}万</div><div class="lbl">30 年后净值</div></div>
+          <div class="metric"><div class="val" style="color:#fbbf24">${gb.real_net_worth_end_wan !== undefined ? formatNum(gb.real_net_worth_end_wan, 2) : "--"}万</div><div class="lbl">按今日物价</div></div>
         </div>
       </div>`;
       } else {
@@ -5802,7 +5915,7 @@
       renderTimeMachine(res);
 
       const allScheme = res.all_scheme ?? [];
-      const topAsset = res.top_asset ?? [...allScheme].sort((a, b) => b.liquid_asset_end_wan - a.liquid_asset_end_wan).slice(0, 20);
+      const topAsset = res.top_asset ?? [...allScheme].sort((a, b) => b.net_worth_end_wan - a.net_worth_end_wan).slice(0, 20);
       const topComfort = [...allScheme].sort((a, b) => b.comfort_score - a.comfort_score).slice(0, 20);
 
       const style = res.style_boards ?? {};
@@ -5919,9 +6032,9 @@
           const src = document.documentElement.dataset.citySource === "db" ? "库" : "内置";
           document.documentElement.dataset.citySourceLabel = src;
           const badge = document.getElementById("appBadge");
-          if (badge) badge.textContent = `V8.1.3 · ${src}`;
+          if (badge) badge.textContent = `V8.2 · ${src}`;
           const chip = document.querySelector(".ver-chip");
-          if (chip) chip.textContent = `V8.1.3 · ${src}`;
+          if (chip) chip.textContent = `V8.2 · ${src}`;
         })();
 
         const nn = CITY_DB.find(c => c.code === "450100");
@@ -6025,6 +6138,13 @@
         buy_car: document.getElementById("buyCar").value === "true",
         car_buy_year: parseInt(document.getElementById("carBuyYear").value || 0),
         house_total_wan: parseFloat(document.getElementById("houseTotalWan").value),
+        // 🏠 V8.2：房屋类型决定税费与装修口径
+        house_type: houseType,
+        house_decoration: document.getElementById("houseDecoration")
+          ? document.getElementById("houseDecoration").value : "finished",
+        reno_level: document.getElementById("renoLevel")
+          ? document.getElementById("renoLevel").value : "standard",
+        reno_budget_wan: parseFloat((document.getElementById("renoBudgetWan") || {}).value || 0),
         initial_savings_wan: parseFloat(document.getElementById("initialSavingsWan").value),
         down_payment_ratio: downRatio,
         monthly_income_net: monthIn,
@@ -6700,7 +6820,7 @@
         } else if (da < -0.05) {
           s2 = "，钱反而多 <b>" + wan(-da) + " 万</b>；推荐是赢在别的维度。";
         } else {
-          s2 = "，期末资产也几乎一样。";
+          s2 = "，净值（含房子）也几乎一样。";
         }
 
         const cost = [];
@@ -6745,7 +6865,12 @@
           verdict = verdictFor(a, b, d);
         } else {
           sub = "首付 " + wan(b.down_payment_wan) + " 万 · 贷款 " + wan(b.loan_principal_wan) + " 万";
-          verdict = "五维综合最优：抗风险 <b>" + wan(b.adapt_score) + "</b>、舒适 <b>" +
+          // 极端参数下抗风险会退化成 0（所有可行方案都贴着 70% 红线），
+          // 直接写“抗风险 0.0”会让人以为模型坏了，这里说清楚。
+          const adaptTxt = Number(b.adapt_score) < 1
+            ? "贴线（可行方案都卡在 70% 红线）"
+            : "<b>" + wan(b.adapt_score) + "</b>";
+          verdict = "五维综合最优：抗风险 " + adaptTxt + "、舒适 <b>" +
             wan(b.comfort_score) + "</b>、结余 <b>" + wan(b.surplus_happiness) + "</b>、时间 <b>" +
             wan(b.time_efficiency) + "</b>。";
         }
@@ -6762,7 +6887,7 @@
 
         const kpis =
           kpi("综合得分", wan(b.comprehensive_score, 1), "分") +
-          kpi("期末资产", wan(b.liquid_asset_end_wan), "万") +
+          kpi("30 年后净值", wan(b.net_worth_end_wan), "万") +
           kpi(payLabel, payVal == null ? "—" : Number(payVal).toLocaleString(), payUnit) +
           kpi("30 年总利息", wan(b.total_interest_wan), "万") +
           kpi("首付", wan(b.down_payment_wan), "万") +
@@ -6770,7 +6895,9 @@
 
         box.innerHTML =
           '<div class="m-sum-card">' +
-          '<div class="m-sum-eyebrow">' + (a ? "你的方案 vs 系统推荐" : "系统推荐") + "</div>" +
+          '<div class="m-sum-eyebrow">' + (a ? "你的方案 vs 系统推荐" : "系统推荐") +
+          (b.house_type === "new" ? " · 新房" : " · 二手房") +
+          (b.purchase_tax_rate_pct != null ? " · 税费 " + wan(b.purchase_tax_rate_pct, 1) + "%" : "") + "</div>" +
           '<div class="m-sum-title">' + title + "</div>" +
           '<div class="m-sum-sub">' + sub + "</div>" +
           '<div class="m-sum-verdict">' + verdict + "</div>" +
@@ -6864,22 +6991,27 @@
         const ha = window.HousingApp || {};
         const city = ha.currentCity || null;
         const res = ha.currentResult || null;
-        const ver = ($("appBadge") && $("appBadge").textContent) || "V8.1.3";
+        const ver = ($("appBadge") && $("appBadge").textContent) || "V8.2";
 
         const ar = $("anchorRentYear"), al = $("anchorLoanYear"), ad = $("anchorDownStrategy");
         const planned = (ar && ar.value !== "" && al && al.value !== "")
           ? ("租 " + ar.value + " 年 · 贷 " + al.value + " 年 · " + (ad ? ad.options[ad.selectedIndex].text : ""))
           : "";
 
+        const anyScheme = res && (res.best || (res.top_comprehensive || [])[0]);
+        const typeLabel = anyScheme && anyScheme.house_type === "new"
+          ? "新房（含维修基金）" : "二手房（含个税与中介费）";
+
         const bestLine = (res && res.top_comprehensive && res.top_comprehensive[0])
           ? ("租 " + res.top_comprehensive[0].rent_year + " 年 · 贷 " + res.top_comprehensive[0].loan_year +
-            " 年，期末 " + wan(res.top_comprehensive[0].liquid_asset_end_wan) + " 万")
+            " 年，净值 " + wan(res.top_comprehensive[0].net_worth_end_wan) + " 万")
           : "";
 
         box.innerHTML =
           '<div class="m-card"><h4>当前状态</h4>' +
           '<div class="m-row"><span class="t">版本</span><span>' + esc(ver) + "</span></div>" +
           '<div class="m-row"><span class="t">城市</span><span>' + esc(city ? city.name : "未选择（中国全景）") + "</span></div>" +
+          '<div class="m-row"><span class="t">房屋类型</span><span>' + typeLabel + "</span></div>" +
           '<div class="m-row"><span class="t">上次推荐</span><span>' + (bestLine || "还没跑过推演") + "</span></div>" +
           '<div class="m-row"><span class="t">我的打算</span><span>' + (planned || "还没填") + "</span></div>" +
           '<div class="m-actions"><button class="m-btn" data-mact="go-sim">去推演</button>' +
@@ -6913,7 +7045,7 @@
         schemeLists = {
           "tab-comp": res.top_comprehensive || [],
           "tab-comfort": byKey("comfort_score"),
-          "tab-wealth": byKey("liquid_asset_end_wan"),
+          "tab-wealth": byKey("net_worth_end_wan"),
           "tab-steady": sb["稳健型"] || [],
           "tab-speed": sb["速度型"] || [],
           "tab-aggressive": sb["进取型"] || [],
