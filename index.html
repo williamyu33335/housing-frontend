@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="app-version" content="V8.5">
+  <meta name="app-version" content="V8.6">
   <title>全国房产金融 WebGIS 智能决策仿真系统</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -2953,18 +2953,18 @@
 
   <div class="splash-screen" id="splashScreen">
     <h1 class="splash-title">全国房产金融决策仿真系统</h1>
-    <p class="splash-subtitle">V8.5 · 空间折叠引擎 ｜ 手机上的买房账本</p>
+    <p class="splash-subtitle">V8.6 · 空间折叠引擎 ｜ 手机上的买房账本</p>
     <button class="splash-btn" onclick="enterSystem()">进入全景中国地图</button>
   </div>
 
   <div id="map"></div>
-  <div id="appBadge">V8.5</div>
+  <div id="appBadge">V8.6</div>
   <div id="errBanner"></div>
   <div class="map-hint" id="mapHint">🛰️ 点省份进去 → 点城市看区县 → 点片区。也可以直接点右上角「换城市」。</div>
 
   <div class="glass-panel" id="leftPanel">
     <div class="panel-head">
-      <h2>仿真参数配置 <span class="ver-chip">V8.5</span></h2>
+      <h2>仿真参数配置 <span class="ver-chip">V8.6</span></h2>
       <button class="panel-close" onclick="hidePanel('leftPanel')" title="收起面板">✕</button>
     </div>
 
@@ -3406,7 +3406,7 @@
         const el = document.getElementById("errBanner");
         if (!el) return;
         el.style.display = "block";
-        el.textContent = "⚠️ 前端运行错误：" + msg + "（版本 V8.5，请把这条发给经纬）";
+        el.textContent = "⚠️ 前端运行错误：" + msg + "（版本 V8.6，请把这条发给经纬）";
       }
       window.addEventListener("error", function (e) {
         showErr((e.message || "未知错误") + " @ " + (e.filename || "").split("/").pop() + ":" + (e.lineno || 0));
@@ -4270,6 +4270,13 @@
       map.getPane('countyPane').style.zIndex = 350;
       countyRenderer = L.canvas({ padding: 0.5, pane: 'countyPane' });
 
+      // 省界 / 市界各占一个窗格：市界在结构上永远压在省界之上，
+      // 不依赖"谁后 addTo"，也不依赖 canvas 的绘制顺序。
+      map.createPane('provincePane');
+      map.getPane('provincePane').style.zIndex = 360;
+      map.createPane('cityPane');
+      map.getPane('cityPane').style.zIndex = 380;
+
       map.createPane('markers');
       map.getPane('markers').style.zIndex = 650;
 
@@ -4287,6 +4294,7 @@
       let globalCityData = null;
       let currentProvinceLayer = null;
       let currentCityLayer = null;
+      let mapView = 'provinces';
 
       const baseStyle = { renderer: canvasRenderer, color: '#00ffff', weight: 1.2, opacity: 0.7, fillColor: '#00ffff', fillOpacity: 0.02, className: 'china-border' };
       const highlightStyle = { color: '#000000', weight: 2.5, opacity: 1, fillColor: '#000000', fillOpacity: 0.05 };
@@ -4322,12 +4330,24 @@
         })
         .catch(e => console.log("未找到市级边界", e));
 
-      function drawProvinces() {
+      // 地图当前处在哪一层视图：provinces（省视图，看市界轮廓）/ cities（市视图）
+      // 用 dataset 同步一份，无头验收可以直接读 <html data-map-view>。
+      function setMapView(v) {
+        mapView = v;
+        document.documentElement.dataset.mapView = v;
+      }
+
+      function drawProvinces(force) {
+        if (!globalProvinceData) return;
+        // 🐛 老 bug 的根：城市视图下任何一次 drawProvinces() 都会把省界重新铺回
+        //    地图最上层，市界就被盖住了。这里直接拒绝重画。
+        if (mapView === 'cities' && !force) return;
         if (currentCityLayer) { map.removeLayer(currentCityLayer); currentCityLayer = null; }
-        if (currentProvinceLayer) { map.removeLayer(currentProvinceLayer); }
+        if (currentProvinceLayer) { map.removeLayer(currentProvinceLayer); currentProvinceLayer = null; }
 
         currentProvinceLayer = L.geoJSON(globalProvinceData, {
-          style: baseStyle,
+          pane: 'provincePane',
+          style: { ...baseStyle, renderer: null },
           onEachFeature: function (feature, layer) {
             try { feature.__bounds = layer.getBounds(); } catch (_) { }
             const name = feature.properties.name || "未知省份";
@@ -4345,6 +4365,7 @@
             });
           }
         }).addTo(map);
+        setMapView('provinces');
       }
 
       let pendingProvince = null;   // 地图数据还没到时，先把“想看哪个省”记下来
@@ -4354,14 +4375,24 @@
           pendingProvince = { adcode: provinceAdcode, bounds: bounds };
           return;
         }
-        if (currentProvinceLayer) map.removeLayer(currentProvinceLayer);
-        if (currentCityLayer) map.removeLayer(currentCityLayer);
+        // 进省之后省界就没用了：直接卸掉，不是"压在下面"，是"不存在"。
+        if (currentProvinceLayer) {
+          map.removeLayer(currentProvinceLayer);
+          currentProvinceLayer = null;
+        }
+        if (currentCityLayer) { map.removeLayer(currentCityLayer); currentCityLayer = null; }
 
         const cityFeatures = globalCityData.features.filter(f => f.properties.parent && f.properties.parent.adcode === provinceAdcode);
-        if (cityFeatures.length === 0) { showToast("该省暂无市级边界数据"); drawProvinces(); return; }
+        if (cityFeatures.length === 0) {
+          showToast("该省暂无市级边界数据");
+          setMapView('provinces');
+          drawProvinces(true);
+          return;
+        }
 
         currentCityLayer = L.geoJSON(cityFeatures, {
-          style: { ...baseStyle, color: '#60a5fa' },
+          pane: 'cityPane',
+          style: { ...baseStyle, renderer: null, color: '#60a5fa' },
           onEachFeature: function (feature, layer) {
             layer.bindTooltip(feature.properties.name, {
               permanent: true, direction: 'center', className: 'map-label-city'
@@ -4379,6 +4410,7 @@
             });
           }
         }).addTo(map);
+        setMapView('cities');
         if (bounds) map.fitBounds(bounds, { padding: [20, 20] });
       }
 
@@ -4447,8 +4479,16 @@
         if (z < 7) {
           if (currentCityLayer && map.hasLayer(currentCityLayer)) {
             map.removeLayer(currentCityLayer);
-            if (!map.hasLayer(currentProvinceLayer) && globalProvinceData) drawProvinces();
+            currentCityLayer = null;
           }
+          if (!currentProvinceLayer && globalProvinceData) {
+            setMapView('provinces');
+            drawProvinces(true);
+          }
+        } else if (z >= 7 && mapView !== 'cities' && currentProvincePrefix) {
+          // 缩出去又放回来：省界这时已经不在图上，把市界补回来
+          const ad = Number(currentProvincePrefix);
+          if (globalCityData && ad) drawCitiesByProvince(ad, null);
         }
         if (z >= 8) {
           if (!map.hasLayer(regionMarkersGroup)) regionMarkersGroup.addTo(map);
@@ -4470,6 +4510,22 @@
 
       // 首屏 setView 早于 zoomend 监听、拿不到事件，这里兜底补几次
       [600, 2000, 4000].forEach(ms => setTimeout(syncCountyLayer, ms));
+
+      // 🔎 只读诊断口：无头验收用（tests/cdp_probe.mjs 直接读）
+      window.__mapDiag = function () {
+        const paths = (l) => (l && map.hasLayer(l)) ? l.getLayers().length : 0;
+        return {
+          zoom: map.getZoom(),
+          view: mapView,
+          provinceOnMap: !!(currentProvinceLayer && map.hasLayer(currentProvinceLayer)),
+          cityOnMap: !!(currentCityLayer && map.hasLayer(currentCityLayer)),
+          cityPaths: paths(currentCityLayer),
+          countyOnMap: !!(countyLayer && map.hasLayer(countyLayer)),
+          cityLabels: document.querySelectorAll('.map-label-city').length,
+          provincePaneZ: map.getPane('provincePane') ? map.getPane('provincePane').style.zIndex : null,
+          cityPaneZ: map.getPane('cityPane') ? map.getPane('cityPane').style.zIndex : null
+        };
+      };
     }
 
     const _listingsToggle = document.getElementById("showListings");
@@ -6197,9 +6253,9 @@
           const src = document.documentElement.dataset.citySource === "db" ? "库" : "内置";
           document.documentElement.dataset.citySourceLabel = src;
           const badge = document.getElementById("appBadge");
-          if (badge) badge.textContent = `V8.5 · ${src}`;
+          if (badge) badge.textContent = `V8.6 · ${src}`;
           const chip = document.querySelector(".ver-chip");
-          if (chip) chip.textContent = `V8.5 · ${src}`;
+          if (chip) chip.textContent = `V8.6 · ${src}`;
         })();
 
         const nn = CITY_DB.find(c => c.code === "450100");
@@ -6809,7 +6865,8 @@
       // 📱 V8.0：手机端「房源」屏复用同一份加载逻辑，不另写一套
       loadListings: loadListings,
       apiHost: API_HOST,
-      get listings() { return listingsAll; }
+      get listings() { return listingsAll; },
+      toast: showToast
     };
   </script>
 
@@ -6820,6 +6877,7 @@
   <section class="m-screen" id="mScreenList" aria-label="房源">
     <div class="m-screen-head" id="mListTitle">在售房源</div>
     <div class="m-screen-sub" id="mListSub">正在读取房源…</div>
+    <div id="mMatchBox"></div>
     <div id="mListBody"></div>
   </section>
 
@@ -7109,6 +7167,235 @@
         setCompact(compact);
       }
 
+      /* ---------- 房源闭环第一步：先匹配，再摆清单 ----------
+         用户打开「房源」，第一个问题不是"你有多少套房"，
+         是"我这个预算、这个面积，到底有没有对得上的房子"。
+         规则在后端 listings_match.py（纯函数），这里只负责问和显示。 */
+      let matchRows = [];
+
+      function currentMatchParams() {
+        const ha = window.HousingApp || {};
+        const city = ha.currentCity || null;
+        const num = (id, d) => {
+          const el = $(id);
+          const v = el ? parseFloat(el.value) : NaN;
+          return isNaN(v) ? d : v;
+        };
+        const htBtn = document.querySelector("[data-htype].active");
+        return {
+          city_code: city ? String(city.code) : "450100",
+          budget_wan: num("houseTotalWan", 0),
+          target_area_sqm: num("targetAreaSqm", 0),
+          house_type: htBtn ? htBtn.getAttribute("data-htype") : "unspecified",
+          public_share_pct: (() => {
+            const el = $("publicSharePct");
+            const v = el ? parseFloat(el.value) : NaN;
+            return isNaN(v) ? -1 : v;
+          })(),
+          limit: 12
+        };
+      }
+
+      /* 后端还是旧版时的本地兜底：规则和后端 listings_match.py 一致，
+         界面上会标明"本地规则"，绝不假装是后端算的。 */
+      function localMatch(p, rows) {
+        const share = p.public_share_pct >= 0
+          ? p.public_share_pct / 100
+          : ({ new: 0.22, used: 0.15 }[p.house_type] || 0.18);
+        const liveOf = (x) => {
+          const live = Number(x.live_area_sqm) || 0;
+          if (live > 0) return live;
+          const built = Number(x.area_sqm) || 0;
+          return built > 0 ? built * Math.max(0.55, 1 - share) : 0;
+        };
+        const pool = (rows || []).filter((x) => (Number(x.total_price) || 0) > 0);
+        const deco = (x, budget, target) => {
+          const wanP = (Number(x.total_price) || 0) / 10000;
+          const live = liveOf(x);
+          const o = {
+            id: x.id, community: x.community || x.title || "未命名小区",
+            district_name: x.district_name, total_price: x.total_price,
+            price_wan: Math.round(wanP * 100) / 100,
+            area_sqm: Math.round((Number(x.area_sqm) || 0) * 10) / 10,
+            live_area_sqm: Math.round(live * 10) / 10,
+            price_sqm: Math.round(Number(x.price_sqm) || 0),
+            bedrooms: x.bedrooms, decoration: x.decoration, source: x.source,
+            geo_level: x.geo_level, geo_approximate: !!x.geo_approximate,
+            lat: x.lat, lng: x.lng
+          };
+          if (budget > 0) o.price_delta_pct = Math.round((wanP - budget) / budget * 1000) / 10;
+          if (target > 0 && live > 0) o.area_delta_pct = Math.round((live - target) / target * 1000) / 10;
+          return o;
+        };
+        if (!pool.length) {
+          return { data: [], count: 0, reason: "no_pool", pool: { n: 0 }, band: {},
+                   nearest: [], message: "这个城市还没有入库房源。我们不编数据，所以这里就是空的。" };
+        }
+        if (!(p.budget_wan > 0) && !(p.target_area_sqm > 0)) {
+          return { data: [], count: 0, reason: "no_budget", pool: { n: pool.length }, band: {},
+                   nearest: [], message: "先填「房屋总价」或「想住多大」，我才能去库里找。" };
+        }
+        const lo = p.budget_wan > 0 ? p.budget_wan * 0.9 : 0;
+        const hi = p.budget_wan > 0 ? p.budget_wan * 1.1 : Infinity;
+        const aLo = p.target_area_sqm > 0 ? p.target_area_sqm * 0.85 : 0;
+        const aHi = p.target_area_sqm > 0 ? p.target_area_sqm * 1.15 : Infinity;
+        const hits = [];
+        pool.forEach((x) => {
+          const wanP = (Number(x.total_price) || 0) / 10000;
+          if (wanP < lo || wanP > hi) return;
+          const live = liveOf(x);
+          if (p.target_area_sqm > 0 && (live < aLo || live > aHi)) return;
+          const o = deco(x, p.budget_wan, p.target_area_sqm);
+          o._s = Math.abs(o.price_delta_pct || 0) + Math.abs(o.area_delta_pct || 0);
+          hits.push(o);
+        });
+        hits.sort((a, b) => a._s - b._s);
+        hits.forEach((h) => { delete h._s; });
+        const out = { data: hits.slice(0, 12), count: hits.length, band: {}, nearest: [], __local: true };
+        const prices = pool.map((x) => (Number(x.total_price) || 0) / 10000);
+        out.pool = { n: pool.length, min_wan: Math.round(Math.min.apply(null, prices) * 10) / 10,
+                     max_wan: Math.round(Math.max.apply(null, prices) * 10) / 10 };
+        if (!hits.length) {
+          out.reason = "no_match";
+          out.message = "库里 " + pool.length + " 套在售，总价 " + out.pool.min_wan + "~" +
+            out.pool.max_wan + " 万；你要的 " + (p.budget_wan > 0 ? wan(p.budget_wan, 0) + " 万" : "") +
+            (p.target_area_sqm > 0 ? " / 套内 " + wan(p.target_area_sqm, 0) + " ㎡" : "") + " 里没有对得上的。";
+          out.nearest = pool.slice().sort((a, b) =>
+            Math.abs((Number(a.total_price) || 0) / 10000 - p.budget_wan) -
+            Math.abs((Number(b.total_price) || 0) / 10000 - p.budget_wan)
+          ).slice(0, 3).map((x) => deco(x, p.budget_wan, p.target_area_sqm));
+        }
+        return out;
+      }
+
+      function decoLabel(v) {
+        return { rough: "毛坯", partial: "带装修要改造", finished: "已装修" }[v] || "";
+      }
+
+      function matchCard(x, i, isNearest) {
+        const pps = x.price_sqm ? Math.round(x.price_sqm) : null;
+        const bits = [];
+        if (x.price_delta_pct != null) {
+          const d = x.price_delta_pct;
+          bits.push((d > 0 ? "比预算贵 " : (d < 0 ? "比预算便宜 " : "与预算持平 ")) +
+            (d === 0 ? "" : wan(Math.abs(d), 1) + "%"));
+        }
+        if (x.area_delta_pct != null) {
+          const a = x.area_delta_pct;
+          bits.push((a >= 0 ? "套内大 " : "套内小 ") + wan(Math.abs(a), 1) + "%");
+        }
+        if (x.decoration) bits.push(decoLabel(x.decoration));
+        return '<div class="m-lcard">' +
+          '<div class="m-lcard-top"><b>' + esc(x.community || "未命名小区") + "</b>" +
+          '<span class="m-price">' + wan(x.price_wan) + " 万</span></div>" +
+          '<div class="m-lcard-sub">套内 ' + wan(x.live_area_sqm, 1) + " ㎡ · 建面 " + wan(x.area_sqm, 1) + " ㎡" +
+          (pps ? " · " + pps.toLocaleString() + " 元/㎡" : "") +
+          (x.bedrooms ? " · " + esc(x.bedrooms) + " 室" : "") + "</div>" +
+          (bits.length ? '<div class="m-lcard-sub" style="color:#94a3b8;">' + esc(bits.join(" · ")) + "</div>" : "") +
+          '<div class="m-lcard-foot"><span>📍 ' + esc(x.district_name || "区位未知") + "</span>" +
+          "<span>" + (x.geo_approximate ? "区位中心近似" : "精确坐标") + "</span></div>" +
+          '<div class="m-actions"><button class="m-btn plain" data-use="' + i + '">用这套去推演</button></div>' +
+          "</div>";
+      }
+
+      function renderMatch(json, p) {
+        const box = $("mMatchBox");
+        if (!box) return;
+        const list = (json && json.data) || [];
+        const nearList = (json && json.nearest) || [];
+        matchRows = list.concat(nearList);
+
+        const want = [
+          p.budget_wan > 0 ? wan(p.budget_wan, 0) + " 万" : "",
+          p.target_area_sqm > 0 ? "套内 " + wan(p.target_area_sqm, 0) + " ㎡" : ""
+        ].filter(Boolean).join(" / ");
+
+        if (json && json.reason === "no_db") {
+          box.innerHTML = '<div class="m-note" style="color:#fca5a5;">' + esc(json.message || "数据库没连上") + "</div>";
+          return;
+        }
+        if (json && json.reason === "no_budget") {
+          box.innerHTML = '<div class="m-note">' + esc(json.message || "") + "</div>";
+          return;
+        }
+
+        const localNote = json.__local
+          ? '<div class="m-note" style="color:#94a3b8;">（这批结果是本地按同一套规则算的：后端还没升级到 V8.6，部署后会自动改为后端计算。）</div>'
+          : "";
+
+        if (list.length) {
+          const head = "按你的 " + esc(want) + "，库里 " + list.length + " 套对得上" +
+            (json.count > list.length ? "（共 " + json.count + " 套，先给你最接近的 " + list.length + " 套）" : "") + "：";
+          box.innerHTML =
+            '<div class="m-note" style="color:#86efac;">✅ ' + head + "</div>" + localNote +
+            list.map((x, i) => matchCard(x, i, false)).join("") +
+            '<div class="m-note">点「用这套去推演」，总价和套内会自动填进参数，再点开始推演。</div>';
+          return;
+        }
+
+        // 没匹配上：先把原因说对，再给"最接近的"——但绝不叫推荐
+        let html = '<div class="m-note" style="color:#fcd34d;">⚠️ ' +
+          esc((json && json.message) || "库里没有对得上的房子") + "</div>" + localNote;
+        if (nearList.length) {
+          html += '<div class="m-note">下面 3 套不是匹配结果，只是让你看看差多少：</div>' +
+            nearList.map((x, i) => matchCard(x, list.length + i, true)).join("");
+        }
+        box.innerHTML = html;
+      }
+
+      async function ensureMatch() {
+        const box = $("mMatchBox");
+        if (!box) return;
+        const ha = window.HousingApp || {};
+        const p = currentMatchParams();
+        if (!(p.budget_wan > 0) && !(p.target_area_sqm > 0)) {
+          matchRows = [];
+          box.innerHTML = '<div class="m-note">先填「房屋总价」或「想住多大」，这里就能告诉你：这个预算在库里有没有对得上的房子。</div>';
+          return;
+        }
+        box.innerHTML = '<div class="m-note">正在按你的预算找房…</div>';
+        try {
+          const res = await fetch((ha.apiHost || "") + "/api/listings/match", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(p),
+            signal: (window.AbortSignal && AbortSignal.timeout) ? AbortSignal.timeout(9000) : undefined
+          });
+          if (!res.ok) throw new Error("HTTP " + res.status);
+          renderMatch(await res.json(), p);
+        } catch (e) {
+          const rows = (ha.listings || []).slice();
+          const msg = String((e && e.message) || e);
+          if (rows.length && /404|HTTP 5\d\d/.test(msg)) {
+            // 后端还是旧版：本地按同一套规则算，并标明来源
+            renderMatch(localMatch(p, rows), p);
+            return;
+          }
+          box.innerHTML = '<div class="m-note" style="color:#fca5a5;">房源匹配接口没通（' +
+            esc(msg) + "）。<br><span style='font-size:12px;'>" +
+            '这不是没有房子，是接口没通；等接口回来再试，这里不会拿"最接近的"冒充匹配结果。</span></div>';
+        }
+      }
+
+      function useMatchRow(i) {
+        const x = matchRows[i];
+        if (!x) return;
+        const priceEl = $("houseTotalWan");
+        const areaEl = $("targetAreaSqm");
+        if (priceEl) {
+          priceEl.value = Math.round(x.price_wan * 10) / 10;
+          priceEl.dispatchEvent(new Event("input", { bubbles: true }));
+        }
+        if (areaEl) {
+          areaEl.value = Math.round(x.live_area_sqm);
+          areaEl.dispatchEvent(new Event("input", { bubbles: true }));
+        }
+        const ha = window.HousingApp || {};
+        if (ha.toast) ha.toast("已填好：" + wan(x.price_wan) + " 万 · 套内 " + wan(x.live_area_sqm, 0) + " ㎡，点「开始推演」");
+        setTab("sim");
+        setScreen("params");
+      }
+
       /* ---------- 房源列表 ---------- */
       function renderList(list, meta) {
         const box = $("mListBody");
@@ -7148,6 +7435,7 @@
       }
 
       function ensureListings() {
+        ensureMatch();          // 每次进「房源」都按当前参数重算一次，参数改了要跟着变
         const ha = window.HousingApp || {};
         const city = ha.currentCity || null;
         const code = city ? city.code : "450100";
@@ -7181,6 +7469,16 @@
         renderList(list);
       }
 
+      (function bindMatchBox() {
+        const box = $("mMatchBox");
+        if (!box) return;
+        box.addEventListener("click", (e) => {
+          const btn = e.target && e.target.closest ? e.target.closest("[data-use]") : null;
+          if (!btn) return;
+          useMatchRow(Number(btn.getAttribute("data-use")));
+        });
+      })();
+
       /* ---------- 我的 ---------- */
       function renderMe() {
         const box = $("mMeBody");
@@ -7188,7 +7486,7 @@
         const ha = window.HousingApp || {};
         const city = ha.currentCity || null;
         const res = ha.currentResult || null;
-        const ver = ($("appBadge") && $("appBadge").textContent) || "V8.5";
+        const ver = ($("appBadge") && $("appBadge").textContent) || "V8.6";
 
         const ar = $("anchorRentYear"), al = $("anchorLoanYear"), ad = $("anchorDownStrategy");
         const planned = (ar && ar.value !== "" && al && al.value !== "")
