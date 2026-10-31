@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="app-version" content="V8.1.2">
+  <meta name="app-version" content="V8.1.3">
   <title>全国房产金融 WebGIS 智能决策仿真系统</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -757,17 +757,8 @@
       color: inherit;
     }
 
-    /* 可选组保持原来的暗色底，只把标题染成紫色，不抢戏 */
-    #anchorGroup summary .cfg-title {
-      color: var(--cfg-accent, #f1f5f9);
-    }
-
     #leftPanel details.config-group[open] > summary .cfg-hint {
       display: none;
-    }
-
-    #anchorGroup summary .cfg-hint {
-      color: #94a3b8;
     }
 
     .cfg-hint {
@@ -2666,32 +2657,6 @@
         display: none;
       }
 
-      /* 参数页很长，把「开始推演」钉在底部，别让人滑到底才找得到 */
-      body[data-mscreen="params"] #runBtn {
-        position: sticky;
-        bottom: 6px;
-        z-index: 8;
-        margin-top: 14px;
-        box-shadow: 0 10px 26px rgba(2, 6, 23, .8);
-      }
-
-      /* 底部留出按钮的高度，滚到最底时最后一项不会被压住 */
-      body[data-mscreen="params"] #leftPanel {
-        padding-bottom: 96px !important;
-      }
-
-      /* 按钮浮在内容上，上方加一层渐隐，别把分组标题切成两半 */
-      body[data-mscreen="params"] #runBtn::before {
-        content: "";
-        position: absolute;
-        left: 0;
-        right: 0;
-        bottom: 100%;
-        height: 20px;
-        background: linear-gradient(180deg, rgba(11, 18, 32, 0), #0b1220 88%);
-        pointer-events: none;
-      }
-
       /* ---------- 报告默认只给一小段，想看再点 ---------- */
       .m-report-toggle {
         display: none;
@@ -2861,18 +2826,18 @@
 
   <div class="splash-screen" id="splashScreen">
     <h1 class="splash-title">全国房产金融决策仿真系统</h1>
-    <p class="splash-subtitle">V8.1.2 · 空间折叠引擎 ｜ 手机上的买房账本</p>
+    <p class="splash-subtitle">V8.1.3 · 空间折叠引擎 ｜ 手机上的买房账本</p>
     <button class="splash-btn" onclick="enterSystem()">进入全景中国地图</button>
   </div>
 
   <div id="map"></div>
-  <div id="appBadge">V8.1.2</div>
+  <div id="appBadge">V8.1.3</div>
   <div id="errBanner"></div>
   <div class="map-hint" id="mapHint">🛰️ 点省份进去 → 点城市看区县 → 点片区。也可以直接点右上角「换城市」。</div>
 
   <div class="glass-panel" id="leftPanel">
     <div class="panel-head">
-      <h2>仿真参数配置 <span class="ver-chip">V8.1.2</span></h2>
+      <h2>仿真参数配置 <span class="ver-chip">V8.1.3</span></h2>
       <button class="panel-close" onclick="hidePanel('leftPanel')" title="收起面板">✕</button>
     </div>
 
@@ -3103,8 +3068,9 @@
     </details>
 
     <!-- 🧭 V7.5 锚点方案：先算你自己的打算，再谈推荐 -->
-    <details id="anchorGroup" style="margin:14px 0 10px; border:1px solid rgba(148,163,184,.35); border-radius:10px; padding:10px 12px;">
-      <summary style="cursor:pointer; font-weight:600;">🧭 说说你自己的打算（可选）</summary>
+    <details id="anchorGroup" class="config-group">
+      <summary>🧭 说说你自己的打算（可选）</summary>
+      <div class="config-body">
       <div class="form-hint" style="margin:8px 0 10px;">
         把你心里那套方案填进来（比如“租 5 年、贷 10 年”），我们原样算一遍给你对账。
         它不改动上面的参数，也不影响推荐结果。
@@ -3126,6 +3092,7 @@
           <option value="min">最低首付（钱留着理财）</option>
           <option value="max">掏空（全砸首付）</option>
         </select>
+      </div>
       </div>
     </details>
 
@@ -3249,7 +3216,7 @@
         const el = document.getElementById("errBanner");
         if (!el) return;
         el.style.display = "block";
-        el.textContent = "⚠️ 前端运行错误：" + msg + "（版本 V8.1.2，请把这条发给经纬）";
+        el.textContent = "⚠️ 前端运行错误：" + msg + "（版本 V8.1.3，请把这条发给经纬）";
       }
       window.addEventListener("error", function (e) {
         showErr((e.message || "未知错误") + " @ " + (e.filename || "").split("/").pop() + ":" + (e.lineno || 0));
@@ -5952,9 +5919,9 @@
           const src = document.documentElement.dataset.citySource === "db" ? "库" : "内置";
           document.documentElement.dataset.citySourceLabel = src;
           const badge = document.getElementById("appBadge");
-          if (badge) badge.textContent = `V8.1.2 · ${src}`;
+          if (badge) badge.textContent = `V8.1.3 · ${src}`;
           const chip = document.querySelector(".ver-chip");
-          if (chip) chip.textContent = `V8.1.2 · ${src}`;
+          if (chip) chip.textContent = `V8.1.3 · ${src}`;
         })();
 
         const nn = CITY_DB.find(c => c.code === "450100");
@@ -5982,6 +5949,16 @@
       }
     }
 
+    // 📱 手机端：在地图上点了片区，就直接把人送到「推演」填数字。
+    //    电脑端两边都能看，不跳。
+    function maybeJumpToSim() {
+      if (!window.MApp || window.innerWidth > 760) return;
+      setTimeout(function () {
+        window.MApp.setTab("sim");
+        window.MApp.setScreen("params");
+      }, 500);
+    }
+
     function selectAndFly(name, lat, lng) {
       const sel = document.getElementById("regionSel");
       sel.value = name;
@@ -5989,7 +5966,8 @@
       syncZoneToForm(true);
       if (map) map.flyTo([lat, lng], 12, { duration: 1.2 });
       revealPanels();
-      showToast(`已切换至【${name}】进行空间决策`);
+      showToast(`已切换至【${name}】，去「推演」填数字`);
+      maybeJumpToSim();
     }
 
     document.getElementById("regionSel").onchange = function () {
@@ -6001,6 +5979,7 @@
       syncZoneToForm(true);
       revealPanels();
       if (map) map.flyTo([find.lat, find.lng], 12, { duration: 1.2 });
+      maybeJumpToSim();
     };
 
     document.getElementById("leftPanel").addEventListener("keydown", (e) => {
@@ -6885,7 +6864,7 @@
         const ha = window.HousingApp || {};
         const city = ha.currentCity || null;
         const res = ha.currentResult || null;
-        const ver = ($("appBadge") && $("appBadge").textContent) || "V8.1.2";
+        const ver = ($("appBadge") && $("appBadge").textContent) || "V8.1.3";
 
         const ar = $("anchorRentYear"), al = $("anchorLoanYear"), ad = $("anchorDownStrategy");
         const planned = (ar && ar.value !== "" && al && al.value !== "")
