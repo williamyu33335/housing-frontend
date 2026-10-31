@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="app-version" content="V8.3">
+  <meta name="app-version" content="V8.4">
   <title>全国房产金融 WebGIS 智能决策仿真系统</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -1866,6 +1866,23 @@
       font-size: 16px;
     }
 
+    /* 「没匹配到这样的房子」——写在推演按钮下面，别用 3 秒就消失的 toast */
+    .run-hint {
+      margin-top: 10px;
+      padding: 11px 13px;
+      border-radius: 10px;
+      font-size: 12px;
+      line-height: 1.75;
+      color: #fecaca;
+      background: rgba(127, 29, 29, .3);
+      border: 1px solid rgba(248, 113, 113, .45);
+    }
+
+    /* 置顶/置底只在手机的参数页出现；桌面端面板有滚动条，不需要 */
+    .m-scroll-jump {
+      display: none;
+    }
+
     /* 🎨 选项卡统一上色：选中的那个用实色块，扫一眼就知道现在在哪一档 */
     .mode-switch { --tab-accent: #38bdf8; }
     .risk-switch { --tab-accent: #fb7185; }
@@ -2936,18 +2953,18 @@
 
   <div class="splash-screen" id="splashScreen">
     <h1 class="splash-title">全国房产金融决策仿真系统</h1>
-    <p class="splash-subtitle">V8.3 · 空间折叠引擎 ｜ 手机上的买房账本</p>
+    <p class="splash-subtitle">V8.4 · 空间折叠引擎 ｜ 手机上的买房账本</p>
     <button class="splash-btn" onclick="enterSystem()">进入全景中国地图</button>
   </div>
 
   <div id="map"></div>
-  <div id="appBadge">V8.3</div>
+  <div id="appBadge">V8.4</div>
   <div id="errBanner"></div>
   <div class="map-hint" id="mapHint">🛰️ 点省份进去 → 点城市看区县 → 点片区。也可以直接点右上角「换城市」。</div>
 
   <div class="glass-panel" id="leftPanel">
     <div class="panel-head">
-      <h2>仿真参数配置 <span class="ver-chip">V8.3</span></h2>
+      <h2>仿真参数配置 <span class="ver-chip">V8.4</span></h2>
       <button class="panel-close" onclick="hidePanel('leftPanel')" title="收起面板">✕</button>
     </div>
 
@@ -3260,6 +3277,7 @@
     </div>
 
     <button id="runBtn">开始深度推演</button>
+    <div id="areaHint" class="run-hint" style="display:none;"></div>
     <button id="resetParamBtn">重置为默认参数</button>
   </div>
 
@@ -3373,7 +3391,7 @@
         const el = document.getElementById("errBanner");
         if (!el) return;
         el.style.display = "block";
-        el.textContent = "⚠️ 前端运行错误：" + msg + "（版本 V8.3，请把这条发给经纬）";
+        el.textContent = "⚠️ 前端运行错误：" + msg + "（版本 V8.4，请把这条发给经纬）";
       }
       window.addEventListener("error", function (e) {
         showErr((e.message || "未知错误") + " @ " + (e.filename || "").split("/").pop() + ":" + (e.lineno || 0));
@@ -4275,6 +4293,12 @@
             [200, 800, 1800].forEach(ms => setTimeout(() => {
               if (window.__syncCityFromMap) window.__syncCityFromMap();
             }, ms));
+            // 手机网络慢时，用户可能先点了省、市界数据后才到：补画一次
+            if (pendingProvince) {
+              const p = pendingProvince;
+              pendingProvince = null;
+              drawCitiesByProvince(p.adcode, p.bounds);
+            }
             // 区县底图也补几次：非基准城市全靠这里反查省份
             [400, 1200, 2600].forEach(ms => setTimeout(() => {
               if (window.__syncCountyLayer) window.__syncCountyLayer();
@@ -4293,7 +4317,9 @@
             try { feature.__bounds = layer.getBounds(); } catch (_) { }
             const name = feature.properties.name || "未知省份";
             const adcode = feature.properties.adcode;
-            layer.bindTooltip(name, { direction: 'center', className: 'region-tooltip' });
+            layer.bindTooltip(name, {
+              permanent: false, direction: 'center', className: 'region-tooltip'
+            });
             layer.on('click', (e) => {
               L.DomEvent.stopPropagation(e);
               if (adcode === 100000) return;
@@ -4306,8 +4332,13 @@
         }).addTo(map);
       }
 
+      let pendingProvince = null;   // 地图数据还没到时，先把“想看哪个省”记下来
+
       function drawCitiesByProvince(provinceAdcode, bounds) {
-        if (!globalCityData) return;
+        if (!globalCityData) {
+          pendingProvince = { adcode: provinceAdcode, bounds: bounds };
+          return;
+        }
         if (currentProvinceLayer) map.removeLayer(currentProvinceLayer);
         if (currentCityLayer) map.removeLayer(currentCityLayer);
 
@@ -6137,9 +6168,9 @@
           const src = document.documentElement.dataset.citySource === "db" ? "库" : "内置";
           document.documentElement.dataset.citySourceLabel = src;
           const badge = document.getElementById("appBadge");
-          if (badge) badge.textContent = `V8.3 · ${src}`;
+          if (badge) badge.textContent = `V8.4 · ${src}`;
           const chip = document.querySelector(".ver-chip");
-          if (chip) chip.textContent = `V8.3 · ${src}`;
+          if (chip) chip.textContent = `V8.4 · ${src}`;
         })();
 
         const nn = CITY_DB.find(c => c.code === "450100");
@@ -6303,6 +6334,9 @@
         endpoint = "/api/simulate/anchor";
       }
 
+      const areaHintBox = document.getElementById("areaHint");
+      if (areaHintBox) { areaHintBox.style.display = "none"; areaHintBox.textContent = ""; }
+
       if (payload.house_total_wan <= 0 && payload.target_area_sqm <= 0) {
         setLoading(false);
         isCalculating = false;
@@ -6325,6 +6359,17 @@
               msg = errJson.detail;
             }
           } catch (_) { }
+
+          // 🏠 先匹配再计算：总价和面积对不上，直接把差距说清楚
+          if (msg.indexOf("没匹配到这样的房子") >= 0) {
+            const box = document.getElementById("areaHint");
+            if (box) {
+              box.textContent = msg;
+              box.style.display = "block";
+              try { box.scrollIntoView({ behavior: "smooth", block: "center" }); } catch (_) { }
+            }
+            return;
+          }
 
           // 🌟 核心判断：如果是无可行方案，弹出黑马激励窗口，不报错
           if (msg.includes("无可行方案") || msg.includes("均无可行方案")) {
@@ -7111,7 +7156,7 @@
         const ha = window.HousingApp || {};
         const city = ha.currentCity || null;
         const res = ha.currentResult || null;
-        const ver = ($("appBadge") && $("appBadge").textContent) || "V8.3";
+        const ver = ($("appBadge") && $("appBadge").textContent) || "V8.4";
 
         const ar = $("anchorRentYear"), al = $("anchorLoanYear"), ad = $("anchorDownStrategy");
         const planned = (ar && ar.value !== "" && al && al.value !== "")
