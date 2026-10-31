@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="app-version" content="V8.2">
+  <meta name="app-version" content="V8.3">
   <title>全国房产金融 WebGIS 智能决策仿真系统</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -1866,6 +1866,27 @@
       font-size: 16px;
     }
 
+    /* 🎨 选项卡统一上色：选中的那个用实色块，扫一眼就知道现在在哪一档 */
+    .mode-switch { --tab-accent: #38bdf8; }
+    .risk-switch { --tab-accent: #fb7185; }
+    .view-bar .tab-wrap { --tab-accent: #a78bfa; }
+    .chart-tabs { --tab-accent: #34d399; }
+    .type-switch { --tab-accent: #fbbf24; }
+
+    .mode-btn.active,
+    .risk-btn.active,
+    .view-bar .tab.active,
+    .chart-tab.active,
+    .type-btn.active {
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, .18), rgba(0, 0, 0, .12)),
+        var(--tab-accent) !important;
+      color: #0b1220 !important;
+      font-weight: 700;
+      border-color: transparent !important;
+      box-shadow: 0 4px 14px rgba(2, 6, 23, .45);
+    }
+
     /* ========== WebGIS 地图标签与图钉 ========== */
     /* 📱 手机端：缩小时只留小圆点，避免 8 个标签叠成一坨 */
     .custom-dot {
@@ -1874,6 +1895,24 @@
       display: flex;
       align-items: center;
       justify-content: center;
+    }
+
+    .custom-dot-label {
+      position: absolute;
+      left: 50%;
+      top: 100%;
+      transform: translateX(-50%);
+      margin-top: 1px;
+      font-size: 10px;
+      line-height: 1.2;
+      color: #fff;
+      white-space: nowrap;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, .95), 0 0 6px rgba(0, 0, 0, .85);
+      pointer-events: none;
+    }
+
+    .custom-dot {
+      position: relative;
     }
 
     .custom-dot::after {
@@ -2253,6 +2292,13 @@
       .m-dim .who {
         font-size: 10.5px;
         color: #94a3b8;
+      }
+
+      .m-sum-note {
+        margin-top: 10px;
+        font-size: 10.5px;
+        line-height: 1.6;
+        color: #64748b;
       }
 
       .m-chips {
@@ -2694,6 +2740,33 @@
         display: none;
       }
 
+      /* 参数页很长：给我一个回顶、一个到底的小按钮 */
+      .m-scroll-jump {
+        display: none;
+      }
+
+      body[data-mscreen="params"] .m-scroll-jump {
+        display: flex;
+        position: fixed;
+        right: 10px;
+        bottom: calc(var(--m-tabh) + var(--m-safe) + 12px);
+        z-index: 9;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .m-scroll-jump button {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        border: 1px solid rgba(148, 163, 184, .35);
+        background: rgba(9, 14, 26, .88);
+        color: #cbd5e1;
+        font-size: 16px;
+        font-family: inherit;
+        backdrop-filter: blur(8px);
+      }
+
       /* ---------- 报告默认只给一小段，想看再点 ---------- */
       .m-report-toggle {
         display: none;
@@ -2863,18 +2936,18 @@
 
   <div class="splash-screen" id="splashScreen">
     <h1 class="splash-title">全国房产金融决策仿真系统</h1>
-    <p class="splash-subtitle">V8.2 · 空间折叠引擎 ｜ 手机上的买房账本</p>
+    <p class="splash-subtitle">V8.3 · 空间折叠引擎 ｜ 手机上的买房账本</p>
     <button class="splash-btn" onclick="enterSystem()">进入全景中国地图</button>
   </div>
 
   <div id="map"></div>
-  <div id="appBadge">V8.2</div>
+  <div id="appBadge">V8.3</div>
   <div id="errBanner"></div>
   <div class="map-hint" id="mapHint">🛰️ 点省份进去 → 点城市看区县 → 点片区。也可以直接点右上角「换城市」。</div>
 
   <div class="glass-panel" id="leftPanel">
     <div class="panel-head">
-      <h2>仿真参数配置 <span class="ver-chip">V8.2</span></h2>
+      <h2>仿真参数配置 <span class="ver-chip">V8.3</span></h2>
       <button class="panel-close" onclick="hidePanel('leftPanel')" title="收起面板">✕</button>
     </div>
 
@@ -3016,7 +3089,18 @@
         </div>
         <div class="form-item">
           <label>房屋总价（万元）</label>
-          <input type="number" id="houseTotalWan" value="100" min="1">
+          <input type="number" id="houseTotalWan" value="100" min="0">
+          <div class="form-hint">不知道总价就填 0，只填下面的居住面积，模型按片区单价反推。</div>
+        </div>
+        <div class="form-item">
+          <label>想住多大（套内面积 ㎡）</label>
+          <input type="number" id="targetAreaSqm" value="0" min="0" step="1" placeholder="例如 90">
+          <div class="form-hint">这是套内真实居住面积，不是房产证上的建筑面积。总价和面积至少填一个。</div>
+        </div>
+        <div class="form-item">
+          <label>公摊率 %（建筑面积里不属于你的部分）</label>
+          <input type="number" id="publicSharePct" value="15" min="0" max="45" step="0.5">
+          <div class="form-hint" id="publicShareHint">二手房老楼梯房 6%~12%、次新电梯 18%~24%，这里默认 15%。新房一般 18%~24%。</div>
         </div>
         <div class="form-item">
           <label>初始自有存款（万元）</label>
@@ -3030,10 +3114,11 @@
         <div class="form-item">
           <label>房屋状态</label>
           <select id="houseDecoration">
-            <option value="finished">已装修（精装 / 带装修）</option>
+            <option value="finished">已装修（拎包入住）</option>
+            <option value="partial">带装修，但要改造（自己填预算）</option>
             <option value="rough">毛坯（要自己装）</option>
           </select>
-          <div class="form-hint">选「毛坯」，装修这笔钱会从首付后的现金里扣；不够会记缺口，不枪毙方案。</div>
+          <div class="form-hint">「毛坯」按当地装修单价估；「带装修要改造」按你填的改造预算扣（厨房卫生间翻新、换地板这类）。不够会记缺口，不枪毙方案。</div>
         </div>
         <div id="renoFields" style="display:none;">
           <div class="form-item">
@@ -3169,6 +3254,11 @@
     </label>
     <div class="form-hint" style="margin:0 0 10px;">当前库里有 34 套南宁真实在售房源，按总价分档着色。</div>
 
+    <div class="m-scroll-jump">
+      <button type="button" data-scrolljump="top" aria-label="回到顶部">↑</button>
+      <button type="button" data-scrolljump="bottom" aria-label="到底部">↓</button>
+    </div>
+
     <button id="runBtn">开始深度推演</button>
     <button id="resetParamBtn">重置为默认参数</button>
   </div>
@@ -3283,7 +3373,7 @@
         const el = document.getElementById("errBanner");
         if (!el) return;
         el.style.display = "block";
-        el.textContent = "⚠️ 前端运行错误：" + msg + "（版本 V8.2，请把这条发给经纬）";
+        el.textContent = "⚠️ 前端运行错误：" + msg + "（版本 V8.3，请把这条发给经纬）";
       }
       window.addEventListener("error", function (e) {
         showErr((e.message || "未知错误") + " @ " + (e.filename || "").split("/").pop() + ":" + (e.lineno || 0));
@@ -3741,10 +3831,11 @@
       // 手机上 z<11 只画圆点（手指点得准，也不互相压字）；放大了再出名字
       const dotMode = window.innerWidth <= 760 && map && map.getZoom() < 11;
       regionList.forEach(r => {
+        const shortName = String(r.name || "").replace(/(区|县|市)$/u, "");
         const customIcon = dotMode
           ? L.divIcon({
             className: '',
-            html: '<div class="custom-dot"></div>',
+            html: '<div class="custom-dot"><span class="custom-dot-label">' + escapeHtml(shortName) + '</span></div>',
             iconSize: [34, 34],
             iconAnchor: [17, 17]
           })
@@ -3938,14 +4029,15 @@
           <span style="font-size:11px;color:#94a3b8;font-weight:400;">${escapeHtml(sp.city_name)} · ${escapeHtml(sp.tier_label)} · ${escapeHtml(sp.family_label)}</span>
         </h3>
         <div class="spatial-grid">
-          <div class="item"><div class="v">${sp.own_area_sqm}</div><div class="k">可购面积 ㎡</div></div>
-          <div class="item"><div class="v">${sp.area_per_person}</div><div class="k">人均面积 ㎡</div></div>
+          <div class="item"><div class="v">${sp.own_area_sqm}</div><div class="k">可购建面 ㎡</div></div>
+          <div class="item"><div class="v">${sp.area_per_person}</div><div class="k">人均套内 ㎡</div></div>
           <div class="item"><div class="v">${sp.commute.own_min}′</div><div class="k">买房后单程</div></div>
           <div class="item"><div class="v">${formatNum(sp.commute.time_cost_month, 0)}</div><div class="k">通勤时间成本 元/月</div></div>
           <div class="item"><div class="v">${sp.pir}</div><div class="k">房价收入比</div></div>
           <div class="item"><div class="v">${sp.rel_income}×</div><div class="k">相对本地收入</div></div>
         </div>
         <div class="spatial-note">
+          套内约 <b>${sp.live_area_sqm != null ? sp.live_area_sqm : "--"} ㎡</b>（公摊 ${sp.public_share_pct != null ? sp.public_share_pct : "--"}%，房产证按建面计价，公摊也付钱）。
           ${escapeHtml(sp.area_note)}。时间效率：租房期 ${sp.commute.rent_score} 分 / 买房后 ${sp.commute.own_score} 分；通勤时间成本 ${formatNum(sp.commute.time_cost_month_rent, 0)} → ${formatNum(sp.commute.time_cost_month, 0)} 元/月，交通费 ${formatNum(sp.commute.transport_month.rent, 0)} → ${formatNum(sp.commute.transport_month.own, 0)} 元/月。
           ${realAsset !== null ? `30 年后名义资产 ${formatNum(nominal, 2)} 万，按今日物价只值 <b>${formatNum(realAsset, 2)} 万</b>。` : ""}
         </div>
@@ -4225,7 +4317,9 @@
         currentCityLayer = L.geoJSON(cityFeatures, {
           style: { ...baseStyle, color: '#60a5fa' },
           onEachFeature: function (feature, layer) {
-            layer.bindTooltip(feature.properties.name, { direction: 'center', className: 'region-tooltip' });
+            layer.bindTooltip(feature.properties.name, {
+              permanent: true, direction: 'center', className: 'map-label-city'
+            });
             layer.on('click', (e) => {
               L.DomEvent.stopPropagation(e);
               layer.setStyle(highlightStyle);
@@ -4440,10 +4534,12 @@
       new: {
         note: "新房：契税＋维修基金约 3.5%，多为毛坯，记得把装修钱留出来。",
         deco: "rough",
+        share: 22,
       },
       used: {
         note: "二手房：契税＋个税＋中介费约 4.5%，通常带装修；要重装就把预算填进去。",
         deco: "finished",
+        share: 15,
       },
     };
 
@@ -4451,7 +4547,14 @@
       const deco = document.getElementById("houseDecoration");
       const wrap = document.getElementById("renoFields");
       if (!deco || !wrap) return;
-      wrap.style.display = deco.value === "rough" ? "block" : "none";
+      const needsReno = deco.value === "rough" || deco.value === "partial";
+      wrap.style.display = needsReno ? "block" : "none";
+      const level = document.getElementById("renoLevel");
+      const levelItem = level ? level.closest(".form-item") : null;
+      // 局部改造不需要选“装修档次”，只需要一个预算
+      if (levelItem) levelItem.style.display = deco.value === "partial" ? "none" : "";
+      const budget = document.getElementById("renoBudgetWan");
+      if (budget && deco.value === "partial" && Number(budget.value) === 0) budget.value = 3;
     }
 
     function applyHouseType(t) {
@@ -4464,6 +4567,8 @@
       if (note) note.textContent = conf.note;
       const deco = document.getElementById("houseDecoration");
       if (deco) deco.value = conf.deco;
+      const share = document.getElementById("publicSharePct");
+      if (share && conf.share != null) share.value = conf.share;
       syncRenoFields();
     }
 
@@ -6032,9 +6137,9 @@
           const src = document.documentElement.dataset.citySource === "db" ? "库" : "内置";
           document.documentElement.dataset.citySourceLabel = src;
           const badge = document.getElementById("appBadge");
-          if (badge) badge.textContent = `V8.2 · ${src}`;
+          if (badge) badge.textContent = `V8.3 · ${src}`;
           const chip = document.querySelector(".ver-chip");
-          if (chip) chip.textContent = `V8.2 · ${src}`;
+          if (chip) chip.textContent = `V8.3 · ${src}`;
         })();
 
         const nn = CITY_DB.find(c => c.code === "450100");
@@ -6140,8 +6245,11 @@
         house_total_wan: parseFloat(document.getElementById("houseTotalWan").value),
         // 🏠 V8.2：房屋类型决定税费与装修口径
         house_type: houseType,
+        target_area_sqm: parseFloat((document.getElementById("targetAreaSqm") || {}).value || 0),
+        public_share_pct: parseFloat((document.getElementById("publicSharePct") || {}).value || 0),
         house_decoration: document.getElementById("houseDecoration")
-          ? document.getElementById("houseDecoration").value : "finished",
+          ? (document.getElementById("houseDecoration").value === "finished" ? "finished" : "rough")
+          : "finished",
         reno_level: document.getElementById("renoLevel")
           ? document.getElementById("renoLevel").value : "standard",
         reno_budget_wan: parseFloat((document.getElementById("renoBudgetWan") || {}).value || 0),
@@ -6193,6 +6301,13 @@
         payload.anchor_loan_year = Math.max(1, Math.min(30, parseInt(anchorLoan, 10) || 10));
         payload.anchor_down_strategy = document.getElementById("anchorDownStrategy").value;
         endpoint = "/api/simulate/anchor";
+      }
+
+      if (payload.house_total_wan <= 0 && payload.target_area_sqm <= 0) {
+        setLoading(false);
+        isCalculating = false;
+        showToast("房屋总价和想住多大，至少填一个");
+        return;
       }
 
       try {
@@ -6735,17 +6850,21 @@
         bumpViz();
         if (!(opts && opts.silent)) {
           const el = name === "list" ? $("mScreenList") : (name === "me" ? $("mScreenMe") : null);
-          if (el) el.scrollTop = 0;
+          if (el && name !== tab) el.scrollTop = 0;
         }
       }
 
       function setScreen(s) {
         if (!isMobile()) return;
+        const prev = screen;
         screen = (s === "result") ? "result" : "params";
         if (tab === "sim") body.dataset.mscreen = screen;
         if (screen === "result") setCompact(true);
-        const el = screen === "result" ? $("rightPanel") : $("leftPanel");
-        if (el) el.scrollTop = 0;
+        // 只有真的换了屏才回到顶部：改个片区就把人弹回页首，很烦
+        if (screen !== prev) {
+          const el = screen === "result" ? $("rightPanel") : $("leftPanel");
+          if (el) el.scrollTop = 0;
+        }
         bumpViz();
       }
 
@@ -6902,6 +7021,7 @@
           '<div class="m-sum-sub">' + sub + "</div>" +
           '<div class="m-sum-verdict">' + verdict + "</div>" +
           '<div class="m-kpis">' + kpis + "</div>" +
+          '<div class="m-sum-note">净值 = 现金 + 房子 − 剩余房贷；车不计入资产。</div>' +
           (a ? anchorChips(a, b) : "") +
           '<div class="m-actions">' +
           '<button class="m-btn" data-mact="compare">逐项对比</button>' +
@@ -6991,7 +7111,7 @@
         const ha = window.HousingApp || {};
         const city = ha.currentCity || null;
         const res = ha.currentResult || null;
-        const ver = ($("appBadge") && $("appBadge").textContent) || "V8.2";
+        const ver = ($("appBadge") && $("appBadge").textContent) || "V8.3";
 
         const ar = $("anchorRentYear"), al = $("anchorLoanYear"), ad = $("anchorDownStrategy");
         const planned = (ar && ar.value !== "" && al && al.value !== "")
@@ -7139,6 +7259,17 @@
 
         const mask = $("mSheetMask");
         if (mask) mask.addEventListener("click", closeCitySheet);
+
+        const jump = document.querySelector(".m-scroll-jump");
+        if (jump) {
+          jump.addEventListener("click", (e) => {
+            const b = e.target.closest("[data-scrolljump]");
+            if (!b) return;
+            const panel = $("leftPanel");
+            if (!panel) return;
+            panel.scrollTo({ top: b.getAttribute("data-scrolljump") === "top" ? 0 : panel.scrollHeight, behavior: "smooth" });
+          });
+        }
 
         const schemes = $("mSchemes");
         if (schemes) {
