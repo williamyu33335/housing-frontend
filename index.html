@@ -4337,6 +4337,16 @@
         document.documentElement.dataset.mapView = v;
       }
 
+      // 🎯 进省时多给一档：省界换市界那一刻，市名要能一眼看见。
+      //    只按 fit 那一档飞，市名会挤成一团，用户还得自己点一次「+」。
+      function flyToProvince(bounds, duration) {
+        if (!bounds || (bounds.isValid && !bounds.isValid())) return;
+        let fit = 8;
+        try { fit = map.getBoundsZoom(bounds, false, L.point(20, 20)); } catch (_) { }
+        const z = Math.min(map.getMaxZoom(), fit + 1);
+        map.flyTo(bounds.getCenter(), z, { duration: duration || 1.1, easeLinearity: 0.25 });
+      }
+
       function drawProvinces(force) {
         if (!globalProvinceData) return;
         // 🐛 老 bug 的根：城市视图下任何一次 drawProvinces() 都会把省界重新铺回
@@ -4359,8 +4369,9 @@
               L.DomEvent.stopPropagation(e);
               if (adcode === 100000) return;
               currentProvincePrefix = String(adcode).slice(0, 2) + "0000";
-              map.flyToBounds(layer.getBounds(), { duration: 1.2, padding: [20, 20], easeLinearity: 0.25 });
-              setTimeout(() => { drawCitiesByProvince(adcode, layer.getBounds()); }, 300);
+              flyToProvince(layer.getBounds(), 1.2);
+              // 视野已经由 flyToProvince 定了，这里不要再传 bounds 去 fit
+              setTimeout(() => { drawCitiesByProvince(adcode, null); }, 300);
               setTimeout(syncCountyLayer, 340);
             });
           }
@@ -4411,7 +4422,9 @@
           }
         }).addTo(map);
         setMapView('cities');
-        if (bounds) map.fitBounds(bounds, { padding: [20, 20] });
+        // 注意：这里**不再** fitBounds。原来点省时会 fit 两次
+        //（点击一次、画市界又一次），第二次把"多放大一档"又拉回原样，
+        // 用户看到的就是"点了省还是不显示市名"。视野只由 flyToProvince 决定。
       }
 
       window.__drawCitiesByProvince = drawCitiesByProvince;
@@ -4464,9 +4477,8 @@
         const adcode = best.f.properties.adcode;
         if (!adcode || adcode === 100000) return;
         currentProvincePrefix = String(adcode).slice(0, 2) + "0000";
-        const bounds = best.f.__bounds;
-        map.flyToBounds(bounds, { duration: 1.1, padding: [20, 20], easeLinearity: 0.25 });
-        setTimeout(() => { drawCitiesByProvince(adcode, bounds); }, 300);
+        flyToProvince(best.f.__bounds, 1.1);
+        setTimeout(() => { drawCitiesByProvince(adcode, null); }, 300);
         setTimeout(syncCountyLayer, 340);
       });
 
