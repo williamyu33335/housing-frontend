@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="app-version" content="V8.4">
+  <meta name="app-version" content="V8.5">
   <title>全国房产金融 WebGIS 智能决策仿真系统</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -2953,27 +2953,27 @@
 
   <div class="splash-screen" id="splashScreen">
     <h1 class="splash-title">全国房产金融决策仿真系统</h1>
-    <p class="splash-subtitle">V8.4 · 空间折叠引擎 ｜ 手机上的买房账本</p>
+    <p class="splash-subtitle">V8.5 · 空间折叠引擎 ｜ 手机上的买房账本</p>
     <button class="splash-btn" onclick="enterSystem()">进入全景中国地图</button>
   </div>
 
   <div id="map"></div>
-  <div id="appBadge">V8.4</div>
+  <div id="appBadge">V8.5</div>
   <div id="errBanner"></div>
   <div class="map-hint" id="mapHint">🛰️ 点省份进去 → 点城市看区县 → 点片区。也可以直接点右上角「换城市」。</div>
 
   <div class="glass-panel" id="leftPanel">
     <div class="panel-head">
-      <h2>仿真参数配置 <span class="ver-chip">V8.4</span></h2>
+      <h2>仿真参数配置 <span class="ver-chip">V8.5</span></h2>
       <button class="panel-close" onclick="hidePanel('leftPanel')" title="收起面板">✕</button>
     </div>
 
     <!-- 🏠 V8.2 新房 / 二手房：两套交易成本口径 -->
     <div class="type-switch">
-      <button class="type-btn active" data-htype="used">🏚️ 二手房</button>
-      <button class="type-btn" data-htype="new">🆕 新房</button>
+      <button class="type-btn" data-htype="used">🏚️ 二手房</button>
+      <button class="type-btn active" data-htype="new">🆕 新房</button>
     </div>
-    <div class="type-note" id="typeNote">二手房：契税＋个税＋中介费约 4.5%，通常带装修；要重装就把预算填进去。</div>
+    <div class="type-note" id="typeNote">新房：契税＋维修基金约 3.5%，多为毛坯，记得把装修钱留出来。</div>
 
     <div class="mode-switch">
       <button class="mode-btn active" data-mode="relative">📍 相对推演</button>
@@ -3366,6 +3366,21 @@
       </div>
     </div>
   </div>
+  <!-- 总价与面积对不上：像“黑马”那样居中弹出来，别缩在按钮下面 -->
+  <div class="modal-overlay" id="areaModal">
+    <div class="modal-content" style="max-width:520px;">
+      <div class="modal-header">
+        <div class="modal-title" id="areaModalTitle">这套房子没对上</div>
+        <button class="modal-close" onclick="closeAreaModal()">✕</button>
+      </div>
+      <div class="modal-body" id="areaModalBody"></div>
+      <div class="modal-body" style="padding-top:0;">
+        <button class="splash-btn" style="width:100%;padding:12px;font-size:15px;"
+          onclick="closeAreaModal()">我改改再看</button>
+      </div>
+    </div>
+  </div>
+
   <div class="modal-overlay" id="detailModal">
     <div class="modal-content">
       <div class="modal-header">
@@ -3391,7 +3406,7 @@
         const el = document.getElementById("errBanner");
         if (!el) return;
         el.style.display = "block";
-        el.textContent = "⚠️ 前端运行错误：" + msg + "（版本 V8.4，请把这条发给经纬）";
+        el.textContent = "⚠️ 前端运行错误：" + msg + "（版本 V8.5，请把这条发给经纬）";
       }
       window.addEventListener("error", function (e) {
         showErr((e.message || "未知错误") + " @ " + (e.filename || "").split("/").pop() + ":" + (e.lineno || 0));
@@ -4490,7 +4505,7 @@
       rn.innerHTML = "70% 红线：还贷期真实支出不超过收入的 70%，替你守住 30% 的呼吸空间——那里装着生病、失业、和突然要随的份子钱。";
       commuteManual = false;
       if (currentCity) applyCity(currentCity);
-      applyHouseType("used");
+      applyHouseType("new");
       showToast("参数已重置为默认值");
       const sel = document.getElementById("regionSel");
       if (sel && sel.value && regionList.length > 0) {
@@ -4560,7 +4575,7 @@
     }
 
     /* ============ 🏠 V8.2 新房 / 二手房 ============ */
-    let houseType = "used";
+    let houseType = "new";
     const HOUSE_TYPE_CONF = {
       new: {
         note: "新房：契税＋维修基金约 3.5%，多为毛坯，记得把装修钱留出来。",
@@ -4609,7 +4624,7 @@
     (function () {
       const deco = document.getElementById("houseDecoration");
       if (deco) deco.onchange = syncRenoFields;
-      syncRenoFields();
+      applyHouseType(houseType);   // 默认新房：毛坯 + 22% 公摊
     })();
 
     document.querySelectorAll(".mode-btn").forEach(btn => {
@@ -5195,6 +5210,20 @@
     }
     window.openModal = openModal;
     window.closeModal = closeModal;
+
+    // 面积/总价没对上的提示：居中弹窗
+    window.closeAreaModal = function () {
+      const el = document.getElementById("areaModal");
+      if (el) el.style.display = "none";
+    };
+    window.showAreaModal = function (text, title) {
+      const body = document.getElementById("areaModalBody");
+      const t = document.getElementById("areaModalTitle");
+      if (t && title) t.textContent = title;
+      if (body) body.innerHTML = String(text || "").replace(/^这套房子没对上：/, "").replace(/\n/g, "<br>");
+      const el = document.getElementById("areaModal");
+      if (el) el.style.display = "flex";
+    };
 
     /* ============ 视角切换联动 ============ */
     function flashAIReport() {
@@ -6168,9 +6197,9 @@
           const src = document.documentElement.dataset.citySource === "db" ? "库" : "内置";
           document.documentElement.dataset.citySourceLabel = src;
           const badge = document.getElementById("appBadge");
-          if (badge) badge.textContent = `V8.4 · ${src}`;
+          if (badge) badge.textContent = `V8.5 · ${src}`;
           const chip = document.querySelector(".ver-chip");
-          if (chip) chip.textContent = `V8.4 · ${src}`;
+          if (chip) chip.textContent = `V8.5 · ${src}`;
         })();
 
         const nn = CITY_DB.find(c => c.code === "450100");
@@ -6361,13 +6390,8 @@
           } catch (_) { }
 
           // 🏠 先匹配再计算：总价和面积对不上，直接把差距说清楚
-          if (msg.indexOf("没匹配到这样的房子") >= 0) {
-            const box = document.getElementById("areaHint");
-            if (box) {
-              box.textContent = msg;
-              box.style.display = "block";
-              try { box.scrollIntoView({ behavior: "smooth", block: "center" }); } catch (_) { }
-            }
+          if (msg.indexOf("这套房子没对上") >= 0) {
+            if (window.showAreaModal) window.showAreaModal(msg, "这套房子没对上");
             return;
           }
 
@@ -7067,6 +7091,14 @@
           '<div class="m-sum-verdict">' + verdict + "</div>" +
           '<div class="m-kpis">' + kpis + "</div>" +
           '<div class="m-sum-note">净值 = 现金 + 房子 − 剩余房贷；车不计入资产。</div>' +
+          (() => {
+            const am = res.spatial && res.spatial.area_match;
+            if (!am || am.status !== "over") return "";
+            return '<div class="m-sum-note" style="color:#fcd34d;">按这个预算，你能买到约 ' +
+              am.live_area_sqm + " ㎡ 套内，比你要的 " + am.target_area_sqm +
+              " ㎡ 还大；只想要 " + am.target_area_sqm + " ㎡ 的话，总价大约 " +
+              am.need_total_wan + " 万。</div>";
+          })() +
           (a ? anchorChips(a, b) : "") +
           '<div class="m-actions">' +
           '<button class="m-btn" data-mact="compare">逐项对比</button>' +
@@ -7156,7 +7188,7 @@
         const ha = window.HousingApp || {};
         const city = ha.currentCity || null;
         const res = ha.currentResult || null;
-        const ver = ($("appBadge") && $("appBadge").textContent) || "V8.4";
+        const ver = ($("appBadge") && $("appBadge").textContent) || "V8.5";
 
         const ar = $("anchorRentYear"), al = $("anchorLoanYear"), ad = $("anchorDownStrategy");
         const planned = (ar && ar.value !== "" && al && al.value !== "")
