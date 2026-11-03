@@ -4,11 +4,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="app-version" content="V8.6">
+  <meta name="app-version" content="V8.7">
   <title>全国房产金融 WebGIS 智能决策仿真系统</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+  <!-- 🏠 V8.7 本地托管：不依赖任何外部 CDN。
+       起因：jsdelivr 的 echarts（1MB）实测 25~60 秒，loading 卡在首屏，
+       用户看到的就是白屏。vendor/ 里的三个文件跟 index.html 一起部署。 -->
+  <link rel="stylesheet" href="vendor/leaflet.css">
+  <script src="vendor/leaflet.js"></script>
+  <script src="vendor/echarts.min.js"></script>
   <style>
     /* ===== V7.6 方案对比弹窗 ===== */
     .cmp-head { display:flex; align-items:stretch; gap:12px; margin:4px 0 14px; }
@@ -2953,18 +2956,18 @@
 
   <div class="splash-screen" id="splashScreen">
     <h1 class="splash-title">全国房产金融决策仿真系统</h1>
-    <p class="splash-subtitle">V8.6 · 空间折叠引擎 ｜ 手机上的买房账本</p>
+    <p class="splash-subtitle">V8.7 · 空间折叠引擎 ｜ 手机上的买房账本</p>
     <button class="splash-btn" onclick="enterSystem()">进入全景中国地图</button>
   </div>
 
   <div id="map"></div>
-  <div id="appBadge">V8.6</div>
+  <div id="appBadge">V8.7</div>
   <div id="errBanner"></div>
   <div class="map-hint" id="mapHint">🛰️ 点省份进去 → 点城市看区县 → 点片区。也可以直接点右上角「换城市」。</div>
 
   <div class="glass-panel" id="leftPanel">
     <div class="panel-head">
-      <h2>仿真参数配置 <span class="ver-chip">V8.6</span></h2>
+      <h2>仿真参数配置 <span class="ver-chip">V8.7</span></h2>
       <button class="panel-close" onclick="hidePanel('leftPanel')" title="收起面板">✕</button>
     </div>
 
@@ -3406,7 +3409,7 @@
         const el = document.getElementById("errBanner");
         if (!el) return;
         el.style.display = "block";
-        el.textContent = "⚠️ 前端运行错误：" + msg + "（版本 V8.6，请把这条发给经纬）";
+        el.textContent = "⚠️ 前端运行错误：" + msg + "（版本 V8.7，请把这条发给经纬）";
       }
       window.addEventListener("error", function (e) {
         showErr((e.message || "未知错误") + " @ " + (e.filename || "").split("/").pop() + ":" + (e.lineno || 0));
@@ -3700,6 +3703,73 @@
       countyLayer.addTo(map);
     }
 
+    // 🏗️ V8.8 在售楼盘图层：117 个"有均价 + 有坐标"的南宁楼盘。
+    //    数据是本地保存页解析出来的，没发过网络请求。
+    let projectsLayer = null;
+    let projectsData = null;
+
+    async function loadProjects() {
+      try {
+        const res = await fetch("projects_nanning.json", { cache: "no-store" });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        projectsData = await res.json();
+        document.documentElement.dataset.projects = String((projectsData.items || []).length);
+        renderProjects();
+        // 数据是异步到的，到了要重画一次空间卡（否则楼盘 chip 永远不出现）
+        try { refreshSpatialChips(); } catch (_) { }
+      } catch (_) {
+        document.documentElement.dataset.projects = "missing";
+      }
+    }
+
+    function projectColor(price) {
+      if (price <= 6000) return "#34d399";
+      if (price <= 9000) return "#38bdf8";
+      if (price <= 13000) return "#fbbf24";
+      if (price <= 20000) return "#fb923c";
+      return "#f87171";
+    }
+
+    function renderProjects() {
+      if (!map) return;
+      if (!projectsLayer) projectsLayer = L.layerGroup();
+      projectsLayer.clearLayers();
+      if (!projectsData || !(projectsData.items || []).length) return;
+      if (!currentCity || String(currentCity.code) !== String(projectsData.city_code)) {
+        if (map.hasLayer(projectsLayer)) map.removeLayer(projectsLayer);
+        return;
+      }
+      if (map.getZoom() < 9) {                     // 省/市轮廓视图不画，太糊
+        if (map.hasLayer(projectsLayer)) map.removeLayer(projectsLayer);
+        return;
+      }
+
+      projectsData.items.forEach((p) => {
+        const lo = p.area_min || 60, hi = p.area_max || lo;
+        // 117 个点挤在 10 公里内，半径一大就糊成一团；小一点反而能看出密度
+        const r = Math.max(3, Math.min(8, 2.5 + (lo + hi) / 90));
+        const m = L.circleMarker([p.lat, p.lng], {
+          pane: "markers", radius: r,
+          color: projectColor(p.price), weight: 1.5, opacity: 0.9,
+          fillColor: projectColor(p.price), fillOpacity: 0.22
+        });
+        m.bindPopup(
+          '<div style="color:#1e293b;font-size:13px;min-width:180px;">' +
+          "<b>" + escapeHtml(p.name) + "</b><br>" +
+          '<span style="color:#0f766e;font-weight:700;">均价 ' + p.price.toLocaleString() + " 元/㎡</span><br>" +
+          "建面 " + (p.area_min || "?") + "–" + (p.area_max || "?") + " ㎡" +
+          (p.rooms ? " · " + escapeHtml(p.rooms) : "") + "<br>" +
+          escapeHtml(p.district || "") + " · " + escapeHtml(p.block || "") + "<br>" +
+          '<span style="color:#64748b;font-size:12px;">' + escapeHtml(p.address || "") + "</span>" +
+          (p.open_date ? '<br><span style="color:#64748b;font-size:12px;">开盘 ' + escapeHtml(p.open_date) + "</span>" : "") +
+          "</div>"
+        );
+        m.bindTooltip(p.name, { direction: "top", className: "region-tooltip" });
+        projectsLayer.addLayer(m);
+      });
+      projectsLayer.addTo(map);
+    }
+
     function priceColor(yuan) {
       const b = LISTING_BUCKETS.find(x => yuan <= x.max);
       return b ? b.color : "#94a3b8";
@@ -3830,6 +3900,7 @@
       sel.selectedIndex = 0;
       currentZone = regionList[0] || null;
       renderRegionMarkers();
+      setTimeout(renderProjects, 60);
       syncZoneToForm(true);
       // 📍 从「换城市」直接飞过来时，省界→市界这层从没画过，
       //    结果地图上只有虚线县界、看不出这个市的轮廓。这里补一次。
@@ -3945,6 +4016,66 @@
       refreshSpatialChips();
     }
 
+    // 🏪 V8.7 周边设施：数据来自 数据/fetch_poi.py 采的高德 POI 计数。
+    // 没采到就什么都不加——宁可少一行，不拿 0 冒充"周边很荒"。
+    let poiNearby = null;
+    let poiNearbyState = "idle";
+
+    async function loadPoiNearby() {
+      if (poiNearbyState !== "idle") return;
+      poiNearbyState = "loading";
+      try {
+        const res = await fetch("poi_nearby.json", { cache: "no-store" });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        poiNearby = await res.json();
+        poiNearbyState = "ready";
+        document.documentElement.dataset.poi = "ready";
+      } catch (_) {
+        poiNearbyState = "missing";
+        document.documentElement.dataset.poi = "missing";
+        return;
+      }
+      try { refreshSpatialChips(); } catch (_) { }
+    }
+
+    function poiChipFor(city, zone) {
+      if (!poiNearby || !city || !zone) return null;
+      const c = (poiNearby.cities || {})[String(city.code)];
+      if (!c) return null;
+      const z = (c.zones || {})[zone.name];
+      if (!z || typeof z.metro !== "number") return null;
+      const cats = poiNearby.categories || {};
+      const label = (k, emoji) => cats[k] ? emoji + z[k] : "";
+      const parts = [label("metro", "🚇"), label("school", "🏫"),
+                     label("hospital", "🏥"), label("mall", "🛍️")].filter(Boolean);
+      if (!parts.length) return null;
+      // 半径以这条数据自己的 radius_m 为准：早期按 1km 采、后来按 3km 采，
+      // 用全局配置去标会标错（数字和说法对不上，比没有数据更糟）。
+      const r = z.radius_m || (cats.metro ? cats.metro.radius : 1000);
+      return {
+        t: parts.join(" ") + " / " + (r >= 1000 ? (r / 1000) + "km" : r + "m"),
+        cls: "",
+        title: "周边设施（" + (z.captured_at || poiNearby.generated_at || "") + " 采集，"
+          + "以区位中心为圆心的 POI 计数，不是楼盘红线内）"
+      };
+    }
+
+    // 🏗️ 当前片区在售楼盘统计（只对南宁有数据；别的城市返回 null，不显示）
+    function projectChipFor(city, zone) {
+      if (!projectsData || !city || !zone) return null;
+      if (String(city.code) !== String(projectsData.city_code)) return null;
+      const list = (projectsData.items || []).filter((p) => p.district === zone.name);
+      if (!list.length) return null;
+      const prices = list.map((p) => p.price).sort((a, b) => a - b);
+      const mid = prices[Math.floor(prices.length / 2)];
+      return {
+        t: "🏗 " + list.length + " 个在售 · 中位 " + mid.toLocaleString() + " 元/㎡",
+        cls: "",
+        title: "本区在售楼盘（均价档 " + prices[0].toLocaleString() + "~" +
+          prices[prices.length - 1].toLocaleString() + " 元/㎡），数据来自本地保存页解析"
+      };
+    }
+
     function refreshSpatialChips() {
       const box = document.getElementById("spatialChips");
       if (!box) return;
@@ -3967,7 +4098,11 @@
         { t: `房价收入比 ${pir.toFixed(1)}`, cls: pir >= 15 ? "warn" : "" },
         { t: `收入/本地均薪 ${rel.toFixed(2)}×`, cls: rel >= 1.2 ? "ok" : "" }
       ];
-      box.innerHTML = items.map(i => `<span class="spatial-chip ${i.cls}">${escapeHtml(i.t)}</span>`).join("");
+      const proj = projectChipFor(city, zone);
+      if (proj) items.push(proj);
+      const poi = poiChipFor(city, zone);
+      if (poi) items.push(poi);
+      box.innerHTML = items.map(i => `<span class="spatial-chip ${i.cls}"${i.title ? ` title="${escapeHtml(i.title)}"` : ""}>${escapeHtml(i.t)}</span>`).join("");
     }
 
     function spatialRequestFields() {
@@ -4511,6 +4646,7 @@
         }
         // 省视图（z≥7）就该看到县界；晚一点，等 syncCityFromMap 把城市定下来
         setTimeout(syncCountyLayer, 120);
+        setTimeout(renderProjects, 150);     // 楼盘只在 z≥9 显示
 
         // 圆点 ↔ 带名字的图钉：跨过阈值时重画一次
         const wantDot = window.innerWidth <= 760 && z < 11;
@@ -4534,6 +4670,7 @@
           cityPaths: paths(currentCityLayer),
           countyOnMap: !!(countyLayer && map.hasLayer(countyLayer)),
           cityLabels: document.querySelectorAll('.map-label-city').length,
+          projectMarkers: projectsLayer ? projectsLayer.getLayers().length : 0,
           provincePaneZ: map.getPane('provincePane') ? map.getPane('provincePane').style.zIndex : null,
           cityPaneZ: map.getPane('cityPane') ? map.getPane('cityPane').style.zIndex : null
         };
@@ -6223,7 +6360,11 @@
       try {
         let nanning = FALLBACK_REGIONS;
         try {
-          const res = await fetch(`${API_HOST}/api/gis/regions`);
+          // ⏱️ 必须带超时：Render 冷启动要几十秒，这里挂住会把整个首屏
+          //    （城市下拉、?city= 预选、周边数据）一起拖死。
+          const res = await fetch(`${API_HOST}/api/gis/regions`, {
+            signal: (window.AbortSignal && AbortSignal.timeout) ? AbortSignal.timeout(3500) : undefined
+          });
           if (!res.ok) throw new Error("后端API不可用");
           const json = await res.json();
           if (json.data && json.data.length) nanning = json.data;
@@ -6265,15 +6406,17 @@
           const src = document.documentElement.dataset.citySource === "db" ? "库" : "内置";
           document.documentElement.dataset.citySourceLabel = src;
           const badge = document.getElementById("appBadge");
-          if (badge) badge.textContent = `V8.6 · ${src}`;
+          if (badge) badge.textContent = `V8.7 · ${src}`;
           const chip = document.querySelector(".ver-chip");
-          if (chip) chip.textContent = `V8.6 · ${src}`;
+          if (chip) chip.textContent = `V8.7 · ${src}`;
         })();
 
         const nn = CITY_DB.find(c => c.code === "450100");
         if (nn) nn.zones = nanning;
 
         buildCitySelect();
+        loadPoiNearby();
+        loadProjects();
         // 🚩 默认全国视角，不自动跳南宁；?city=450100 或 ?city=南宁 可直达
         const cityParam = new URLSearchParams(location.search).get("city");
         const preset = cityParam
@@ -7332,7 +7475,7 @@
         }
 
         const localNote = json.__local
-          ? '<div class="m-note" style="color:#94a3b8;">（这批结果是本地按同一套规则算的：后端还没升级到 V8.6，部署后会自动改为后端计算。）</div>'
+          ? '<div class="m-note" style="color:#94a3b8;">（这批结果是本地按同一套规则算的：后端还没升级到 V8.7，部署后会自动改为后端计算。）</div>'
           : "";
 
         if (list.length) {
@@ -7498,7 +7641,7 @@
         const ha = window.HousingApp || {};
         const city = ha.currentCity || null;
         const res = ha.currentResult || null;
-        const ver = ($("appBadge") && $("appBadge").textContent) || "V8.6";
+        const ver = ($("appBadge") && $("appBadge").textContent) || "V8.7";
 
         const ar = $("anchorRentYear"), al = $("anchorLoanYear"), ad = $("anchorDownStrategy");
         const planned = (ar && ar.value !== "" && al && al.value !== "")

@@ -1,0 +1,88 @@
+{
+ "schema_version": 1,
+ "generated_at": "2026-11-02T18:20:40+0800",
+ "source": "高德开放平台 Web服务 API（place/around，关键词计数）",
+ "note": "只保留南宁八区：其余 41 城的『片区』坐标不是区县中心，而是城市中心加固定偏移（+2.5km / +8km / +16km 东北向），在那种点上采 POI 没有意义。等用高德行政区划接口拿到真实区县中心后，再整城重采。",
+ "categories": {
+  "metro": {
+   "label": "地铁站",
+   "radius": 3000
+  },
+  "school": {
+   "label": "小学",
+   "radius": 3000
+  },
+  "hospital": {
+   "label": "医院",
+   "radius": 3000
+  },
+  "mall": {
+   "label": "购物中心",
+   "radius": 3000
+  }
+ },
+ "cities": {
+  "450100": {
+   "city_name": "南宁",
+   "zones": {
+    "青秀区": {
+     "metro": 14,
+     "school": 14,
+     "hospital": 12,
+     "mall": 10,
+     "radius_m": 3000
+    },
+    "西乡塘区": {
+     "metro": 8,
+     "school": 22,
+     "hospital": 28,
+     "mall": 20,
+     "radius_m": 3000
+    },
+    "江南区": {
+     "metro": 9,
+     "school": 28,
+     "hospital": 25,
+     "mall": 8,
+     "radius_m": 3000
+    },
+    "兴宁区": {
+     "metro": 9,
+     "school": 18,
+     "hospital": 62,
+     "mall": 11,
+     "radius_m": 3000
+    },
+    "良庆区": {
+     "metro": 7,
+     "school": 11,
+     "hospital": 9,
+     "mall": 5,
+     "radius_m": 3000
+    },
+    "邕宁区": {
+     "metro": 2,
+     "school": 15,
+     "hospital": 19,
+     "mall": 5,
+     "radius_m": 3000
+    },
+    "武鸣区": {
+     "metro": 0,
+     "school": 12,
+     "hospital": 11,
+     "mall": 12,
+     "radius_m": 3000
+    },
+    "五象新区": {
+     "metro": 5,
+     "school": 10,
+     "hospital": 7,
+     "mall": 9,
+     "radius_m": 3000
+    }
+   }
+  }
+ },
+ "radius_note": "南宁八区按 3km 半径采集（片区级生活圈）；房源级以后用 1km"
+}
