@@ -3427,7 +3427,7 @@
         const saved = localStorage.getItem("housing_api_host");
         if (saved) return saved.replace(/\/$/, "");
       } catch (_) { }
-      return "https://housing-api-aexa.onrender.com";
+      return "https://housing-api2.onrender.com";
     })();
     const DEFAULT_FORM = {
       "houseTotalWan": 100, "initialSavingsWan": 40, "downRatio": 30,
@@ -7514,7 +7514,7 @@
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(p),
-            signal: (window.AbortSignal && AbortSignal.timeout) ? AbortSignal.timeout(9000) : undefined
+            signal: (window.AbortSignal && AbortSignal.timeout) ? AbortSignal.timeout(30000) : undefined
           });
           if (!res.ok) throw new Error("HTTP " + res.status);
           renderMatch(await res.json(), p);
@@ -7526,9 +7526,12 @@
             renderMatch(localMatch(p, rows), p);
             return;
           }
-          box.innerHTML = '<div class="m-note" style="color:#fca5a5;">房源匹配接口没通（' +
-            esc(msg) + "）。<br><span style='font-size:12px;'>" +
-            '这不是没有房子，是接口没通；等接口回来再试，这里不会拿"最接近的"冒充匹配结果。</span></div>';
+          const sleepy = /abort|timeout|timed out|failed to fetch/i.test(msg);
+          box.innerHTML = '<div class="m-note" style="color:#fcd34d;">' +
+            (sleepy ? "后端还在唤醒（Render 免费实例冷启动要 20~30 秒），再点一次「房源」就好。" :
+                      "房源匹配接口没通（" + esc(msg) + "）。") +
+            "<br><span style='font-size:12px;'>" +
+            '这里不会拿"最接近的"冒充匹配结果。</span></div>';
         }
       }
 
