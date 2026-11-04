@@ -4,9 +4,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="app-version" content="V8.11.0">
+  <meta name="app-version" content="V8.11.1">
   <title>全国房产金融 WebGIS 智能决策仿真系统</title>
-  <!-- 🏠 V8.11.0 本地托管：不依赖任何外部 CDN。
+  <!-- 🏠 V8.11.1 本地托管：不依赖任何外部 CDN。
        起因：jsdelivr 的 echarts（1MB）实测 25~60 秒，loading 卡在首屏，
        用户看到的就是白屏。vendor/ 里的三个文件跟 index.html 一起部署。 -->
   <link rel="stylesheet" href="vendor/leaflet.css">
@@ -324,6 +324,16 @@
       background: rgba(2,6,23,.35); pointer-events: none;
     }
     #matchOverlay.on { display: flex; }
+    /* V8.11 收起 = 折叠成一条，地图可继续操作（不弹回结果页） */
+    #matchOverlay.collapsed { background: transparent; }
+    #matchOverlay.collapsed #matchPanel {
+      pointer-events: auto;
+      max-height: none;
+      padding-bottom: 10px;
+    }
+    #matchPanel.collapsed .mp-grid,
+    #matchPanel.collapsed .mp-more,
+    #matchPanel.collapsed .mp-prefs { display: none !important; }
     #matchPanel {
       pointer-events: auto;
       width: 100%; max-height: 46vh; overflow: auto;
@@ -3147,18 +3157,18 @@
 
   <div class="splash-screen" id="splashScreen">
     <h1 class="splash-title">全国房产金融决策仿真系统</h1>
-    <p class="splash-subtitle">V8.11.0 · 把 30 年的账算给你看 ｜ 手机上的买房账本</p>
+    <p class="splash-subtitle">V8.11.1 · 把 30 年的账算给你看 ｜ 手机上的买房账本</p>
     <button class="splash-btn" onclick="enterSystem()">进入全景中国地图</button>
   </div>
 
   <div id="map"></div>
-  <div id="appBadge">V8.11.0</div>
+  <div id="appBadge">V8.11.1</div>
   <div id="errBanner"></div>
   <div class="map-hint" id="mapHint">🛰️ 点省份进去 → 点城市看区县 → 点片区。也可以直接点右上角「换城市」。</div>
 
   <div class="glass-panel" id="leftPanel">
     <div class="panel-head">
-      <h2>仿真参数配置 <span class="ver-chip">V8.11.0</span></h2>
+      <h2>仿真参数配置 <span class="ver-chip">V8.11.1</span></h2>
       <button class="panel-close" onclick="hidePanel('leftPanel')" title="收起面板">✕</button>
     </div>
 
@@ -3611,7 +3621,7 @@
         const el = document.getElementById("errBanner");
         if (!el) return;
         el.style.display = "block";
-        el.textContent = "⚠️ 前端运行错误：" + msg + "（版本 V8.11.0，请把这条发给经纬）";
+        el.textContent = "⚠️ 前端运行错误：" + msg + "（版本 V8.11.1，请把这条发给经纬）";
       }
       window.addEventListener("error", function (e) {
         showErr((e.message || "未知错误") + " @ " + (e.filename || "").split("/").pop() + ":" + (e.lineno || 0));
@@ -3966,7 +3976,7 @@
       countyLayer.addTo(map);
     }
 
-    // 🏗️ V8.11.0 在售楼盘图层：314 个"有均价 + 有坐标"的南宁楼盘（豆包补全 600 个坐标，只画有均价的）。
+    // 🏗️ V8.11.1 在售楼盘图层：314 个"有均价 + 有坐标"的南宁楼盘（豆包补全 600 个坐标，只画有均价的）。
     //    数据是本地保存页解析出来的，没发过网络请求。
     let projectsLayer = null;
     let projectsData = null;
@@ -4343,7 +4353,7 @@
       refreshSpatialChips();
     }
 
-    // 🏪 V8.11.0 周边设施：数据来自 数据/fetch_poi.py 采的高德 POI 计数。
+    // 🏪 V8.11.1 周边设施：数据来自 数据/fetch_poi.py 采的高德 POI 计数。
     // 没采到就什么都不加——宁可少一行，不拿 0 冒充"周边很荒"。
     let poiNearby = null;
     let poiNearbyState = "idle";
@@ -4710,7 +4720,7 @@
         </div>
         <div class="spatial-note">
           套内约 <b>${sp.live_area_sqm != null ? sp.live_area_sqm : "--"} ㎡</b>（公摊 ${sp.public_share_pct != null ? sp.public_share_pct : "--"}%，房产证按建面计价，公摊也付钱）。
-          ${escapeHtml(sp.area_note)}。通勤省时：租房期 ${sp.commute.rent_score} 分 / 买房后 ${sp.commute.own_score} 分；通勤时间成本 ${formatNum(sp.commute.time_cost_month_rent, 0)} → ${formatNum(sp.commute.time_cost_month, 0)} 元/月，交通费 ${formatNum(sp.commute.transport_month.rent, 0)} → ${formatNum(sp.commute.transport_month.own, 0)} 元/月。
+          ${escapeHtml(sp.area_note)}。通勤分：租房期 ${sp.commute.rent_score} 分 / 买房后 ${sp.commute.own_score} 分（只作参考，不进方案综合分——通勤是"哪套房"的属性，不是"租几年/贷几年"的属性）；通勤时间成本 ${formatNum(sp.commute.time_cost_month_rent, 0)} → ${formatNum(sp.commute.time_cost_month, 0)} 元/月，交通费 ${formatNum(sp.commute.transport_month.rent, 0)} → ${formatNum(sp.commute.transport_month.own, 0)} 元/月。
           ${sp.commute.peak_applied ? `<br><span class="peak-badge">🚦 ${escapeHtml(sp.commute.peak_note)}：平峰 ${sp.commute.own_min_raw} 分钟 → 高峰约 ${sp.commute.own_min} 分钟。</span>` : ""}
           ${realAsset !== null ? `30 年后名义资产 ${formatNum(nominal, 2)} 万，按今日物价只值 <b>${formatNum(realAsset, 2)} 万</b>。` : ""}
         </div>
@@ -5279,7 +5289,7 @@
         ["down_strategy", "首付策略"], ["down_payment_wan", "首付(万)"],
         ["liquid_asset_end_wan", "期末资产(万)"], ["real_asset_wan", "今日购买力(万)"], ["buffer_months", "现金缓冲(月)"], ["adapt_score", "稳健分"],
         ["comfort_score", "舒适度"], ["surplus_happiness", "幸福感"],
-        ["time_efficiency", "通勤省时"], ["suitability_score", "合适度"],
+        ["time_efficiency", "时间效率"], ["suitability_score", "合适度"],
         ["comprehensive_score", "综合得分"]
       ];
       const hasRentLevel = dataList[0].rent_level !== undefined;
@@ -5485,7 +5495,7 @@
 
     function scoreStrip(sysItem, userItem) {
       const dims = [
-        { key: "time_efficiency", label: "通勤省时", digits: 1 },
+        { key: "time_efficiency", label: "时间效率", digits: 1 },
         { key: "comfort_score", label: "住得舒服", digits: 1 },
         { key: "adapt_score", label: "抗风险", digits: 1 },
         { key: "surplus_happiness", label: "每月剩多少", digits: 1 },
@@ -5767,7 +5777,7 @@
           ["抗风险", sysItem.adapt_score, userItem.adapt_score, 1, "", 1],
           ["住得舒服", sysItem.comfort_score, userItem.comfort_score, 1, "", 1],
           ["每月剩多少", sysItem.surplus_happiness, userItem.surplus_happiness, 1, "", 1],
-          ["通勤省时", sysItem.time_efficiency, userItem.time_efficiency, 1, "", 1],
+          ["时间效率", sysItem.time_efficiency, userItem.time_efficiency, 1, "", 1],
           ["综合得分", sysItem.comprehensive_score, userItem.comprehensive_score, 1, "", 2],
         ]],
       ];
@@ -5828,7 +5838,10 @@
       if (anchorItem) { openCompareModal(currentResult); return; }
 
       const regionName = document.getElementById("regionSel").value || "目标片区";
-      const houseTotalWan = nv("houseTotalWan");
+      // 💡 V8.11：文本里的"总价"要用**算出来的**那个，不是输入框里那个。
+      // 只填"想住 90㎡"、总价填 0 时，输入框是 0，真实总价是后端按面积×单价算的。
+      const houseTotalWan = (item && Number(item.purchase_price_wan) > 0)
+        ? Number(item.purchase_price_wan) : nv("houseTotalWan");
       const monthIncomeNet = nv("monthIncomeNet");
       const monthExp = nv("monthExp");
       const propertyFee = nv("propertyFee");
@@ -5910,7 +5923,7 @@
           <div><div style="font-size:18px;font-weight:800;color:#38bdf8;">${fmt(item.adapt_score, 1)}</div><div style="font-size:11px;color:#94a3b8;">抗风险稳健</div></div>
           <div><div style="font-size:18px;font-weight:800;color:#f59e0b;">${fmt(item.comfort_score, 1)}</div><div style="font-size:11px;color:#94a3b8;">居住舒适</div></div>
           <div><div style="font-size:18px;font-weight:800;color:#8b5cf6;">${fmt(item.surplus_happiness, 1)}</div><div style="font-size:11px;color:#94a3b8;">结余幸福</div></div>
-          <div><div style="font-size:18px;font-weight:800;color:#0ea5e9;">${fmt(item.time_efficiency, 1)}</div><div style="font-size:11px;color:#94a3b8;">通勤省时</div></div>
+          <div><div style="font-size:18px;font-weight:800;color:#0ea5e9;">${fmt(item.time_efficiency, 1)}</div><div style="font-size:11px;color:#94a3b8;">时间效率</div></div>
           <div><div style="font-size:18px;font-weight:800;color:#ec4899;">${fmt(item.suitability_score, 1)}</div><div style="font-size:11px;color:#94a3b8;">综合合适度</div></div>
           <div><div style="font-size:18px;font-weight:800;color:#10b981;">${fmt(item.comprehensive_score, 1)}</div><div style="font-size:11px;color:#94a3b8;">综合得分</div></div>
         </div>
@@ -5978,7 +5991,10 @@
       const cBlue = 'color:#60a5fa;font-weight:700;';  // 中性数据
 
       const regionName = document.getElementById("regionSel").value || "目标片区";
-      const houseTotalWan = nv("houseTotalWan");
+      // 💡 V8.11：同上——报告里的"总价/房价收入比"必须用方案里算出来的购房总价，
+      // 不能用输入框（用户只填面积时，输入框的 0 会让整段文字自相矛盾）。
+      const houseTotalWan = (topItem && Number(topItem.purchase_price_wan) > 0)
+        ? Number(topItem.purchase_price_wan) : nv("houseTotalWan");
       const monthIncomeNet = nv("monthIncomeNet");
       const monthExp = nv("monthExp");
       const propertyFee = nv("propertyFee");
@@ -6101,7 +6117,7 @@
         ? `高达 <span style="${cGreen}">${asset} 万元</span> 的流动现金${realAssetText}`
         : `<span style="${cBlue}">${asset} 万元</span> 的流动现金${realAssetText}`;
 
-      // 5. 通勤省时动态评价
+      // 5. 时间效率动态评价
       const timeText = time >= 80
         ? `高达 <span style="${cGreen}">${time} 分</span>`
         : `<span style="${cBlue}">${time} 分</span>`;
@@ -6245,7 +6261,7 @@
         <strong>1. 极客的算盘：</strong>房屋总价 ${houseTotalWan} 万，你选择了 ${loanYears} 年的贷款期限，产生了${interestPhrase}。这看似是一笔沉重的买路钱，但它是你撬动未来资产的支点。<br>
         <strong>2. 极致的资产冲刺：</strong>30 年后，当你彻底卸下债务，手里将握着 ${assetText}，那是资本为你疯狂打工的最强核武器。<br>
         <strong>3. 现金流的代价：</strong>想要在30年后拥有惊人的财富，就必须在当下承受压力。你的真实月供为 <span style="${cBlue}">${formatNum(actualNetMortgage, 0)} 元</span>，红线上方仅剩 <span style="${redlineMargin > 0 ? cGreen : cRed}">${formatNum(redlineMargin, 0)} 元</span> 的缓冲。${expenseHtml}。<br>
-        <strong>4. 战略性的蛰伏：</strong>${triggerRentShort} 这种用时间换取空间的战术，让通勤省时得分达到了 ${timeText}。
+        <strong>4. 战略性的蛰伏：</strong>${triggerRentShort} 先用租房把首付攒厚、再缩短贷款年限，这条路径的时间效率是 ${timeText}（租 + 贷的年数越短，分数越高）。
         
         <span class="section-title">三、 写给你的生活指南</span>
         1. <strong>做金钱的执剑人：</strong>守住你的本金！把首付投入到年化收益能跑赢房贷利率的稳健基金里，去吃市场的无风险利差。<br>
@@ -6281,7 +6297,7 @@
         <strong>1. 首付与杠杆：</strong>首付 ${downPaymentWan.toFixed(1)} 万，贷 ${loanPrincipalWan.toFixed(1)} 万。${triggerLoanShort} 期间你需要承担${interestPhrase}。<br>
         <strong>2. 收工时间表：</strong>租房 ${rentYears} 年 + 还贷 ${loanYears} 年 = ${rentYears + loanYears} 年。之后那 ${Math.max(0, 30 - (rentYears + loanYears))} 年，你的工资不再有月供这个出口。<br>
         <strong>3. 及格线以上的人生：</strong>${expenseHtml}。每月结余 <span style="${cBlue}">${formatNum(remainingCash, 0)} 元</span>，${surplusHtml}。<br>
-        <strong>4. 通勤的兑现：</strong>你每天花在路上的时间，折成通勤省时是 ${timeText}。省下来的不是利息，是"还没老就先自由"的那段时间；30 年后你手上还有 ${assetText}。
+        <strong>4. 早点还完的价值：</strong>这套组合租 ${rentYears} 年、贷 ${loanYears} 年，时间效率 ${timeText}——离"没有月供"还有 ${rentYears + loanYears} 年。省下来的不是利息，是"还没老就先自由"的那段时间；30 年后你手上还有 ${assetText}。
 
         <span class="section-title">三、 写给你的生活指南</span>
         1. <strong>把"收工年"标在日历上：</strong>${rentYears + loanYears} 年后你不再有月供。从今天起，所有关于换工作、换城市的决定，都可以按"那时候我已经没有债"来规划。<br>
@@ -6297,7 +6313,7 @@
         
         <span class="section-title">二、 锋芒毕露的数据解剖</span>
         <strong>1. 雷霆万钧的杠杆：</strong>总价 ${houseTotalWan} 万，贷款 ${loanPrincipalWan.toFixed(1)} 万。你几乎没有犹豫，极短的租房期后直接拿下红本。<br>
-        <strong>2. 效率就是生命：</strong>通勤省时达到 ${timeText}，你像是一个精算师，将付给银行的利息锁定在 <span style="${totalInterestWan > 50 ? cRed : cBlue}">${totalInterestWan.toFixed(1)} 万元</span>。<br>
+        <strong>2. 效率就是生命：</strong>时间效率达到 ${timeText}，你像是一个精算师，将付给银行的利息锁定在 <span style="${totalInterestWan > 50 ? cRed : cBlue}">${totalInterestWan.toFixed(1)} 万元</span>。<br>
         <strong>3. 战斗状态的面板：</strong>家庭月支出占比达到了 <span style="${cRed}">${expenseRatio}%</span>，${expenseHtml}。你想赢，就必须承受这份张力。<br>
         <strong>4. 金钱的嘉奖：</strong>30 年后你将手握 ${assetText}。在通胀时代，快鱼吃慢鱼。这套方案强制你保持极高的职场竞争力，不接受任何懈怠。
         
@@ -6353,7 +6369,7 @@
         <span class="section-title">四、 城市与通勤：你在哪座城市，买的是哪种人生</span>
         这套方案落在 <b>${escapeHtml(sp.city_name)} · ${escapeHtml(sp.tier_label)}</b>，${escapeHtml(sp.family_label)}。按片区 ${formatNum(sp.district_price_sqm, 0)} 元/㎡ 折算，${houseTotalWan} 万只能买到 <b>${sp.own_area_sqm} ㎡</b>，人均 <b>${sp.area_per_person} ㎡</b>。${areaVerdict}<br>
         你的税后收入，是本地平均薪资（${formatNum(sp.city_avg_salary, 0)} 元/月）的 <b>${sp.rel_income} 倍</b>。这个倍数决定了你在这座城市里，到底是“被平均”，还是“有余裕”。${cityVerdict}<br>
-        ${commuteVerdict} 按当地时薪折算，买房后每天往返 ${sp.commute.own_min * 2} 分钟（单程 ${sp.commute.own_min} 分钟），每月相当于隐性支付 <b>${formatNum(sp.commute.time_cost_month, 0)} 元</b>——它不会出现在工资条上，但它真实地吃掉你的人生。通勤折现后，你的通勤省时是 <b>${time} 分</b>（租房期 ${sp.commute.rent_score} 分 / 买房后 ${sp.commute.own_score} 分）。<br>
+        ${commuteVerdict} 按当地时薪折算，买房后每天往返 ${sp.commute.own_min * 2} 分钟（单程 ${sp.commute.own_min} 分钟），每月相当于隐性支付 <b>${formatNum(sp.commute.time_cost_month, 0)} 元</b>——它不会出现在工资条上，但它真实地吃掉你的人生。通勤分是 <b>${sp.commute.own_score} 分</b>（租房期 ${sp.commute.rent_score} 分 / 买房后 ${sp.commute.own_score} 分）——它只作参考，不进"时间效率"（那个算的是租 + 贷要多少年）。<br>
         最后是那个最容易被忽略的真相：30 年后你手里的 ${asset} 万，是名义资产；按 30 年通胀系数 ${sp.inflation_factor_30y}× 折算，按今天物价只剩 <b>${realAssetWan !== null ? formatNum(realAssetWan, 2) : "--"} 万元</b>。这正是我们反复拒绝“画大饼”的原因——数字会膨胀，人生不会。
         ${(res.market && res.market.house_price_growth_pct > 0 && topItem.purchase_price_wan)
             ? `<br>房价按每年 <b>${res.market.house_price_growth_pct}%</b> 增长：你在租 ${rentYears} 年后买入时，总价已变成 <b>${formatNum(topItem.purchase_price_wan, 1)} 万</b>，首付与贷款都按这个价格重算。`
@@ -6447,7 +6463,7 @@
       { key: "adapt_score", label: "抗风险", dec: 2, barMax: 100, color: "rgba(16,185,129,0.3)" },
       { key: "comfort_score", label: "住得舒服", dec: 2, barMax: 100, color: "rgba(245,158,11,0.3)" },
       { key: "surplus_happiness", label: "手里有余钱", dec: 2, barMax: 100, color: "rgba(139,92,246,0.3)" },
-      { key: "time_efficiency", label: "通勤省时间", dec: 2, barMax: 100, color: "rgba(14,165,233,0.3)" },
+      { key: "time_efficiency", label: "时间效率", dec: 2, barMax: 100, color: "rgba(14,165,233,0.3)" },
       { key: "suitability_score", label: "合不合适", dec: 2, barMax: 100, color: "rgba(236,72,153,0.3)" },
       { key: "comprehensive_score", label: "综合得分", dec: 2, barMax: 100, color: "rgba(37,99,235,0.4)" },
     ];
@@ -6648,7 +6664,7 @@
         const opt = {
           animation: false,
           title: { text: `榜首方案能力雷达图`, left: 'center', textStyle: { fontSize: 13, color: '#f8fafc' } },
-          radar: { indicator: [{ name: '资产积累', max: 100 }, { name: '抗风险', max: 100 }, { name: '居住舒适', max: 100 }, { name: '结余幸福', max: 100 }, { name: '通勤省时', max: 100 }], radius: '62%', splitArea: { areaStyle: { color: ['rgba(30,41,59,0.5)', 'rgba(15,23,42,0.5)'] } }, axisLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } }, splitLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } } },
+          radar: { indicator: [{ name: '资产积累', max: 100 }, { name: '抗风险', max: 100 }, { name: '居住舒适', max: 100 }, { name: '结余幸福', max: 100 }, { name: '时间效率', max: 100 }], radius: '62%', splitArea: { areaStyle: { color: ['rgba(30,41,59,0.5)', 'rgba(15,23,42,0.5)'] } }, axisLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } }, splitLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } } },
           series: [{ type: 'radar', data: [{ value: dataArr, name: '方案能力', areaStyle: { color: 'rgba(37, 99, 235, 0.35)' }, lineStyle: { color: '#3b82f6', width: 2 }, itemStyle: { color: '#3b82f6' } }] }]
         };
         chart.setOption(opt, true);
@@ -6680,7 +6696,7 @@
         : `利息上你其实没占到便宜：你的方案 <b>${a.total_interest_wan} 万</b>，反而比推荐方案多 ${Math.abs(d.interest_wan)} 万，因为首付留得多、贷款本金反而更大。`;
       const assetLine = d.asset_wan > 0
         ? `把 30 年拉通看，家底（现金＋房子）${a.net_worth_end_wan} 万 对 ${b.net_worth_end_wan} 万，你少 ${Math.abs(d.asset_wan)} 万（按今天物价算少 ${Math.abs(d.real_asset_wan)} 万）。`
-        : `把 30 年拉通看，家底你是 ${a.net_worth_end_wan} 万、推荐方案 ${b.net_worth_end_wan} 万——<b>单看钱，你的方案反而多 ${Math.abs(d.asset_wan)} 万</b>。它排名靠前，是因为“综合最优”不是“资产最多”：五维加权里还算了住得舒服、通勤省时、每月剩多少，不只看家底。`;
+        : `把 30 年拉通看，家底你是 ${a.net_worth_end_wan} 万、推荐方案 ${b.net_worth_end_wan} 万——<b>单看钱，你的方案反而多 ${Math.abs(d.asset_wan)} 万</b>。它排名靠前，是因为“综合最优”不是“资产最多”：五维加权里还算了住得舒服、时间效率、每月剩多少，不只看家底。`;
       const costLine = b.buffer_months + 1 < a.buffer_months
         ? `但推荐方案不是白拿的：它把首付掏到 ${b.down_payment_wan} 万，手上现金只够撑 <b>${b.buffer_months} 个月</b>；你的方案留了 ${a.buffer_months} 个月。这就是它的代价。`
         : `推荐方案的现金缓冲是 ${b.buffer_months} 个月，你的方案是 ${a.buffer_months} 个月，承压能力差不多。`;
@@ -6915,7 +6931,7 @@
     function renderEntropy(ew) {
       // 熵权细节不再对外展示（V7.7）：保留函数以免旧调用点报错，但直接返回
       if (!document.getElementById("entropyCard")) return;
-      const labels = { asset: "期末资产", adapt: "抗风险", comfort: "舒适度", happiness: "幸福感", time: "通勤省时" };
+      const labels = { asset: "期末资产", adapt: "抗风险", comfort: "舒适度", happiness: "幸福感", time: "时间效率" };
       let html = `<div style="font-weight:600;color:#60a5fa;margin-bottom:12px;font-size:13px;">熵权法自动计算出的五维指标权重</div><div class="ew-grid">`;
       Object.keys(labels).forEach(k => {
         let w = typeof ew[`weight_${k}`] !== "undefined" ? ew[`weight_${k}`] : 0;
@@ -7002,9 +7018,9 @@
           const src = document.documentElement.dataset.citySource === "db" ? "库" : "内置";
           document.documentElement.dataset.citySourceLabel = src;
           const badge = document.getElementById("appBadge");
-          if (badge) badge.textContent = `V8.11.0 · ${src}`;
+          if (badge) badge.textContent = `V8.11.1 · ${src}`;
           const chip = document.querySelector(".ver-chip");
-          if (chip) chip.textContent = `V8.11.0 · ${src}`;
+          if (chip) chip.textContent = `V8.11.1 · ${src}`;
         })();
 
         const nn = CITY_DB.find(c => c.code === "450100");
@@ -7794,7 +7810,7 @@
 
       /* ---------- 结论卡 ---------- */
       const DIMS = [
-        ["通勤省时", "time_efficiency"],
+        ["时间效率", "time_efficiency"],
         ["居住舒适", "comfort_score"],
         ["抗风险", "adapt_score"],
         ["结余幸福", "surplus_happiness"],
@@ -8104,7 +8120,7 @@
         }
 
         const localNote = json.__local
-          ? '<div class="m-note" style="color:#94a3b8;">（这批结果是本地按同一套规则算的：后端还没升级到 V8.11.0，部署后会自动改为后端计算。）</div>'
+          ? '<div class="m-note" style="color:#94a3b8;">（这批结果是本地按同一套规则算的：后端还没升级到 V8.11.1，部署后会自动改为后端计算。）</div>'
           : "";
 
         if (list.length) {
@@ -8177,18 +8193,24 @@
           '<div id="matchPanel">' +
           '<div class="mp-head"><div><h3>🔎 推荐房源匹配</h3>' +
           '<div class="mp-sub" id="mpSub">按你算出来的条件，在真实房源里挑</div>' +
-          '<div style="display:flex;gap:8px;margin:6px 0 10px;">' +
+          '<div class="mp-prefs" style="display:flex;gap:8px;margin:6px 0 10px;">' +
           Object.keys(AMENITY_PREFS).map((k, idx) =>
             '<button type="button" class="pref-chip' + (idx === 0 ? " on" : "") + '" data-pref="' + k + '">' +
             AMENITY_PREFS[k].label + "</button>").join("") +
           "</div></div>" +
-          '<button class="mp-close" id="mpClose" type="button">收起 ↩</button></div>' +
+          '<div style="display:flex;gap:6px;flex:0 0 auto;">' +
+          '<button class="mp-close" id="mpCollapse" type="button">收起 ↩</button>' +
+          '<button class="mp-close" id="mpClose" type="button" title="关闭匹配，回到结果分析">✕</button>' +
+          "</div></div>" +
           '<div class="mp-grid" id="mpGrid"></div>' +
           '<button class="mp-more" id="mpMore" type="button" style="display:none;"></button>' +
           "</div>";
         document.body.appendChild(ov);
         ov.addEventListener("click", (e) => { if (e.target === ov) closeMatchPanel(); });
         ov.querySelector("#mpClose").onclick = closeMatchPanel;
+        // 「收起」= 把面板折叠成一条，地图留在原地（这就是用户要的"看看这个地方长啥样"），
+        // 不是回到结果分析。再点一次展开。
+        ov.querySelector("#mpCollapse").onclick = () => setMatchCollapsed(!mpCollapsed);
         ov.querySelectorAll("[data-pref]").forEach((b) => {
           b.onclick = () => {
             currentPref = b.getAttribute("data-pref");
@@ -8201,6 +8223,22 @@
           panelShown = panelRows.length;
           paintMatchPanel();
         };
+      }
+
+      /* 收起/展开：折叠只动"列表"，不动视图。
+         折叠后 overlay 背景透明、点击穿透，地图可以继续拖、继续放大——
+         用户点完一套房想看清这块地方，不该被弹回结果页。 */
+      let mpCollapsed = false;
+      function setMatchCollapsed(on) {
+        mpCollapsed = !!on;
+        const ov = document.getElementById("matchOverlay");
+        const panel = document.getElementById("matchPanel");
+        const btn = document.getElementById("mpCollapse");
+        if (ov) ov.classList.toggle("collapsed", mpCollapsed);
+        if (panel) panel.classList.toggle("collapsed", mpCollapsed);
+        if (btn) btn.textContent = mpCollapsed ? "展开 ⇣" : "收起 ↩";
+        const sub = document.getElementById("mpSub");
+        if (sub && mpCollapsed) sub.dataset.keep = sub.textContent;
       }
 
       function closeMatchPanel() {
@@ -8366,6 +8404,7 @@
         ensureOverlay();
         const ov = document.getElementById("matchOverlay");
         ov.classList.add("on");
+        setMatchCollapsed(false);          // 每次重新打开都展开
         if (window.__setView) window.__setView("match");
         panelShown = 7;
 
@@ -8511,7 +8550,7 @@
         const ha = window.HousingApp || {};
         const city = ha.currentCity || null;
         const res = ha.currentResult || null;
-        const ver = ($("appBadge") && $("appBadge").textContent) || "V8.11.0";
+        const ver = ($("appBadge") && $("appBadge").textContent) || "V8.11.1";
 
         const ar = $("anchorRentYear"), al = $("anchorLoanYear"), ad = $("anchorDownStrategy");
         const planned = (ar && ar.value !== "" && al && al.value !== "")
