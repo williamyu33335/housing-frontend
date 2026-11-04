@@ -1,0 +1,279 @@
+{
+ "schema_version": 1,
+ "city_code": "450100",
+ "generated_at": "2026-11-04T20:41:04+0800",
+ "source": "高德 POI place/around（以各区中心为圆心，直线距离）",
+ "note": "near 是最近一个的直线距离（米），不是步行距离；n 是半径内的总数",
+ "categories": {
+  "metro": {
+   "label": "地铁站",
+   "radius": 3000
+  },
+  "school": {
+   "label": "小学",
+   "radius": 3000
+  },
+  "hospital": {
+   "label": "医院",
+   "radius": 3000
+  },
+  "mall": {
+   "label": "购物中心",
+   "radius": 3000
+  },
+  "park": {
+   "label": "公园",
+   "radius": 3000
+  },
+  "market": {
+   "label": "菜市场",
+   "radius": 2000
+  },
+  "food": {
+   "label": "美食街",
+   "radius": 2000
+  }
+ },
+ "districts": {
+  "青秀区": {
+   "metro": {
+    "near": 1202,
+    "n": 14
+   },
+   "school": {
+    "near": 1335,
+    "n": 14
+   },
+   "hospital": {
+    "near": 1507,
+    "n": 12
+   },
+   "mall": {
+    "near": 1758,
+    "n": 10
+   },
+   "park": {
+    "near": 262,
+    "n": 24
+   },
+   "market": {
+    "near": 1321,
+    "n": 22
+   },
+   "food": {
+    "near": 1303,
+    "n": 7
+   }
+  },
+  "西乡塘区": {
+   "metro": {
+    "near": 728,
+    "n": 8
+   },
+   "school": {
+    "near": 273,
+    "n": 22
+   },
+   "hospital": {
+    "near": 1005,
+    "n": 28
+   },
+   "mall": {
+    "near": 293,
+    "n": 20
+   },
+   "park": {
+    "near": 371,
+    "n": 17
+   },
+   "market": {
+    "near": 186,
+    "n": 71
+   },
+   "food": {
+    "near": 459,
+    "n": 44
+   }
+  },
+  "江南区": {
+   "metro": {
+    "near": 861,
+    "n": 9
+   },
+   "school": {
+    "near": 946,
+    "n": 28
+   },
+   "hospital": {
+    "near": 518,
+    "n": 25
+   },
+   "mall": {
+    "near": 984,
+    "n": 8
+   },
+   "park": {
+    "near": 411,
+    "n": 29
+   },
+   "market": {
+    "near": 442,
+    "n": 164
+   },
+   "food": {
+    "near": 932,
+    "n": 27
+   }
+  },
+  "兴宁区": {
+   "metro": {
+    "near": 242,
+    "n": 9
+   },
+   "school": {
+    "near": 497,
+    "n": 18
+   },
+   "hospital": {
+    "near": 662,
+    "n": 63
+   },
+   "mall": {
+    "near": 183,
+    "n": 11
+   },
+   "park": {
+    "near": 686,
+    "n": 42
+   },
+   "market": {
+    "near": 113,
+    "n": 120
+   },
+   "food": {
+    "near": 217,
+    "n": 30
+   }
+  },
+  "良庆区": {
+   "metro": {
+    "near": 2055,
+    "n": 7
+   },
+   "school": {
+    "near": 1412,
+    "n": 11
+   },
+   "hospital": {
+    "near": 1670,
+    "n": 9
+   },
+   "mall": {
+    "near": 1645,
+    "n": 5
+   },
+   "park": {
+    "near": 1024,
+    "n": 35
+   },
+   "market": {
+    "near": 345,
+    "n": 14
+   },
+   "food": {
+    "near": 1248,
+    "n": 2
+   }
+  },
+  "邕宁区": {
+   "metro": {
+    "near": 1527,
+    "n": 2
+   },
+   "school": {
+    "near": 693,
+    "n": 15
+   },
+   "hospital": {
+    "near": 811,
+    "n": 19
+   },
+   "mall": {
+    "near": 582,
+    "n": 5
+   },
+   "park": {
+    "near": 1382,
+    "n": 4
+   },
+   "market": {
+    "near": 518,
+    "n": 38
+   },
+   "food": {
+    "near": 266,
+    "n": 11
+   }
+  },
+  "武鸣区": {
+   "metro": {
+    "near": null,
+    "n": 0
+   },
+   "school": {
+    "near": 430,
+    "n": 12
+   },
+   "hospital": {
+    "near": 679,
+    "n": 11
+   },
+   "mall": {
+    "near": 435,
+    "n": 12
+   },
+   "park": {
+    "near": 402,
+    "n": 6
+   },
+   "market": {
+    "near": 190,
+    "n": 47
+   },
+   "food": {
+    "near": 439,
+    "n": 38
+   }
+  },
+  "五象新区": {
+   "metro": {
+    "near": 254,
+    "n": 5
+   },
+   "school": {
+    "near": 1089,
+    "n": 10
+   },
+   "hospital": {
+    "near": 1065,
+    "n": 7
+   },
+   "mall": {
+    "near": 1131,
+    "n": 9
+   },
+   "park": {
+    "near": 294,
+    "n": 5
+   },
+   "market": {
+    "near": 594,
+    "n": 30
+   },
+   "food": {
+    "near": 870,
+    "n": 20
+   }
+  }
+ }
+}

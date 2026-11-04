@@ -4,9 +4,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="app-version" content="V8.8">
+  <meta name="app-version" content="V8.9">
   <title>全国房产金融 WebGIS 智能决策仿真系统</title>
-  <!-- 🏠 V8.8 本地托管：不依赖任何外部 CDN。
+  <!-- 🏠 V8.9 本地托管：不依赖任何外部 CDN。
        起因：jsdelivr 的 echarts（1MB）实测 25~60 秒，loading 卡在首屏，
        用户看到的就是白屏。vendor/ 里的三个文件跟 index.html 一起部署。 -->
   <link rel="stylesheet" href="vendor/leaflet.css">
@@ -215,7 +215,7 @@
     /* ========== 图层切换悬浮按钮 ========== */
     .layer-switch-btn {
       position: absolute;
-      top: 16px;
+      bottom: 22px;
       left: 50%;
       transform: translateX(-50%);
       z-index: 998;
@@ -258,7 +258,7 @@
       .layer-switch-btn {
         padding: 7px 14px;
         font-size: 12px;
-        top: 10px;
+        bottom: 78px;      /* 避开底部 Tab 条 */
       }
     }
 
@@ -279,61 +279,85 @@
     #matchEntryBtn small { font-weight: 400; font-size: 12px; opacity: .85; }
 
     /* 匹配覆盖层：独立居中，不挤压左右栏 */
+    /* 匹配面板钉在最顶端：通栏、明暖黄，不遮住下面的解析 */
     #matchOverlay {
-      position: fixed; inset: 0; z-index: 9000; display: none;
-      align-items: center; justify-content: center;
-      background: rgba(2,6,23,.74); backdrop-filter: blur(3px);
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      z-index: 9000; display: none; align-items: flex-start; justify-content: center;
+      background: rgba(2,6,23,.35); pointer-events: none;
     }
     #matchOverlay.on { display: flex; }
     #matchPanel {
-      width: min(1080px, 94vw); max-height: 88vh; overflow: auto;
-      background: #0b1220; border: 1px solid rgba(56,189,248,.35);
-      border-radius: 16px; padding: 20px 22px; box-shadow: 0 24px 60px rgba(0,0,0,.55);
+      pointer-events: auto;
+      width: 100%; max-height: 46vh; overflow: auto;
+      background: linear-gradient(180deg, #fde68a, #fcd34d);
+      border-bottom: 3px solid #f59e0b;
+      border-radius: 0 0 18px 18px;
+      padding: 14px 22px 16px;
+      box-shadow: 0 18px 44px rgba(0,0,0,.45);
+      color: #422006;
     }
-    #matchPanel h3 { margin: 0 0 4px; font-size: 18px; color: #e2e8f0; }
-    #matchPanel .mp-sub { color: #94a3b8; font-size: 13px; margin-bottom: 14px; }
+    #matchPanel h3 { margin: 0 0 2px; font-size: 18px; color: #451a03; }
+    #matchPanel .mp-sub { color: #78350f; font-size: 13px; margin-bottom: 10px; }
     #matchPanel .mp-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
     #matchPanel .mp-close {
-      cursor: pointer; border: 1px solid rgba(148,163,184,.4); background: transparent;
-      color: #cbd5e1; border-radius: 10px; padding: 6px 12px; font-size: 13px;
+      cursor: pointer; border: 1.5px solid #92400e; background: rgba(255,255,255,.45);
+      color: #451a03; border-radius: 10px; padding: 6px 14px; font-size: 13px; font-weight: 700;
     }
-    #matchPanel .mp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; }
+    #matchPanel .mp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px; }
     .mp-card {
-      background: rgba(15,23,42,.75); border: 1px solid rgba(148,163,184,.22);
-      border-radius: 12px; padding: 14px; color: #e2e8f0; font-size: 13px;
+      background: rgba(255,255,255,.72); border: 1.5px solid #f59e0b;
+      border-radius: 12px; padding: 12px; color: #422006; font-size: 13px;
+      cursor: pointer; transition: transform .12s ease, box-shadow .12s ease;
     }
-    .mp-card b { font-size: 15px; }
-    .mp-card .mp-price { color: #fbbf24; font-weight: 700; font-size: 16px; }
-    .mp-card .mp-meta { color: #94a3b8; font-size: 12px; margin: 4px 0; }
-    .mp-card .mp-poi { color: #86efac; font-size: 12px; }
+    .mp-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(146,64,14,.28); }
+    .mp-card b { font-size: 15px; color: #451a03; }
+    .mp-card .mp-price { color: #b45309; font-weight: 800; font-size: 17px; }
+    .mp-card .mp-meta { color: #7c2d12; font-size: 12px; margin: 3px 0; }
+    .mp-card .mp-poi { color: #166534; font-size: 12px; font-weight: 600; }
     .mp-card button {
-      margin-top: 10px; width: 100%; cursor: pointer; border-radius: 9px; padding: 8px;
-      background: rgba(56,189,248,.18); color: #e0f2fe;
-      border: 1px solid rgba(56,189,248,.45); font-size: 13px;
+      margin-top: 9px; width: 100%; cursor: pointer; border-radius: 9px; padding: 8px;
+      background: #fff; color: #92400e; border: 1.5px solid #d97706;
+      font-size: 13px; font-weight: 700;
     }
     .mp-more {
-      margin-top: 14px; width: 100%; cursor: pointer; border-radius: 10px; padding: 10px;
-      background: transparent; color: #93c5fd; border: 1px dashed rgba(147,197,253,.5); font-size: 13px;
+      margin-top: 12px; width: 100%; cursor: pointer; border-radius: 10px; padding: 9px;
+      background: rgba(255,255,255,.55); color: #78350f;
+      border: 1.5px dashed #b45309; font-size: 13px; font-weight: 700;
     }
+    /* 房源详情（从卡片点进来） */
+    .mp-detail { background: rgba(255,255,255,.8); border-radius: 12px; padding: 14px 16px; color: #422006; }
+    .mp-detail h4 { margin: 0 0 6px; font-size: 17px; color: #451a03; }
+    .mp-detail .d-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 8px 16px; margin: 8px 0; }
+    .mp-detail .d-item { font-size: 13px; }
+    .mp-detail .d-item span { color: #92400e; font-weight: 700; }
+    .mp-detail .d-note { font-size: 12px; color: #78350f; margin-top: 8px; }
 
     /* 楼盘图层开关 + 价格档 */
     .project-layer-ctl { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
     .proj-toggle {
-      display: flex; align-items: center; gap: 8px; cursor: pointer;
-      padding: 8px 12px; border-radius: 10px; font-size: 13px; font-weight: 600;
-      background: rgba(15,23,42,.82); color: #cbd5e1;
-      border: 1px solid rgba(148,163,184,.35); backdrop-filter: blur(6px);
+      display: flex; align-items: center; gap: 10px; cursor: pointer;
+      padding: 13px 20px; border-radius: 12px; font-size: 16px; font-weight: 800;
+      background: #1e293b; color: #e2e8f0;
+      border: 2px solid #475569; backdrop-filter: blur(6px);
+      box-shadow: 0 6px 18px rgba(0,0,0,.35);
+      letter-spacing: .5px;
     }
-    .proj-toggle.on { background: rgba(56,189,248,.22); color: #e0f2fe; border-color: #38bdf8; }
-    .proj-toggle b { font-size: 12px; opacity: .8; }
+    .proj-toggle:hover { border-color: #94a3b8; }
+    .proj-toggle.on {
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      color: #fff; border-color: #7dd3fc;
+      box-shadow: 0 8px 24px rgba(37,99,235,.45);
+    }
+    .proj-toggle b { font-size: 14px; opacity: .9; background: rgba(0,0,0,.25);
+      padding: 1px 8px; border-radius: 8px; }
     .proj-bands { display: flex; flex-direction: column; gap: 4px; align-items: flex-end; }
     .band-btn {
-      display: flex; align-items: center; gap: 6px; cursor: pointer;
-      padding: 5px 10px; border-radius: 8px; font-size: 12px;
-      background: rgba(15,23,42,.8); color: #cbd5e1;
-      border: 1px solid rgba(148,163,184,.25);
+      display: flex; align-items: center; gap: 7px; cursor: pointer;
+      padding: 8px 14px; border-radius: 9px; font-size: 13px; font-weight: 600;
+      background: #1e293b; color: #cbd5e1;
+      border: 1.5px solid #475569;
     }
-    .band-btn.on { background: rgba(56,189,248,.25); color: #fff; border-color: #38bdf8; }
+    .band-btn.on { background: #2563eb; color: #fff; border-color: #93c5fd; }
     .band-btn i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
 
     /* ========== 行政边界样式 ========== */
@@ -3030,18 +3054,18 @@
 
   <div class="splash-screen" id="splashScreen">
     <h1 class="splash-title">全国房产金融决策仿真系统</h1>
-    <p class="splash-subtitle">V8.8 · 空间折叠引擎 ｜ 手机上的买房账本</p>
+    <p class="splash-subtitle">V8.9 · 把 30 年的账算给你看 ｜ 手机上的买房账本</p>
     <button class="splash-btn" onclick="enterSystem()">进入全景中国地图</button>
   </div>
 
   <div id="map"></div>
-  <div id="appBadge">V8.8</div>
+  <div id="appBadge">V8.9</div>
   <div id="errBanner"></div>
   <div class="map-hint" id="mapHint">🛰️ 点省份进去 → 点城市看区县 → 点片区。也可以直接点右上角「换城市」。</div>
 
   <div class="glass-panel" id="leftPanel">
     <div class="panel-head">
-      <h2>仿真参数配置 <span class="ver-chip">V8.8</span></h2>
+      <h2>仿真参数配置 <span class="ver-chip">V8.9</span></h2>
       <button class="panel-close" onclick="hidePanel('leftPanel')" title="收起面板">✕</button>
     </div>
 
@@ -3146,7 +3170,7 @@
     </details>
 
     <details class="config-group">
-      <summary>🏙️ 城市能级与空间折叠</summary>
+      <summary>🏙️ 城市能级与生活半径</summary>
       <div class="config-body">
         <div class="form-item">
           <label>目标城市</label>
@@ -3482,7 +3506,7 @@
         const el = document.getElementById("errBanner");
         if (!el) return;
         el.style.display = "block";
-        el.textContent = "⚠️ 前端运行错误：" + msg + "（版本 V8.8，请把这条发给经纬）";
+        el.textContent = "⚠️ 前端运行错误：" + msg + "（版本 V8.9，请把这条发给经纬）";
       }
       window.addEventListener("error", function (e) {
         showErr((e.message || "未知错误") + " @ " + (e.filename || "").split("/").pop() + ":" + (e.lineno || 0));
@@ -3776,7 +3800,7 @@
       countyLayer.addTo(map);
     }
 
-    // 🏗️ V8.8 在售楼盘图层：117 个"有均价 + 有坐标"的南宁楼盘。
+    // 🏗️ V8.9 在售楼盘图层：117 个"有均价 + 有坐标"的南宁楼盘。
     //    数据是本地保存页解析出来的，没发过网络请求。
     let projectsLayer = null;
     let projectsData = null;
@@ -4147,7 +4171,7 @@
       refreshSpatialChips();
     }
 
-    // 🏪 V8.8 周边设施：数据来自 数据/fetch_poi.py 采的高德 POI 计数。
+    // 🏪 V8.9 周边设施：数据来自 数据/fetch_poi.py 采的高德 POI 计数。
     // 没采到就什么都不加——宁可少一行，不拿 0 冒充"周边很荒"。
     let poiNearby = null;
     let poiNearbyState = "idle";
@@ -4209,31 +4233,88 @@
 
     // 🧭 片区便利分（0~100）：地铁权重最高，其次是医院、学校、商场。
     // 只对采过 POI 的区有值；没采到返回 null，调用方要知道"没有"≠"0 分"。
-    let poiScoreTable = null;
+    /* ===== 周边便利分（V8.9） =====
+       数据：amenities_nanning.json（每区 7 类设施：最近距离 + 数量）
+       算法：距离衰减 × 偏好权重 − 闹静惩罚。细节不给用户看，只给分数和"最近多远"。 */
+    let amenities = null;
 
-    function buildPoiScoreTable() {
-      const z = ((poiNearby.cities || {})["450100"] || {}).zones || {};
-      const raw = {};
-      Object.keys(z).forEach((k) => {
-        const d = z[k];
-        // 权重：地铁最稀缺、最影响通勤；医院次之；学校/商场日常但可替代
-        raw[k] = d.metro * 5 + d.hospital * 2 + d.school * 2 + d.mall * 1;
-      });
-      const vals = Object.keys(raw).map((k) => raw[k]);
-      if (!vals.length) { poiScoreTable = {}; return; }
-      const lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals);
-      poiScoreTable = {};
-      Object.keys(raw).forEach((k) => {
-        poiScoreTable[k] = hi === lo ? 50 : Math.round((raw[k] - lo) / (hi - lo) * 100);
-      });
+    async function loadAmenities() {
+      try {
+        const res = await fetch("amenities_nanning.json", { cache: "no-store" });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        amenities = await res.json();
+        document.documentElement.dataset.amenities = "ready";
+      } catch (_) {
+        document.documentElement.dataset.amenities = "missing";
+      }
     }
 
-    // 🧭 便利分：0~100，含义是"在南宁八个区里相对排第几"，不是绝对设施数
-    window.__poiScore = function (districtName) {
-      if (!poiNearby) return null;
-      if (!poiScoreTable) buildPoiScoreTable();
-      const v = poiScoreTable[districtName];
-      return typeof v === "number" ? v : null;
+    const AMENITY_PREFS = {
+      commute: { label: "通勤优先", w: { metro: 6, school: 1.2, hospital: 1.2, mall: 1, park: 0.6, market: 1, food: 0.6 } },
+      family: { label: "家庭刚需", w: { metro: 2, school: 4.5, hospital: 3, mall: 1.2, park: 2, market: 3, food: 1 } },
+      leisure: { label: "宜居休闲", w: { metro: 1.5, school: 1, hospital: 2, mall: 1, park: 4.5, market: 2.2, food: 2 } },
+    };
+    const AMENITY_META = {
+      metro: { label: "地铁站", cap: 3000 },
+      school: { label: "小学", cap: 2500 },
+      hospital: { label: "医院", cap: 3000 },
+      mall: { label: "购物中心", cap: 3000 },
+      park: { label: "公园", cap: 2000 },
+      market: { label: "菜市场", cap: 2000 },
+      food: { label: "美食街", cap: 2500 },
+    };
+
+    // 距离衰减：门口 1 分，越远越低，超过上限归零
+    function decayed(dist, cap) {
+      if (dist == null || dist < 0) return 0;
+      if (dist >= cap) return 0;
+      return 1 - dist / cap;
+    }
+
+    function amenityScore(districtName, pref) {
+      if (!amenities) return null;
+      const row = (amenities.districts || {})[districtName];
+      if (!row) return null;
+      const w = (AMENITY_PREFS[pref] || AMENITY_PREFS.commute).w;
+      let got = 0, max = 0;
+      Object.keys(w).forEach((k) => {
+        const m = AMENITY_META[k];
+        if (!m) return;
+        max += w[k];
+        const d = row[k] ? row[k].near : null;
+        got += w[k] * decayed(d, m.cap);
+      });
+      let score = max > 0 ? (got / max) * 100 : 0;
+
+      // 闹静比：商业贴脸是噪音，不是便利
+      const mall = row.mall ? row.mall.near : null;
+      const food = row.food ? row.food.near : null;
+      if (mall != null && mall < 150) score -= 10;
+      else if (mall != null && mall < 300) score -= 4;
+      if (food != null && food < 120) score -= 8;
+      else if (food != null && food < 250) score -= 3;
+
+      return Math.max(0, Math.min(100, Math.round(score)));
+    }
+
+    // 给 UI 用的完整信息（分数 + 逐个设施的最近距离）
+    window.__amenityInfo = function (districtName, pref) {
+      if (!amenities) return null;
+      const row = (amenities.districts || {})[districtName];
+      if (!row) return null;
+      const items = Object.keys(AMENITY_META).map((k) => ({
+        key: k,
+        label: AMENITY_META[k].label,
+        near: row[k] ? row[k].near : null,
+        n: row[k] ? row[k].n : null,
+      }));
+      return { score: amenityScore(districtName, pref || "commute"), items, pref: pref || "commute" };
+    };
+
+    // 兼容旧调用
+    window.__poiScore = function (d, pref) {
+      const info = window.__amenityInfo(d, pref);
+      return info ? info.score : null;
     };
 
     function refreshSpatialChips() {
@@ -4303,7 +4384,7 @@
       }).join(" ");
       box.innerHTML = `
       <div class="career-card">
-        <h3>📈 薪资曲线 · ${escapeHtml(career.career_label || "企业职员")} · S 型</h3>
+        <h3>📈 你未来的工资，大概会怎么涨 · ${escapeHtml(career.career_label || "企业职员")}</h3>
         <div class="card-sub">你未来能挣多少：起薪会慢慢涨到一个天花板，不会无限涨上去。</div>
         <div class="row"><span>家庭起薪 / 人均</span><b>${formatNum(career.start_monthly, 0)} / ${formatNum(career.per_earner_start || career.start_monthly, 0)} 元/月</b></div>
         <div class="row"><span>职业天花板</span><b>${formatNum(career.ceiling_monthly, 0)} 元/月 · ${career.cap_multiple} 倍</b></div>
@@ -4353,7 +4434,7 @@
       const nominal = top ? top.liquid_asset_end_wan : null;
       box.innerHTML = `
       <div class="spatial-card">
-        <h3>🏙️ 空间折叠面板
+        <h3>🏙️ 你所在的城市，和你的生活半径
           <span style="font-size:11px;color:#94a3b8;font-weight:400;">${escapeHtml(sp.city_name)} · ${escapeHtml(sp.tier_label)} · ${escapeHtml(sp.family_label)}</span>
         </h3>
         <div class="spatial-grid">
@@ -6092,19 +6173,19 @@
     }
 
     const BASE_COLUMNS = [
-      { key: "rent_year", label: "租年", dec: 0 },
-      { key: "loan_year", label: "贷年", dec: 0 },
-      { key: "down_payment_wan", label: "真实首付(万)", dec: 1 },
-      { key: "loan_principal_wan", label: "贷款本金(万)", dec: 1 },
-      { key: "net_worth_end_wan", label: "净值(万)", dec: 2, barMax: 420, color: "rgba(59,130,246,0.3)" },
-      { key: "real_net_worth_end_wan", label: "净值今日(万)", dec: 2, barMax: 420, color: "rgba(251,191,36,0.3)" },
-      { key: "buffer_months", label: "缓冲(月)", dec: 1, barMax: 12, color: "rgba(16,185,129,0.3)" },
-      { key: "adapt_score", label: "稳健", dec: 2, barMax: 100, color: "rgba(16,185,129,0.3)" },
-      { key: "comfort_score", label: "舒适", dec: 2, barMax: 100, color: "rgba(245,158,11,0.3)" },
-      { key: "surplus_happiness", label: "幸福", dec: 2, barMax: 100, color: "rgba(139,92,246,0.3)" },
-      { key: "time_efficiency", label: "时间", dec: 2, barMax: 100, color: "rgba(14,165,233,0.3)" },
-      { key: "suitability_score", label: "合适", dec: 2, barMax: 100, color: "rgba(236,72,153,0.3)" },
-      { key: "comprehensive_score", label: "综合", dec: 2, barMax: 100, color: "rgba(37,99,235,0.4)" },
+      { key: "rent_year", label: "先租几年", dec: 0 },
+      { key: "loan_year", label: "再还几年", dec: 0 },
+      { key: "down_payment_wan", label: "首付(万)", dec: 1 },
+      { key: "loan_principal_wan", label: "贷款(万)", dec: 1 },
+      { key: "net_worth_end_wan", label: "30年后家底(万)", dec: 2, barMax: 420, color: "rgba(59,130,246,0.3)" },
+      { key: "real_net_worth_end_wan", label: "按今天物价(万)", dec: 2, barMax: 420, color: "rgba(251,191,36,0.3)" },
+      { key: "buffer_months", label: "现金能撑(月)", dec: 1, barMax: 12, color: "rgba(16,185,129,0.3)" },
+      { key: "adapt_score", label: "抗风险", dec: 2, barMax: 100, color: "rgba(16,185,129,0.3)" },
+      { key: "comfort_score", label: "住得舒服", dec: 2, barMax: 100, color: "rgba(245,158,11,0.3)" },
+      { key: "surplus_happiness", label: "手里有余钱", dec: 2, barMax: 100, color: "rgba(139,92,246,0.3)" },
+      { key: "time_efficiency", label: "通勤省时间", dec: 2, barMax: 100, color: "rgba(14,165,233,0.3)" },
+      { key: "suitability_score", label: "合不合适", dec: 2, barMax: 100, color: "rgba(236,72,153,0.3)" },
+      { key: "comprehensive_score", label: "综合得分", dec: 2, barMax: 100, color: "rgba(37,99,235,0.4)" },
     ];
 
     function renderTableInto(container, arr) {
@@ -6408,7 +6489,14 @@
     // 🖥️ 结果视图：收起左侧参数（省空间、少渲染），右栏加宽
     function setView(v) {
       document.body.dataset.view = v;
-      setTimeout(() => { try { map && map.invalidateSize(); } catch (_) { } }, 260);
+      // 面板宽度变了，ECharts 不会自己知道——不 resize 就会一直是被压扁的旧尺寸
+      const relayout = () => {
+        try { map && map.invalidateSize(); } catch (_) { }
+        try { if (chart) chart.resize(); } catch (_) { }
+      };
+      setTimeout(relayout, 120);
+      setTimeout(relayout, 360);
+      setTimeout(relayout, 700);
     }
     window.__setView = setView;
 
@@ -6603,9 +6691,9 @@
           const src = document.documentElement.dataset.citySource === "db" ? "库" : "内置";
           document.documentElement.dataset.citySourceLabel = src;
           const badge = document.getElementById("appBadge");
-          if (badge) badge.textContent = `V8.8 · ${src}`;
+          if (badge) badge.textContent = `V8.9 · ${src}`;
           const chip = document.querySelector(".ver-chip");
-          if (chip) chip.textContent = `V8.8 · ${src}`;
+          if (chip) chip.textContent = `V8.9 · ${src}`;
         })();
 
         const nn = CITY_DB.find(c => c.code === "450100");
@@ -6614,6 +6702,7 @@
         buildCitySelect();
         loadPoiNearby();
         loadProjects();
+        loadAmenities();
         // 🚩 默认全国视角，不自动跳南宁；?city=450100 或 ?city=南宁 可直达
         const cityParam = new URLSearchParams(location.search).get("city");
         const preset = cityParam
@@ -7677,7 +7766,7 @@
         }
 
         const localNote = json.__local
-          ? '<div class="m-note" style="color:#94a3b8;">（这批结果是本地按同一套规则算的：后端还没升级到 V8.8，部署后会自动改为后端计算。）</div>'
+          ? '<div class="m-note" style="color:#94a3b8;">（这批结果是本地按同一套规则算的：后端还没升级到 V8.9，部署后会自动改为后端计算。）</div>'
           : "";
 
         if (list.length) {
@@ -7740,6 +7829,7 @@
       /* ---------- 独立匹配面板（桌面/手机通用） ---------- */
       let panelRows = [];
       let panelShown = 7;
+      let currentPref = "commute";     // commute | family | leisure
 
       function ensureOverlay() {
         if (document.getElementById("matchOverlay")) return;
@@ -7748,7 +7838,12 @@
         ov.innerHTML =
           '<div id="matchPanel">' +
           '<div class="mp-head"><div><h3>🔎 推荐房源匹配</h3>' +
-          '<div class="mp-sub" id="mpSub">按你算出来的条件，在真实房源里挑</div></div>' +
+          '<div class="mp-sub" id="mpSub">按你算出来的条件，在真实房源里挑</div>' +
+          '<div style="display:flex;gap:8px;margin:6px 0 10px;">' +
+          Object.keys(AMENITY_PREFS).map((k, idx) =>
+            '<button type="button" class="pref-chip' + (idx === 0 ? " on" : "") + '" data-pref="' + k + '">' +
+            AMENITY_PREFS[k].label + "</button>").join("") +
+          "</div></div>" +
           '<button class="mp-close" id="mpClose" type="button">收起 ↩</button></div>' +
           '<div class="mp-grid" id="mpGrid"></div>' +
           '<button class="mp-more" id="mpMore" type="button" style="display:none;"></button>' +
@@ -7756,6 +7851,14 @@
         document.body.appendChild(ov);
         ov.addEventListener("click", (e) => { if (e.target === ov) closeMatchPanel(); });
         ov.querySelector("#mpClose").onclick = closeMatchPanel;
+        ov.querySelectorAll("[data-pref]").forEach((b) => {
+          b.onclick = () => {
+            currentPref = b.getAttribute("data-pref");
+            ov.querySelectorAll("[data-pref]").forEach((x) => x.classList.toggle("on", x === b));
+            sortPanelRows();
+            paintMatchPanel();
+          };
+        });
         ov.querySelector("#mpMore").onclick = () => {
           panelShown = panelRows.length;
           paintMatchPanel();
@@ -7773,6 +7876,17 @@
         return typeof fn === "function" ? fn(district) : null;
       }
 
+      // 排序：预算/面积贴合为主（这是刚需的第一约束），便利分只做微调
+      function sortPanelRows() {
+        panelRows.sort((a, b) => {
+          const sa = Math.abs(a.price_delta_pct || 0) + Math.abs(a.area_delta_pct || 0)
+            - (window.__poiScore(a.district_name, currentPref) || 0) * 0.12;
+          const sb = Math.abs(b.price_delta_pct || 0) + Math.abs(b.area_delta_pct || 0)
+            - (window.__poiScore(b.district_name, currentPref) || 0) * 0.12;
+          return sa - sb;
+        });
+      }
+
       function paintMatchPanel() {
         const grid = document.getElementById("mpGrid");
         if (!grid) return;
@@ -7780,7 +7894,7 @@
         grid.innerHTML = rows.map((x, i) => {
           const pps = x.price_sqm ? Math.round(x.price_sqm) : null;
           const poi = poiOf(x.district_name);
-          return '<div class="mp-card">' +
+          return '<div class="mp-card" data-card="' + i + '">' +
             '<div style="display:flex;justify-content:space-between;gap:8px;">' +
             "<b>" + esc(x.community || "未命名小区") + "</b>" +
             '<span class="mp-price">' + wan(x.price_wan) + " 万</span></div>" +
@@ -7790,18 +7904,23 @@
             '<div class="mp-meta">📍 ' + esc(x.district_name || "区位未知") +
             (x.price_delta_pct != null ? " · 比预算" + (x.price_delta_pct > 0 ? "贵 " : "便宜 ") +
               wan(Math.abs(x.price_delta_pct), 1) + "%" : "") + "</div>" +
-            (poi != null ? '<div class="mp-poi">🧭 周边便利 ' + poi + " 分（3km 内地铁/学校/医院/商场）</div>" : "") +
+            (poi != null ? '<div class="mp-poi">🧭 周边便利 ' + poi + " 分 · 点开看明细</div>" : "") +
             '<button type="button" data-panel-use="' + i + '">用这套去推演</button>' +
             "</div>";
         }).join("");
 
         grid.querySelectorAll("[data-panel-use]").forEach((b) => {
-          b.onclick = () => {
+          b.onclick = (ev) => {
+            ev.stopPropagation();
             const x = panelRows[Number(b.getAttribute("data-panel-use"))];
             if (!x) return;
             closeMatchPanel();
             useMatchRowById(x);
           };
+        });
+        // 点卡片本身 → 定位到这套房 + 看明细（不是让它再选一次）
+        grid.querySelectorAll(".mp-card").forEach((card) => {
+          card.onclick = () => openListingDetail(Number(card.getAttribute("data-card")));
         });
 
         const more = document.getElementById("mpMore");
@@ -7810,6 +7929,52 @@
           more.style.display = left > 0 ? "block" : "none";
           more.textContent = left > 0 ? "看剩下的 " + left + " 套" : "";
         }
+      }
+
+      /* 房源详情：地图定位 + 这套房的全部已知信息（含周边逐项距离） */
+      function openListingDetail(i) {
+        const x = panelRows[i];
+        if (!x) return;
+        if (x.lat && x.lng && window.HousingApp && window.HousingApp.map) {
+          try { window.HousingApp.map.flyTo([x.lat, x.lng], 16, { duration: 1.0 }); } catch (_) { }
+        }
+        const pref = currentPref;
+        const info = window.__amenityInfo ? window.__amenityInfo(x.district_name, pref) : null;
+        const pps = x.price_sqm ? Math.round(x.price_sqm) : null;
+        const grid = document.getElementById("mpGrid");
+        const sub = document.getElementById("mpSub");
+        if (!grid) return;
+        sub.textContent = "这套房的明细（地图已定位）";
+
+        const poiRows = info ? info.items.map((it) =>
+          '<div class="d-item">' + it.label + "：" +
+          (it.near == null ? '<span>附近没有</span>' :
+            "最近 <span>" + it.near + " 米</span>" + (it.n != null ? " · 周边共 " + it.n + " 处" : "")) +
+          "</div>").join("") : "";
+
+        grid.innerHTML =
+          '<div class="mp-detail" style="grid-column:1/-1;">' +
+          "<h4>" + esc(x.community || "未命名小区") + " · " + wan(x.price_wan) + " 万</h4>" +
+          '<div class="d-grid">' +
+          '<div class="d-item">建面：<span>' + wan(x.area_sqm, 1) + " ㎡</span></div>" +
+          '<div class="d-item">套内：<span>' + wan(x.live_area_sqm, 1) + " ㎡</span></div>" +
+          (pps ? '<div class="d-item">单价：<span>' + pps.toLocaleString() + " 元/㎡</span></div>" : "") +
+          '<div class="d-item">户型：<span>' + (x.bedrooms ? x.bedrooms + " 室" : "—") + "</span></div>" +
+          '<div class="d-item">区位：<span>' + esc(x.district_name || "—") + "</span></div>" +
+          '<div class="d-item">便利分：<span>' + (info ? info.score : "—") + " 分</span></div>" +
+          "</div>" +
+          (poiRows ? '<div class="d-grid">' + poiRows + "</div>" : "") +
+          '<div class="d-note">周边距离以片区中心为圆心量，是直线距离，不是步行时间；' +
+          "高峰拥堵、夜市噪音这些还没有数据，暂时没有算进去。</div>" +
+          '<div style="display:flex;gap:10px;margin-top:10px;">' +
+          '<button type="button" id="mpBack" style="flex:1;padding:9px;border-radius:9px;border:1.5px solid #d97706;background:#fff;color:#92400e;font-weight:700;cursor:pointer;">← 返回列表</button>' +
+          '<button type="button" id="mpUse" style="flex:1.6;padding:9px;border-radius:9px;border:none;background:#d97706;color:#fff;font-weight:700;cursor:pointer;">用这套去推演</button>' +
+          "</div></div>";
+
+        const back = document.getElementById("mpBack");
+        if (back) back.onclick = () => paintMatchPanel();
+        const use = document.getElementById("mpUse");
+        if (use) use.onclick = () => { closeMatchPanel(); useMatchRowById(x); };
       }
 
       function useMatchRowById(x) {
@@ -7846,14 +8011,9 @@
           });
           if (!res.ok) throw new Error("HTTP " + res.status);
           const json = await res.json();
-          let list = (json.data || []).slice();
-          // 🧭 把周边便利分揉进排序：价格/面积接近度为主，便利度最多影响 15 分
-          list.sort((a, b) => {
-            const sa = Math.abs(a.price_delta_pct || 0) + Math.abs(a.area_delta_pct || 0) - (poiOf(a.district_name) || 0) * 0.15;
-            const sb = Math.abs(b.price_delta_pct || 0) + Math.abs(b.area_delta_pct || 0) - (poiOf(b.district_name) || 0) * 0.15;
-            return sa - sb;
-          });
-          panelRows = list;
+          panelRows = (json.data || []).slice();
+          sortPanelRows();
+          const list = panelRows;
           if (!list.length) {
             sub.textContent = json.message || "这个预算下，库里没有对得上的房子。";
             return;
@@ -7977,7 +8137,7 @@
         const ha = window.HousingApp || {};
         const city = ha.currentCity || null;
         const res = ha.currentResult || null;
-        const ver = ($("appBadge") && $("appBadge").textContent) || "V8.8";
+        const ver = ($("appBadge") && $("appBadge").textContent) || "V8.9";
 
         const ar = $("anchorRentYear"), al = $("anchorLoanYear"), ad = $("anchorDownStrategy");
         const planned = (ar && ar.value !== "" && al && al.value !== "")
