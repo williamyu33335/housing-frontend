@@ -1,9 +1,9 @@
 {
- "schema_version": 1,
+ "schema_version": 2,
  "city_code": "450100",
- "generated_at": "2026-11-04T20:41:04+0800",
+ "generated_at": "2026-11-04T21:41:16+0800",
  "source": "高德 POI place/around（以各区中心为圆心，直线距离）",
- "note": "near 是最近一个的直线距离（米），不是步行距离；n 是半径内的总数",
+ "note": "near 是最近一个的直线距离（米），不是步行距离；n 是搜索窗口内的总数；scores 由 backend/amenity_score.py 预计算（commute/family/leisure）",
  "categories": {
   "metro": {
    "label": "地铁站",
@@ -23,7 +23,7 @@
   },
   "park": {
    "label": "公园",
-   "radius": 3000
+   "radius": 2000
   },
   "market": {
    "label": "菜市场",
@@ -31,7 +31,11 @@
   },
   "food": {
    "label": "美食街",
-   "radius": 2000
+   "radius": 2500
+  },
+  "night": {
+   "label": "夜市",
+   "radius": 1500
   }
  },
  "districts": {
@@ -54,7 +58,7 @@
    },
    "park": {
     "near": 262,
-    "n": 24
+    "n": 13
    },
    "market": {
     "near": 1321,
@@ -62,8 +66,21 @@
    },
    "food": {
     "near": 1303,
-    "n": 7
-   }
+    "n": 40
+   },
+   "night": {
+    "near": null,
+    "n": 0
+   },
+   "radius_m": 3000,
+   "captured_at": "2026-11-04T21:41:19+0800",
+   "scores": {
+    "commute": 54,
+    "family": 51,
+    "leisure": 59
+   },
+   "lat": 22.79,
+   "lng": 108.38
   },
   "西乡塘区": {
    "metro": {
@@ -84,7 +101,7 @@
    },
    "park": {
     "near": 371,
-    "n": 17
+    "n": 9
    },
    "market": {
     "near": 186,
@@ -93,7 +110,20 @@
    "food": {
     "near": 459,
     "n": 44
-   }
+   },
+   "night": {
+    "near": 465,
+    "n": 5
+   },
+   "radius_m": 3000,
+   "captured_at": "2026-11-04T21:41:22+0800",
+   "scores": {
+    "commute": 75,
+    "family": 78,
+    "leisure": 77
+   },
+   "lat": 22.84,
+   "lng": 108.28
   },
   "江南区": {
    "metro": {
@@ -114,7 +144,7 @@
    },
    "park": {
     "near": 411,
-    "n": 29
+    "n": 23
    },
    "market": {
     "near": 442,
@@ -122,8 +152,21 @@
    },
    "food": {
     "near": 932,
-    "n": 27
-   }
+    "n": 42
+   },
+   "night": {
+    "near": 932,
+    "n": 2
+   },
+   "radius_m": 3000,
+   "captured_at": "2026-11-04T21:41:25+0800",
+   "scores": {
+    "commute": 72,
+    "family": 72,
+    "leisure": 74
+   },
+   "lat": 22.78,
+   "lng": 108.28
   },
   "兴宁区": {
    "metro": {
@@ -144,7 +187,7 @@
    },
    "park": {
     "near": 686,
-    "n": 42
+    "n": 22
    },
    "market": {
     "near": 113,
@@ -152,8 +195,21 @@
    },
    "food": {
     "near": 217,
-    "n": 30
-   }
+    "n": 31
+   },
+   "night": {
+    "near": 217,
+    "n": 7
+   },
+   "radius_m": 3000,
+   "captured_at": "2026-11-04T21:41:27+0800",
+   "scores": {
+    "commute": 75,
+    "family": 71,
+    "leisure": 68
+   },
+   "lat": 22.85,
+   "lng": 108.33
   },
   "良庆区": {
    "metro": {
@@ -174,7 +230,7 @@
    },
    "park": {
     "near": 1024,
-    "n": 35
+    "n": 27
    },
    "market": {
     "near": 345,
@@ -182,8 +238,21 @@
    },
    "food": {
     "near": 1248,
-    "n": 2
-   }
+    "n": 12
+   },
+   "night": {
+    "near": 1248,
+    "n": 1
+   },
+   "radius_m": 3000,
+   "captured_at": "2026-11-04T21:41:30+0800",
+   "scores": {
+    "commute": 42,
+    "family": 50,
+    "leisure": 51
+   },
+   "lat": 22.74,
+   "lng": 108.36
   },
   "邕宁区": {
    "metro": {
@@ -204,7 +273,7 @@
    },
    "park": {
     "near": 1382,
-    "n": 4
+    "n": 3
    },
    "market": {
     "near": 518,
@@ -212,8 +281,21 @@
    },
    "food": {
     "near": 266,
-    "n": 11
-   }
+    "n": 15
+   },
+   "night": {
+    "near": 339,
+    "n": 3
+   },
+   "radius_m": 3000,
+   "captured_at": "2026-11-04T21:41:33+0800",
+   "scores": {
+    "commute": 54,
+    "family": 61,
+    "leisure": 54
+   },
+   "lat": 22.76,
+   "lng": 108.48
   },
   "武鸣区": {
    "metro": {
@@ -242,8 +324,21 @@
    },
    "food": {
     "near": 439,
-    "n": 38
-   }
+    "n": 47
+   },
+   "night": {
+    "near": 862,
+    "n": 1
+   },
+   "radius_m": 3000,
+   "captured_at": "2026-11-04T21:41:36+0800",
+   "scores": {
+    "commute": 40,
+    "family": 73,
+    "leisure": 74
+   },
+   "lat": 23.16,
+   "lng": 108.27
   },
   "五象新区": {
    "metro": {
@@ -264,7 +359,7 @@
    },
    "park": {
     "near": 294,
-    "n": 5
+    "n": 1
    },
    "market": {
     "near": 594,
@@ -272,8 +367,21 @@
    },
    "food": {
     "near": 870,
-    "n": 20
-   }
+    "n": 29
+   },
+   "night": {
+    "near": null,
+    "n": 0
+   },
+   "radius_m": 3000,
+   "captured_at": "2026-11-04T21:41:39+0800",
+   "scores": {
+    "commute": 79,
+    "family": 69,
+    "leisure": 74
+   },
+   "lat": 22.72,
+   "lng": 108.35
   }
  }
 }

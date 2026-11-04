@@ -1,0 +1,5288 @@
+{
+ "schema_version": 1,
+ "generated_at": "2026-11-04T21:40:37+0800",
+ "source": "高德 config/district（subdistrict=1），GCJ-02 → WGS-84",
+ "note": "center 是真实行政区中心，不是画出来的圆环；price_sqm 为空表示还没有真实分区县均价，前端按距市中心衰减估算并标注",
+ "cities": {
+  "110000": {
+   "name": "北京",
+   "tier": 1,
+   "center": [
+    39.9,
+    116.41
+   ],
+   "districts": [
+    {
+     "name": "怀柔区",
+     "adcode": "110116",
+     "level": "district",
+     "lat": 40.315897,
+     "lng": 116.626098,
+     "dist_km": 49.8,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "门头沟区",
+     "adcode": "110109",
+     "level": "district",
+     "lat": 39.939444,
+     "lng": 116.095341,
+     "dist_km": 27.2,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "房山区",
+     "adcode": "110111",
+     "level": "district",
+     "lat": 39.747542,
+     "lng": 116.137192,
+     "dist_km": 28.8,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "平谷区",
+     "adcode": "110117",
+     "level": "district",
+     "lat": 40.139383,
+     "lng": 117.115029,
+     "dist_km": 65.7,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "石景山区",
+     "adcode": "110107",
+     "level": "district",
+     "lat": 39.905076,
+     "lng": 116.21696,
+     "dist_km": 16.5,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "海淀区",
+     "adcode": "110108",
+     "level": "district",
+     "lat": 39.958634,
+     "lng": 116.291624,
+     "dist_km": 12.0,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "延庆区",
+     "adcode": "110119",
+     "level": "district",
+     "lat": 40.455808,
+     "lng": 115.968495,
+     "dist_km": 72.3,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "顺义区",
+     "adcode": "110113",
+     "level": "district",
+     "lat": 40.148766,
+     "lng": 116.655546,
+     "dist_km": 34.7,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "朝阳区",
+     "adcode": "110105",
+     "level": "district",
+     "lat": 39.920076,
+     "lng": 116.43694,
+     "dist_km": 3.2,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "昌平区",
+     "adcode": "110114",
+     "level": "district",
+     "lat": 40.219707,
+     "lng": 116.224951,
+     "dist_km": 38.9,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "西城区",
+     "adcode": "110102",
+     "level": "district",
+     "lat": 39.911223,
+     "lng": 116.359637,
+     "dist_km": 4.5,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "通州区",
+     "adcode": "110112",
+     "level": "district",
+     "lat": 39.908581,
+     "lng": 116.658358,
+     "dist_km": 21.2,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "大兴区",
+     "adcode": "110115",
+     "level": "district",
+     "lat": 39.725594,
+     "lng": 116.335341,
+     "dist_km": 20.4,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "丰台区",
+     "adcode": "110106",
+     "level": "district",
+     "lat": 39.857299,
+     "lng": 116.28068,
+     "dist_km": 12.0,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "东城区",
+     "adcode": "110101",
+     "level": "district",
+     "lat": 39.926958,
+     "lng": 116.410094,
+     "dist_km": 3.0,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "密云区",
+     "adcode": "110118",
+     "level": "district",
+     "lat": 40.375891,
+     "lng": 116.837318,
+     "dist_km": 64.2,
+     "price_sqm": null,
+     "rent_ref": null
+    }
+   ]
+  },
+  "310000": {
+   "name": "上海",
+   "tier": 1,
+   "center": [
+    31.23,
+    121.47
+   ],
+   "districts": [
+    {
+     "name": "崇明区",
+     "adcode": "310151",
+     "level": "district",
+     "lat": 31.625604,
+     "lng": 121.392977,
+     "dist_km": 44.6,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "浦东新区",
+     "adcode": "310115",
+     "level": "district",
+     "lat": 31.223606,
+     "lng": 121.540063,
+     "dist_km": 6.7,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "金山区",
+     "adcode": "310116",
+     "level": "district",
+     "lat": 30.744942,
+     "lng": 121.337242,
+     "dist_km": 55.4,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "杨浦区",
+     "adcode": "310110",
+     "level": "district",
+     "lat": 31.261668,
+     "lng": 121.521065,
+     "dist_km": 6.0,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "虹口区",
+     "adcode": "310109",
+     "level": "district",
+     "lat": 31.266935,
+     "lng": 121.500578,
+     "dist_km": 5.0,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "静安区",
+     "adcode": "310106",
+     "level": "district",
+     "lat": 31.229599,
+     "lng": 121.442751,
+     "dist_km": 2.6,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "长宁区",
+     "adcode": "310105",
+     "level": "district",
+     "lat": 31.222388,
+     "lng": 121.420114,
+     "dist_km": 4.8,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "奉贤区",
+     "adcode": "310120",
+     "level": "district",
+     "lat": 30.920522,
+     "lng": 121.469449,
+     "dist_km": 34.4,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "青浦区",
+     "adcode": "310118",
+     "level": "district",
+     "lat": 31.152873,
+     "lng": 121.119651,
+     "dist_km": 34.4,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "宝山区",
+     "adcode": "310113",
+     "level": "district",
+     "lat": 31.407164,
+     "lng": 121.484947,
+     "dist_km": 19.8,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "普陀区",
+     "adcode": "310107",
+     "level": "district",
+     "lat": 31.251445,
+     "lng": 121.390818,
+     "dist_km": 7.9,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "黄浦区",
+     "adcode": "310101",
+     "level": "district",
+     "lat": 31.233633,
+     "lng": 121.479933,
+     "dist_km": 1.0,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "徐汇区",
+     "adcode": "310104",
+     "level": "district",
+     "lat": 31.190215,
+     "lng": 121.43169,
+     "dist_km": 5.7,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "松江区",
+     "adcode": "310117",
+     "level": "district",
+     "lat": 31.034689,
+     "lng": 121.223259,
+     "dist_km": 32.0,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "嘉定区",
+     "adcode": "310114",
+     "level": "district",
+     "lat": 31.377528,
+     "lng": 121.260831,
+     "dist_km": 25.8,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "闵行区",
+     "adcode": "310112",
+     "level": "district",
+     "lat": 31.114739,
+     "lng": 121.376227,
+     "dist_km": 15.6,
+     "price_sqm": null,
+     "rent_ref": null
+    }
+   ]
+  },
+  "440300": {
+   "name": "深圳",
+   "tier": 1,
+   "center": [
+    22.54,
+    114.06
+   ],
+   "districts": [
+    {
+     "name": "宝安区",
+     "adcode": "440306",
+     "level": "district",
+     "lat": 22.558032,
+     "lng": 113.878945,
+     "dist_km": 18.7,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "南山区",
+     "adcode": "440305",
+     "level": "district",
+     "lat": 22.536227,
+     "lng": 113.925614,
+     "dist_km": 13.8,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "龙岗区",
+     "adcode": "440307",
+     "level": "district",
+     "lat": 22.723723,
+     "lng": 114.242048,
+     "dist_km": 27.7,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "光明区",
+     "adcode": "440311",
+     "level": "district",
+     "lat": 22.747105,
+     "lng": 113.942435,
+     "dist_km": 26.0,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "罗湖区",
+     "adcode": "440303",
+     "level": "district",
+     "lat": 22.551012,
+     "lng": 114.126535,
+     "dist_km": 6.9,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "盐田区",
+     "adcode": "440308",
+     "level": "district",
+     "lat": 22.559862,
+     "lng": 114.231904,
+     "dist_km": 17.8,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "福田区",
+     "adcode": "440304",
+     "level": "district",
+     "lat": 22.523645,
+     "lng": 114.050089,
+     "dist_km": 2.1,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "坪山区",
+     "adcode": "440310",
+     "level": "district",
+     "lat": 22.711486,
+     "lng": 114.34592,
+     "dist_km": 35.0,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "龙华区",
+     "adcode": "440309",
+     "level": "district",
+     "lat": 22.699453,
+     "lng": 114.039805,
+     "dist_km": 17.9,
+     "price_sqm": null,
+     "rent_ref": null
+    }
+   ]
+  },
+  "440100": {
+   "name": "广州",
+   "tier": 2,
+   "center": [
+    23.13,
+    113.26
+   ],
+   "districts": [
+    {
+     "name": "海珠区",
+     "adcode": "440105",
+     "level": "district",
+     "lat": 23.086628,
+     "lng": 113.312007,
+     "dist_km": 7.2,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "从化区",
+     "adcode": "440117",
+     "level": "district",
+     "lat": 23.55192,
+     "lng": 113.581218,
+     "dist_km": 57.2,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "花都区",
+     "adcode": "440114",
+     "level": "district",
+     "lat": 23.406909,
+     "lng": 113.214768,
+     "dist_km": 31.1,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "南沙区",
+     "adcode": "440115",
+     "level": "district",
+     "lat": 22.804322,
+     "lng": 113.519979,
+     "dist_km": 44.9,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "番禺区",
+     "adcode": "440113",
+     "level": "district",
+     "lat": 22.940143,
+     "lng": 113.378411,
+     "dist_km": 24.3,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "增城区",
+     "adcode": "440118",
+     "level": "district",
+     "lat": 23.264143,
+     "lng": 113.805628,
+     "dist_km": 57.7,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "越秀区",
+     "adcode": "440104",
+     "level": "district",
+     "lat": 23.131348,
+     "lng": 113.261734,
+     "dist_km": 0.2,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "荔湾区",
+     "adcode": "440103",
+     "level": "district",
+     "lat": 23.109795,
+     "lng": 113.21366,
+     "dist_km": 5.2,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "白云区",
+     "adcode": "440111",
+     "level": "district",
+     "lat": 23.159818,
+     "lng": 113.267861,
+     "dist_km": 3.4,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "黄埔区",
+     "adcode": "440112",
+     "level": "district",
+     "lat": 23.183956,
+     "lng": 113.475235,
+     "dist_km": 22.8,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "天河区",
+     "adcode": "440106",
+     "level": "district",
+     "lat": 23.127345,
+     "lng": 113.356104,
+     "dist_km": 9.8,
+     "price_sqm": null,
+     "rent_ref": null
+    }
+   ]
+  },
+  "330100": {
+   "name": "杭州",
+   "tier": 2,
+   "center": [
+    30.27,
+    120.16
+   ],
+   "districts": [
+    {
+     "name": "淳安县",
+     "adcode": "330127",
+     "level": "district",
+     "lat": 29.612088,
+     "lng": 119.036842,
+     "dist_km": 130.6,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "临平区",
+     "adcode": "330113",
+     "level": "district",
+     "lat": 30.421541,
+     "lng": 120.29472,
+     "dist_km": 21.2,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "滨江区",
+     "adcode": "330108",
+     "level": "district",
+     "lat": 30.210764,
+     "lng": 120.207452,
+     "dist_km": 8.0,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "临安区",
+     "adcode": "330112",
+     "level": "district",
+     "lat": 30.236851,
+     "lng": 119.719563,
+     "dist_km": 42.5,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "上城区",
+     "adcode": "330102",
+     "level": "district",
+     "lat": 30.228952,
+     "lng": 120.192753,
+     "dist_km": 5.5,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "富阳区",
+     "adcode": "330111",
+     "level": "district",
+     "lat": 30.051381,
+     "lng": 119.955649,
+     "dist_km": 31.3,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "拱墅区",
+     "adcode": "330105",
+     "level": "district",
+     "lat": 30.321427,
+     "lng": 120.136767,
+     "dist_km": 6.1,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "西湖区",
+     "adcode": "330106",
+     "level": "district",
+     "lat": 30.261534,
+     "lng": 120.125638,
+     "dist_km": 3.4,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "余杭区",
+     "adcode": "330110",
+     "level": "district",
+     "lat": 30.276225,
+     "lng": 119.974112,
+     "dist_km": 17.9,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "桐庐县",
+     "adcode": "330122",
+     "level": "district",
+     "lat": 29.796718,
+     "lng": 119.686927,
+     "dist_km": 69.6,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "建德市",
+     "adcode": "330182",
+     "level": "district",
+     "lat": 29.477522,
+     "lng": 119.276145,
+     "dist_km": 122.6,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "钱塘区",
+     "adcode": "330114",
+     "level": "district",
+     "lat": 30.325466,
+     "lng": 120.489581,
+     "dist_km": 32.2,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "萧山区",
+     "adcode": "330109",
+     "level": "district",
+     "lat": 30.186574,
+     "lng": 120.259801,
+     "dist_km": 13.3,
+     "price_sqm": null,
+     "rent_ref": null
+    }
+   ]
+  },
+  "320100": {
+   "name": "南京",
+   "tier": 2,
+   "center": [
+    32.06,
+    118.8
+   ],
+   "districts": [
+    {
+     "name": "高淳区",
+     "adcode": "320118",
+     "level": "district",
+     "lat": 31.330878,
+     "lng": 118.887115,
+     "dist_km": 81.5,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "江宁区",
+     "adcode": "320115",
+     "level": "district",
+     "lat": 31.955322,
+     "lng": 118.834422,
+     "dist_km": 12.1,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "溧水区",
+     "adcode": "320117",
+     "level": "district",
+     "lat": 31.652988,
+     "lng": 119.0231,
+     "dist_km": 49.9,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "鼓楼区",
+     "adcode": "320106",
+     "level": "district",
+     "lat": 32.06886,
+     "lng": 118.764724,
+     "dist_km": 3.5,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "浦口区",
+     "adcode": "320111",
+     "level": "district",
+     "lat": 32.062003,
+     "lng": 118.622137,
+     "dist_km": 16.8,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "建邺区",
+     "adcode": "320105",
+     "level": "district",
+     "lat": 32.005374,
+     "lng": 118.72643,
+     "dist_km": 9.2,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "玄武区",
+     "adcode": "320102",
+     "level": "district",
+     "lat": 32.050718,
+     "lng": 118.792598,
+     "dist_km": 1.2,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "秦淮区",
+     "adcode": "320104",
+     "level": "district",
+     "lat": 32.041133,
+     "lng": 118.789607,
+     "dist_km": 2.3,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "栖霞区",
+     "adcode": "320113",
+     "level": "district",
+     "lat": 32.09865,
+     "lng": 118.904089,
+     "dist_km": 10.7,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "六合区",
+     "adcode": "320116",
+     "level": "district",
+     "lat": 32.325391,
+     "lng": 118.817083,
+     "dist_km": 29.6,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "雨花台区",
+     "adcode": "320114",
+     "level": "district",
+     "lat": 31.993328,
+     "lng": 118.773884,
+     "dist_km": 7.8,
+     "price_sqm": null,
+     "rent_ref": null
+    }
+   ]
+  },
+  "320500": {
+   "name": "苏州",
+   "tier": 2,
+   "center": [
+    31.3,
+    120.58
+   ],
+   "districts": [
+    {
+     "name": "虎丘区",
+     "adcode": "320505",
+     "level": "district",
+     "lat": 31.331433,
+     "lng": 120.429601,
+     "dist_km": 14.7,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "姑苏区",
+     "adcode": "320508",
+     "level": "district",
+     "lat": 31.337814,
+     "lng": 120.613189,
+     "dist_km": 5.3,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "常熟市",
+     "adcode": "320581",
+     "level": "district",
+     "lat": 31.657952,
+     "lng": 120.748116,
+     "dist_km": 42.9,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "昆山市",
+     "adcode": "320583",
+     "level": "district",
+     "lat": 31.3875,
+     "lng": 120.976468,
+     "dist_km": 38.9,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "张家港市",
+     "adcode": "320582",
+     "level": "district",
+     "lat": 31.878853,
+     "lng": 120.551704,
+     "dist_km": 64.4,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "相城区",
+     "adcode": "320507",
+     "level": "district",
+     "lat": 31.371313,
+     "lng": 120.63818,
+     "dist_km": 9.7,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "太仓市",
+     "adcode": "320585",
+     "level": "district",
+     "lat": 31.459826,
+     "lng": 121.125726,
+     "dist_km": 54.8,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "吴中区",
+     "adcode": "320506",
+     "level": "district",
+     "lat": 31.265783,
+     "lng": 120.627907,
+     "dist_km": 5.9,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "吴江区",
+     "adcode": "320509",
+     "level": "district",
+     "lat": 31.140744,
+     "lng": 120.64153,
+     "dist_km": 18.7,
+     "price_sqm": null,
+     "rent_ref": null
+    }
+   ]
+  },
+  "330200": {
+   "name": "宁波",
+   "tier": 2,
+   "center": [
+    29.87,
+    121.55
+   ],
+   "districts": [
+    {
+     "name": "北仑区",
+     "adcode": "330206",
+     "level": "district",
+     "lat": 29.902116,
+     "lng": 121.84051,
+     "dist_km": 28.2,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "象山县",
+     "adcode": "330225",
+     "level": "district",
+     "lat": 29.47953,
+     "lng": 121.865246,
+     "dist_km": 53.0,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "镇海区",
+     "adcode": "330211",
+     "level": "district",
+     "lat": 29.967841,
+     "lng": 121.592587,
+     "dist_km": 11.6,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "海曙区",
+     "adcode": "330203",
+     "level": "district",
+     "lat": 29.876289,
+     "lng": 121.546328,
+     "dist_km": 0.8,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "奉化区",
+     "adcode": "330213",
+     "level": "district",
+     "lat": 29.657589,
+     "lng": 121.401633,
+     "dist_km": 27.6,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "鄞州区",
+     "adcode": "330212",
+     "level": "district",
+     "lat": 29.819882,
+     "lng": 121.542454,
+     "dist_km": 5.6,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "宁海县",
+     "adcode": "330226",
+     "level": "district",
+     "lat": 29.290417,
+     "lng": 121.425261,
+     "dist_km": 65.6,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "江北区",
+     "adcode": "330205",
+     "level": "district",
+     "lat": 29.889322,
+     "lng": 121.55092,
+     "dist_km": 2.2,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "慈溪市",
+     "adcode": "330282",
+     "level": "district",
+     "lat": 30.173135,
+     "lng": 121.262179,
+     "dist_km": 43.6,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "余姚市",
+     "adcode": "330281",
+     "level": "district",
+     "lat": 30.04029,
+     "lng": 121.150114,
+     "dist_km": 42.9,
+     "price_sqm": null,
+     "rent_ref": null
+    }
+   ]
+  },
+  "350200": {
+   "name": "厦门",
+   "tier": 2,
+   "center": [
+    24.48,
+    118.09
+   ],
+   "districts": [
+    {
+     "name": "湖里区",
+     "adcode": "350206",
+     "level": "district",
+     "lat": 24.515553,
+     "lng": 118.14192,
+     "dist_km": 6.6,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "思明区",
+     "adcode": "350203",
+     "level": "district",
+     "lat": 24.44832,
+     "lng": 118.077771,
+     "dist_km": 3.7,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "翔安区",
+     "adcode": "350213",
+     "level": "district",
+     "lat": 24.621425,
+     "lng": 118.243195,
+     "dist_km": 22.1,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "集美区",
+     "adcode": "350211",
+     "level": "district",
+     "lat": 24.578632,
+     "lng": 118.092425,
+     "dist_km": 11.0,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "海沧区",
+     "adcode": "350205",
+     "level": "district",
+     "lat": 24.487425,
+     "lng": 118.027977,
+     "dist_km": 6.3,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "同安区",
+     "adcode": "350212",
+     "level": "district",
+     "lat": 24.726007,
+     "lng": 118.145912,
+     "dist_km": 27.9,
+     "price_sqm": null,
+     "rent_ref": null
+    }
+   ]
+  },
+  "120000": {
+   "name": "天津",
+   "tier": 2,
+   "center": [
+    39.13,
+    117.2
+   ],
+   "districts": [
+    {
+     "name": "宝坻区",
+     "adcode": "120115",
+     "level": "district",
+     "lat": 39.715769,
+     "lng": 117.303296,
+     "dist_km": 65.7,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "静海区",
+     "adcode": "120118",
+     "level": "district",
+     "lat": 38.946969,
+     "lng": 116.969473,
+     "dist_km": 28.5,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "蓟州区",
+     "adcode": "120119",
+     "level": "district",
+     "lat": 40.045112,
+     "lng": 117.401743,
+     "dist_km": 103.2,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "宁河区",
+     "adcode": "120117",
+     "level": "district",
+     "lat": 39.328724,
+     "lng": 117.820478,
+     "dist_km": 57.8,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "和平区",
+     "adcode": "120101",
+     "level": "district",
+     "lat": 39.115877,
+     "lng": 117.208429,
+     "dist_km": 1.7,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "武清区",
+     "adcode": "120114",
+     "level": "district",
+     "lat": 39.382861,
+     "lng": 117.038211,
+     "dist_km": 31.4,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "南开区",
+     "adcode": "120104",
+     "level": "district",
+     "lat": 39.137422,
+     "lng": 117.144244,
+     "dist_km": 4.9,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "河西区",
+     "adcode": "120103",
+     "level": "district",
+     "lat": 39.108686,
+     "lng": 117.217104,
+     "dist_km": 2.8,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "北辰区",
+     "adcode": "120113",
+     "level": "district",
+     "lat": 39.223435,
+     "lng": 117.129187,
+     "dist_km": 12.0,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "红桥区",
+     "adcode": "120106",
+     "level": "district",
+     "lat": 39.166204,
+     "lng": 117.14517,
+     "dist_km": 6.2,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "河东区",
+     "adcode": "120102",
+     "level": "district",
+     "lat": 39.127302,
+     "lng": 117.24531,
+     "dist_km": 3.9,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "滨海新区",
+     "adcode": "120116",
+     "level": "district",
+     "lat": 39.016925,
+     "lng": 117.690157,
+     "dist_km": 44.1,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "河北区",
+     "adcode": "120105",
+     "level": "district",
+     "lat": 39.146967,
+     "lng": 117.190562,
+     "dist_km": 2.1,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "东丽区",
+     "adcode": "120110",
+     "level": "district",
+     "lat": 39.085754,
+     "lng": 117.307186,
+     "dist_km": 10.5,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "津南区",
+     "adcode": "120112",
+     "level": "district",
+     "lat": 38.935949,
+     "lng": 117.350205,
+     "dist_km": 25.2,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "西青区",
+     "adcode": "120111",
+     "level": "district",
+     "lat": 39.140789,
+     "lng": 117.002821,
+     "dist_km": 17.0,
+     "price_sqm": null,
+     "rent_ref": null
+    }
+   ]
+  },
+  "370200": {
+   "name": "青岛",
+   "tier": 2,
+   "center": [
+    36.07,
+    120.38
+   ],
+   "districts": [
+    {
+     "name": "莱西市",
+     "adcode": "370285",
+     "level": "district",
+     "lat": 36.888736,
+     "lng": 120.512713,
+     "dist_km": 91.8,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "城阳区",
+     "adcode": "370214",
+     "level": "district",
+     "lat": 36.307278,
+     "lng": 120.391096,
+     "dist_km": 26.4,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "黄岛区",
+     "adcode": "370211",
+     "level": "district",
+     "lat": 35.96057,
+     "lng": 120.192674,
+     "dist_km": 20.8,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "崂山区",
+     "adcode": "370212",
+     "level": "district",
+     "lat": 36.10687,
+     "lng": 120.4643,
+     "dist_km": 8.6,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "即墨区",
+     "adcode": "370215",
+     "level": "district",
+     "lat": 36.389887,
+     "lng": 120.442607,
+     "dist_km": 36.0,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "胶州市",
+     "adcode": "370281",
+     "level": "district",
+     "lat": 36.264443,
+     "lng": 120.028047,
+     "dist_km": 38.3,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "李沧区",
+     "adcode": "370213",
+     "level": "district",
+     "lat": 36.145705,
+     "lng": 120.427555,
+     "dist_km": 9.4,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "市南区",
+     "adcode": "370202",
+     "level": "district",
+     "lat": 36.064016,
+     "lng": 120.313249,
+     "dist_km": 6.0,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "市北区",
+     "adcode": "370203",
+     "level": "district",
+     "lat": 36.087377,
+     "lng": 120.369544,
+     "dist_km": 2.1,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "平度市",
+     "adcode": "370283",
+     "level": "district",
+     "lat": 36.753604,
+     "lng": 119.964971,
+     "dist_km": 84.6,
+     "price_sqm": null,
+     "rent_ref": null
+    }
+   ]
+  },
+  "510100": {
+   "name": "成都",
+   "tier": 2,
+   "center": [
+    30.57,
+    104.07
+   ],
+   "districts": [
+    {
+     "name": "彭州市",
+     "adcode": "510182",
+     "level": "district",
+     "lat": 30.992988,
+     "lng": 103.955529,
+     "dist_km": 48.3,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "简阳市",
+     "adcode": "510185",
+     "level": "district",
+     "lat": 30.413723,
+     "lng": 104.545254,
+     "dist_km": 48.7,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "蒲江县",
+     "adcode": "510131",
+     "level": "district",
+     "lat": 30.20027,
+     "lng": 103.504347,
+     "dist_km": 68.1,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "青羊区",
+     "adcode": "510105",
+     "level": "district",
+     "lat": 30.677002,
+     "lng": 104.059913,
+     "dist_km": 11.9,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "金牛区",
+     "adcode": "510106",
+     "level": "district",
+     "lat": 30.693789,
+     "lng": 104.049757,
+     "dist_km": 13.9,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "大邑县",
+     "adcode": "510129",
+     "level": "district",
+     "lat": 30.575665,
+     "lng": 103.510131,
+     "dist_km": 53.6,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "崇州市",
+     "adcode": "510184",
+     "level": "district",
+     "lat": 30.632876,
+     "lng": 103.670897,
+     "dist_km": 38.8,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "锦江区",
+     "adcode": "510104",
+     "level": "district",
+     "lat": 30.601156,
+     "lng": 104.114727,
+     "dist_km": 5.5,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "金堂县",
+     "adcode": "510121",
+     "level": "district",
+     "lat": 30.864322,
+     "lng": 104.409195,
+     "dist_km": 46.1,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "邛崃市",
+     "adcode": "510183",
+     "level": "district",
+     "lat": 30.412858,
+     "lng": 103.461917,
+     "dist_km": 60.8,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "新津区",
+     "adcode": "510118",
+     "level": "district",
+     "lat": 30.413132,
+     "lng": 103.808718,
+     "dist_km": 30.5,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "都江堰市",
+     "adcode": "510181",
+     "level": "district",
+     "lat": 30.991315,
+     "lng": 103.645113,
+     "dist_km": 62.0,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "郫都区",
+     "adcode": "510117",
+     "level": "district",
+     "lat": 30.797817,
+     "lng": 103.898406,
+     "dist_km": 30.2,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "双流区",
+     "adcode": "510116",
+     "level": "district",
+     "lat": 30.577677,
+     "lng": 103.921334,
+     "dist_km": 14.3,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "龙泉驿区",
+     "adcode": "510112",
+     "level": "district",
+     "lat": 30.559416,
+     "lng": 104.272966,
+     "dist_km": 19.5,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "成华区",
+     "adcode": "510108",
+     "level": "district",
+     "lat": 30.662363,
+     "lng": 104.09891,
+     "dist_km": 10.6,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "武侯区",
+     "adcode": "510107",
+     "level": "district",
+     "lat": 30.64432,
+     "lng": 104.040793,
+     "dist_km": 8.7,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "青白江区",
+     "adcode": "510113",
+     "level": "district",
+     "lat": 30.881068,
+     "lng": 104.248957,
+     "dist_km": 38.6,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "新都区",
+     "adcode": "510114",
+     "level": "district",
+     "lat": 30.825949,
+     "lng": 104.156104,
+     "dist_km": 29.6,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "温江区",
+     "adcode": "510115",
+     "level": "district",
+     "lat": 30.684677,
+     "lng": 103.85431,
+     "dist_km": 24.3,
+     "price_sqm": null,
+     "rent_ref": null
+    }
+   ]
+  },
+  "420100": {
+   "name": "武汉",
+   "tier": 2,
+   "center": [
+    30.59,
+    114.31
+   ],
+   "districts": [
+    {
+     "name": "新洲区",
+     "adcode": "420117",
+     "level": "district",
+     "lat": 30.843684,
+     "lng": 114.796056,
+     "dist_km": 54.4,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "汉南区",
+     "adcode": "420113",
+     "level": "district",
+     "lat": 30.311131,
+     "lng": 114.078862,
+     "dist_km": 38.1,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "蔡甸区",
+     "adcode": "420114",
+     "level": "district",
+     "lat": 30.538698,
+     "lng": 114.081539,
+     "dist_km": 22.6,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "江夏区",
+     "adcode": "420115",
+     "level": "district",
+     "lat": 30.378022,
+     "lng": 114.315435,
+     "dist_km": 23.6,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "武昌区",
+     "adcode": "420106",
+     "level": "district",
+     "lat": 30.556584,
+     "lng": 114.311006,
+     "dist_km": 3.7,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "江岸区",
+     "adcode": "420102",
+     "level": "district",
+     "lat": 30.635519,
+     "lng": 114.277563,
+     "dist_km": 5.9,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "青山区",
+     "adcode": "420107",
+     "level": "district",
+     "lat": 30.642105,
+     "lng": 114.379872,
+     "dist_km": 8.8,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "硚口区",
+     "adcode": "420104",
+     "level": "district",
+     "lat": 30.585004,
+     "lng": 114.209279,
+     "dist_km": 9.7,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "江汉区",
+     "adcode": "420103",
+     "level": "district",
+     "lat": 30.60358,
+     "lng": 114.265348,
+     "dist_km": 4.5,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "汉阳区",
+     "adcode": "420105",
+     "level": "district",
+     "lat": 30.556747,
+     "lng": 114.213133,
+     "dist_km": 10.0,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "东西湖区",
+     "adcode": "420112",
+     "level": "district",
+     "lat": 30.622377,
+     "lng": 114.130615,
+     "dist_km": 17.5,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "黄陂区",
+     "adcode": "420116",
+     "level": "district",
+     "lat": 30.884451,
+     "lng": 114.370129,
+     "dist_km": 33.2,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "洪山区",
+     "adcode": "420111",
+     "level": "district",
+     "lat": 30.503014,
+     "lng": 114.337169,
+     "dist_km": 10.0,
+     "price_sqm": null,
+     "rent_ref": null
+    }
+   ]
+  },
+  "610100": {
+   "name": "西安",
+   "tier": 2,
+   "center": [
+    34.34,
+    108.94
+   ],
+   "districts": [
+    {
+     "name": "西安区",
+     "adcode": "220403",
+     "level": "district",
+     "lat": 42.924728,
+     "lng": 125.143096,
+     "dist_km": 1695.9,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "西安区",
+     "adcode": "231005",
+     "level": "district",
+     "lat": 44.575667,
+     "lng": 129.608969,
+     "dist_km": 2098.8,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "长安区",
+     "adcode": "610116",
+     "level": "district",
+     "lat": 34.160327,
+     "lng": 108.902362,
+     "dist_km": 20.3,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "阎良区",
+     "adcode": "610114",
+     "level": "district",
+     "lat": 34.663394,
+     "lng": 109.221054,
+     "dist_km": 44.2,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "灞桥区",
+     "adcode": "610111",
+     "level": "district",
+     "lat": 34.274381,
+     "lng": 109.059563,
+     "dist_km": 13.2,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "新城区",
+     "adcode": "610102",
+     "level": "district",
+     "lat": 34.268147,
+     "lng": 108.955992,
+     "dist_km": 8.1,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "蓝田县",
+     "adcode": "610122",
+     "level": "district",
+     "lat": 34.15264,
+     "lng": 109.318301,
+     "dist_km": 40.5,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "雁塔区",
+     "adcode": "610113",
+     "level": "district",
+     "lat": 34.224107,
+     "lng": 108.943921,
+     "dist_km": 12.9,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "未央区",
+     "adcode": "610112",
+     "level": "district",
+     "lat": 34.294674,
+     "lng": 108.941994,
+     "dist_km": 5.0,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "碑林区",
+     "adcode": "610103",
+     "level": "district",
+     "lat": 34.258318,
+     "lng": 108.93603,
+     "dist_km": 9.1,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "鄠邑区",
+     "adcode": "610118",
+     "level": "district",
+     "lat": 34.110385,
+     "lng": 108.600341,
+     "dist_km": 40.3,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "周至县",
+     "adcode": "610124",
+     "level": "district",
+     "lat": 34.165063,
+     "lng": 108.217553,
+     "dist_km": 69.2,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "莲湖区",
+     "adcode": "610104",
+     "level": "district",
+     "lat": 34.266932,
+     "lng": 108.9395,
+     "dist_km": 8.1,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "临潼区",
+     "adcode": "610115",
+     "level": "district",
+     "lat": 34.368542,
+     "lng": 109.209196,
+     "dist_km": 24.9,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "高陵区",
+     "adcode": "610117",
+     "level": "district",
+     "lat": 34.536117,
+     "lng": 109.083091,
+     "dist_km": 25.5,
+     "price_sqm": null,
+     "rent_ref": null
+    }
+   ]
+  },
+  "500000": {
+   "name": "重庆",
+   "tier": 2,
+   "center": [
+    29.56,
+    106.55
+   ],
+   "districts": [
+    {
+     "name": "奉节县",
+     "adcode": "500236",
+     "level": "district",
+     "lat": 31.020631,
+     "lng": 109.395989,
+     "dist_km": 317.9,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "巫溪县",
+     "adcode": "500238",
+     "level": "district",
+     "lat": 31.400922,
+     "lng": 109.565296,
+     "dist_km": 354.1,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "石柱土家族自治县",
+     "adcode": "500240",
+     "level": "district",
+     "lat": 30.001517,
+     "lng": 108.109674,
+     "dist_km": 158.3,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "巫山县",
+     "adcode": "500237",
+     "level": "district",
+     "lat": 31.077226,
+     "lng": 109.874256,
+     "dist_km": 360.9,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "丰都县",
+     "adcode": "500230",
+     "level": "district",
+     "lat": 29.86643,
+     "lng": 107.726599,
+     "dist_km": 118.6,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "城口县",
+     "adcode": "500229",
+     "level": "district",
+     "lat": 31.949597,
+     "lng": 108.65997,
+     "dist_km": 333.5,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "垫江县",
+     "adcode": "500231",
+     "level": "district",
+     "lat": 30.330075,
+     "lng": 107.327953,
+     "dist_km": 113.8,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "云阳县",
+     "adcode": "500235",
+     "level": "district",
+     "lat": 30.933048,
+     "lng": 108.69311,
+     "dist_km": 256.3,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "忠县",
+     "adcode": "500233",
+     "level": "district",
+     "lat": 30.302332,
+     "lng": 108.033535,
+     "dist_km": 165.1,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "秀山土家族苗族自治县",
+     "adcode": "500241",
+     "level": "district",
+     "lat": 28.451599,
+     "lng": 109.002627,
+     "dist_km": 268.5,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "彭水苗族土家族自治县",
+     "adcode": "500243",
+     "level": "district",
+     "lat": 29.296469,
+     "lng": 108.161141,
+     "dist_km": 158.8,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "酉阳土家族苗族自治县",
+     "adcode": "500242",
+     "level": "district",
+     "lat": 28.84458,
+     "lng": 108.762933,
+     "dist_km": 229.0,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "合川区",
+     "adcode": "500117",
+     "level": "district",
+     "lat": 29.974612,
+     "lng": 106.272363,
+     "dist_km": 53.3,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "大渡口区",
+     "adcode": "500104",
+     "level": "district",
+     "lat": 29.487155,
+     "lng": 106.478402,
+     "dist_km": 10.7,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "铜梁区",
+     "adcode": "500151",
+     "level": "district",
+     "lat": 29.847765,
+     "lng": 106.052358,
+     "dist_km": 57.7,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "大足区",
+     "adcode": "500111",
+     "level": "district",
+     "lat": 29.710254,
+     "lng": 105.718201,
+     "dist_km": 82.1,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "潼南区",
+     "adcode": "500152",
+     "level": "district",
+     "lat": 30.193856,
+     "lng": 105.836912,
+     "dist_km": 98.5,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "长寿区",
+     "adcode": "500115",
+     "level": "district",
+     "lat": 29.860385,
+     "lng": 107.07648,
+     "dist_km": 60.8,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "九龙坡区",
+     "adcode": "500107",
+     "level": "district",
+     "lat": 29.505092,
+     "lng": 106.5067,
+     "dist_km": 7.4,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "南岸区",
+     "adcode": "500108",
+     "level": "district",
+     "lat": 29.503968,
+     "lng": 106.640494,
+     "dist_km": 10.7,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "武隆区",
+     "adcode": "500156",
+     "level": "district",
+     "lat": 29.328521,
+     "lng": 107.755534,
+     "dist_km": 119.5,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "綦江区",
+     "adcode": "500110",
+     "level": "district",
+     "lat": 29.031297,
+     "lng": 106.647464,
+     "dist_km": 59.5,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "涪陵区",
+     "adcode": "500102",
+     "level": "district",
+     "lat": 29.75513,
+     "lng": 107.242162,
+     "dist_km": 70.3,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "南川区",
+     "adcode": "500119",
+     "level": "district",
+     "lat": 29.160633,
+     "lng": 107.094709,
+     "dist_km": 69.0,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "永川区",
+     "adcode": "500118",
+     "level": "district",
+     "lat": 29.359374,
+     "lng": 105.923462,
+     "dist_km": 64.6,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "荣昌区",
+     "adcode": "500153",
+     "level": "district",
+     "lat": 29.419862,
+     "lng": 105.608437,
+     "dist_km": 92.5,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "巴南区",
+     "adcode": "500113",
+     "level": "district",
+     "lat": 29.405245,
+     "lng": 106.536873,
+     "dist_km": 17.3,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "江津区",
+     "adcode": "500116",
+     "level": "district",
+     "lat": 29.322816,
+     "lng": 106.260679,
+     "dist_km": 38.5,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "璧山区",
+     "adcode": "500120",
+     "level": "district",
+     "lat": 29.58013,
+     "lng": 106.201092,
+     "dist_km": 33.8,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "开州区",
+     "adcode": "500154",
+     "level": "district",
+     "lat": 31.162481,
+     "lng": 108.388745,
+     "dist_km": 250.7,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "沙坪坝区",
+     "adcode": "500106",
+     "level": "district",
+     "lat": 29.543618,
+     "lng": 106.452974,
+     "dist_km": 9.6,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "黔江区",
+     "adcode": "500114",
+     "level": "district",
+     "lat": 29.536309,
+     "lng": 108.766305,
+     "dist_km": 214.4,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "两江新区",
+     "adcode": "500157",
+     "level": "district",
+     "lat": 29.645575,
+     "lng": 106.56232,
+     "dist_km": 9.6,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "北碚区",
+     "adcode": "500109",
+     "level": "district",
+     "lat": 29.807674,
+     "lng": 106.391561,
+     "dist_km": 31.5,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "渝中区",
+     "adcode": "500103",
+     "level": "district",
+     "lat": 29.555523,
+     "lng": 106.565262,
+     "dist_km": 1.6,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "梁平区",
+     "adcode": "500155",
+     "level": "district",
+     "lat": 30.656772,
+     "lng": 107.765064,
+     "dist_km": 168.9,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "万州区",
+     "adcode": "500101",
+     "level": "district",
+     "lat": 30.809883,
+     "lng": 108.404001,
+     "dist_km": 226.0,
+     "price_sqm": null,
+     "rent_ref": null
+    }
+   ]
+  },
+  "430100": {
+   "name": "长沙",
+   "tier": 2,
+   "center": [
+    28.23,
+    112.94
+   ],
+   "districts": [
+    {
+     "name": "岳麓区",
+     "adcode": "430104",
+     "level": "district",
+     "lat": 28.237722,
+     "lng": 112.924683,
+     "dist_km": 1.7,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "芙蓉区",
+     "adcode": "430102",
+     "level": "district",
+     "lat": 28.188608,
+     "lng": 113.026848,
+     "dist_km": 9.7,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "开福区",
+     "adcode": "430105",
+     "level": "district",
+     "lat": 28.260681,
+     "lng": 112.979691,
+     "dist_km": 5.2,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "雨花区",
+     "adcode": "430111",
+     "level": "district",
+     "lat": 28.139034,
+     "lng": 113.032758,
+     "dist_km": 13.6,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "天心区",
+     "adcode": "430103",
+     "level": "district",
+     "lat": 28.117921,
+     "lng": 112.984183,
+     "dist_km": 13.2,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "望城区",
+     "adcode": "430112",
+     "level": "district",
+     "lat": 28.356666,
+     "lng": 112.825763,
+     "dist_km": 18.0,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "浏阳市",
+     "adcode": "430181",
+     "level": "district",
+     "lat": 28.167354,
+     "lng": 113.637815,
+     "dist_km": 68.7,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "长沙县",
+     "adcode": "430121",
+     "level": "district",
+     "lat": 28.249993,
+     "lng": 113.074684,
+     "dist_km": 13.4,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "宁乡市",
+     "adcode": "430182",
+     "level": "district",
+     "lat": 28.281203,
+     "lng": 112.546513,
+     "dist_km": 39.0,
+     "price_sqm": null,
+     "rent_ref": null
+    }
+   ]
+  },
+  "410100": {
+   "name": "郑州",
+   "tier": 2,
+   "center": [
+    34.75,
+    113.63
+   ],
+   "districts": [
+    {
+     "name": "登封市",
+     "adcode": "410185",
+     "level": "district",
+     "lat": 34.456006,
+     "lng": 113.044161,
+     "dist_km": 62.8,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "中牟县",
+     "adcode": "410122",
+     "level": "district",
+     "lat": 34.721638,
+     "lng": 113.96987,
+     "dist_km": 31.2,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "惠济区",
+     "adcode": "410108",
+     "level": "district",
+     "lat": 34.869058,
+     "lng": 113.611001,
+     "dist_km": 13.4,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "上街区",
+     "adcode": "410106",
+     "level": "district",
+     "lat": 34.804416,
+     "lng": 113.302789,
+     "dist_km": 30.5,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "新密市",
+     "adcode": "410183",
+     "level": "district",
+     "lat": 34.541233,
+     "lng": 113.384416,
+     "dist_km": 32.3,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "荥阳市",
+     "adcode": "410182",
+     "level": "district",
+     "lat": 34.787399,
+     "lng": 113.376848,
+     "dist_km": 23.5,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "管城回族区",
+     "adcode": "410104",
+     "level": "district",
+     "lat": 34.755524,
+     "lng": 113.671321,
+     "dist_km": 3.8,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "巩义市",
+     "adcode": "410181",
+     "level": "district",
+     "lat": 34.749163,
+     "lng": 113.016016,
+     "dist_km": 56.1,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "新郑市",
+     "adcode": "410184",
+     "level": "district",
+     "lat": 34.397768,
+     "lng": 113.73409,
+     "dist_km": 40.3,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "金水区",
+     "adcode": "410105",
+     "level": "district",
+     "lat": 34.801489,
+     "lng": 113.6542,
+     "dist_km": 6.1,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "二七区",
+     "adcode": "410103",
+     "level": "district",
+     "lat": 34.725323,
+     "lng": 113.634116,
+     "dist_km": 2.8,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "中原区",
+     "adcode": "410102",
+     "level": "district",
+     "lat": 34.749472,
+     "lng": 113.606926,
+     "dist_km": 2.1,
+     "price_sqm": null,
+     "rent_ref": null
+    }
+   ]
+  },
+  "340100": {
+   "name": "合肥",
+   "tier": 2,
+   "center": [
+    31.86,
+    117.28
+   ],
+   "districts": [
+    {
+     "name": "庐阳区",
+     "adcode": "340103",
+     "level": "district",
+     "lat": 31.880737,
+     "lng": 117.259591,
+     "dist_km": 3.0,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "包河区",
+     "adcode": "340111",
+     "level": "district",
+     "lat": 31.795743,
+     "lng": 117.30456,
+     "dist_km": 7.5,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "庐江县",
+     "adcode": "340124",
+     "level": "district",
+     "lat": 31.259021,
+     "lng": 117.28269,
+     "dist_km": 66.8,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "长丰县",
+     "adcode": "340121",
+     "level": "district",
+     "lat": 32.480333,
+     "lng": 117.162007,
+     "dist_km": 69.9,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "巢湖市",
+     "adcode": "340181",
+     "level": "district",
+     "lat": 31.626625,
+     "lng": 117.885003,
+     "dist_km": 62.8,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "肥西县",
+     "adcode": "340123",
+     "level": "district",
+     "lat": 31.708881,
+     "lng": 117.152848,
+     "dist_km": 20.7,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "蜀山区",
+     "adcode": "340104",
+     "level": "district",
+     "lat": 31.853223,
+     "lng": 117.25504,
+     "dist_km": 2.5,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "肥东县",
+     "adcode": "340122",
+     "level": "district",
+     "lat": 31.880552,
+     "lng": 117.472275,
+     "dist_km": 18.3,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "瑶海区",
+     "adcode": "340102",
+     "level": "district",
+     "lat": 31.860066,
+     "lng": 117.303863,
+     "dist_km": 2.3,
+     "price_sqm": null,
+     "rent_ref": null
+    }
+   ]
+  },
+  "440600": {
+   "name": "佛山",
+   "tier": 2,
+   "center": [
+    23.02,
+    113.12
+   ],
+   "districts": [
+    {
+     "name": "高明区",
+     "adcode": "440608",
+     "level": "district",
+     "lat": 22.903011,
+     "lng": 112.887549,
+     "dist_km": 27.1,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "三水区",
+     "adcode": "440607",
+     "level": "district",
+     "lat": 23.159532,
+     "lng": 112.892231,
+     "dist_km": 28.0,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "南海区",
+     "adcode": "440605",
+     "level": "district",
+     "lat": 23.031453,
+     "lng": 113.137788,
+     "dist_km": 2.2,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "禅城区",
+     "adcode": "440604",
+     "level": "district",
+     "lat": 23.012034,
+     "lng": 113.117051,
+     "dist_km": 0.9,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "顺德区",
+     "adcode": "440606",
+     "level": "district",
+     "lat": 22.808193,
+     "lng": 113.287855,
+     "dist_km": 29.2,
+     "price_sqm": null,
+     "rent_ref": null
+    }
+   ]
+  },
+  "441900": {
+   "name": "东莞",
+   "tier": 2,
+   "center": [
+    23.02,
+    113.75
+   ],
+   "districts": [
+    {
+     "name": "清溪镇",
+     "adcode": "441900",
+     "level": "street",
+     "lat": 22.866652,
+     "lng": 114.103894,
+     "dist_km": 40.0,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "黄江镇",
+     "adcode": "441900",
+     "level": "street",
+     "lat": 22.919032,
+     "lng": 113.995201,
+     "dist_km": 27.5,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "洪梅镇",
+     "adcode": "441900",
+     "level": "street",
+     "lat": 23.018416,
+     "lng": 113.601822,
+     "dist_km": 15.2,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "高埗镇",
+     "adcode": "441900",
+     "level": "street",
+     "lat": 23.102815,
+     "lng": 113.767745,
+     "dist_km": 9.4,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "桥头镇",
+     "adcode": "441900",
+     "level": "street",
+     "lat": 23.03409,
+     "lng": 114.059876,
+     "dist_km": 31.7,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "麻涌镇",
+     "adcode": "441900",
+     "level": "street",
+     "lat": 23.091525,
+     "lng": 113.611629,
+     "dist_km": 16.2,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "道滘镇",
+     "adcode": "441900",
+     "level": "street",
+     "lat": 23.00689,
+     "lng": 113.68209,
+     "dist_km": 7.1,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "企石镇",
+     "adcode": "441900",
+     "level": "street",
+     "lat": 23.057324,
+     "lng": 113.984931,
+     "dist_km": 24.4,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "寮步镇",
+     "adcode": "441900",
+     "level": "street",
+     "lat": 22.984189,
+     "lng": 113.912705,
+     "dist_km": 17.1,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "望牛墩镇",
+     "adcode": "441900",
+     "level": "street",
+     "lat": 23.070353,
+     "lng": 113.670096,
+     "dist_km": 9.9,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "常平镇",
+     "adcode": "441900",
+     "level": "street",
+     "lat": 23.010503,
+     "lng": 114.03595,
+     "dist_km": 29.3,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "樟木头镇",
+     "adcode": "441900",
+     "level": "street",
+     "lat": 22.872008,
+     "lng": 114.010395,
+     "dist_km": 31.3,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "沙田镇",
+     "adcode": "441900",
+     "level": "street",
+     "lat": 22.945538,
+     "lng": 113.577126,
+     "dist_km": 19.5,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "东坑镇",
+     "adcode": "441900",
+     "level": "street",
+     "lat": 22.992025,
+     "lng": 113.916116,
+     "dist_km": 17.3,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "南城街道",
+     "adcode": "441900",
+     "level": "street",
+     "lat": 22.954532,
+     "lng": 113.755495,
+     "dist_km": 7.3,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "谢岗镇",
+     "adcode": "441900",
+     "level": "street",
+     "lat": 22.948187,
+     "lng": 114.149641,
+     "dist_km": 41.7,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "凤岗镇",
+     "adcode": "441900",
+     "level": "street",
+     "lat": 22.780614,
+     "lng": 114.134708,
+     "dist_km": 47.6,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "石排镇",
+     "adcode": "441900",
+     "level": "street",
+     "lat": 23.071845,
+     "lng": 113.984824,
+     "dist_km": 24.7,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "茶山镇",
+     "adcode": "441900",
+     "level": "street",
+     "lat": 23.09557,
+     "lng": 113.835952,
+     "dist_km": 12.2,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "长安镇",
+     "adcode": "441900",
+     "level": "street",
+     "lat": 22.841364,
+     "lng": 113.797144,
+     "dist_km": 20.4,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "横沥镇",
+     "adcode": "441900",
+     "level": "street",
+     "lat": 23.037712,
+     "lng": 114.025171,
+     "dist_km": 28.2,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "石碣镇",
+     "adcode": "441900",
+     "level": "street",
+     "lat": 23.098317,
+     "lng": 113.766972,
+     "dist_km": 8.9,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "厚街镇",
+     "adcode": "441900",
+     "level": "street",
+     "lat": 22.937017,
+     "lng": 113.626542,
+     "dist_km": 15.6,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "中堂镇",
+     "adcode": "441900",
+     "level": "street",
+     "lat": 23.04548,
+     "lng": 113.607679,
+     "dist_km": 14.8,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "大朗镇",
+     "adcode": "441900",
+     "level": "street",
+     "lat": 22.869756,
+     "lng": 113.943494,
+     "dist_km": 25.9,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "虎门镇",
+     "adcode": "441900",
+     "level": "street",
+     "lat": 22.835098,
+     "lng": 113.626439,
+     "dist_km": 24.1,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "石龙镇",
+     "adcode": "441900",
+     "level": "street",
+     "lat": 23.090631,
+     "lng": 113.854778,
+     "dist_km": 13.3,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "大岭山镇",
+     "adcode": "441900",
+     "level": "street",
+     "lat": 22.950858,
+     "lng": 113.80282,
+     "dist_km": 9.4,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "塘厦镇",
+     "adcode": "441900",
+     "level": "street",
+     "lat": 22.822761,
+     "lng": 114.056121,
+     "dist_km": 38.3,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "万江街道",
+     "adcode": "441900",
+     "level": "street",
+     "lat": 23.003837,
+     "lng": 113.704848,
+     "dist_km": 5.0,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "莞城街道",
+     "adcode": "441900",
+     "level": "street",
+     "lat": 23.049614,
+     "lng": 113.758229,
+     "dist_km": 3.4,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "东城街道",
+     "adcode": "441900",
+     "level": "street",
+     "lat": 22.962728,
+     "lng": 113.823993,
+     "dist_km": 9.9,
+     "price_sqm": null,
+     "rent_ref": null
+    }
+   ]
+  },
+  "320200": {
+   "name": "无锡",
+   "tier": 2,
+   "center": [
+    31.49,
+    120.31
+   ],
+   "districts": [
+    {
+     "name": "新吴区",
+     "adcode": "320214",
+     "level": "district",
+     "lat": 31.492646,
+     "lng": 120.359619,
+     "dist_km": 4.7,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "梁溪区",
+     "adcode": "320213",
+     "level": "district",
+     "lat": 31.568121,
+     "lng": 120.298947,
+     "dist_km": 8.7,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "锡山区",
+     "adcode": "320205",
+     "level": "district",
+     "lat": 31.591279,
+     "lng": 120.353047,
+     "dist_km": 12.0,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "惠山区",
+     "adcode": "320206",
+     "level": "district",
+     "lat": 31.682185,
+     "lng": 120.293823,
+     "dist_km": 21.4,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "江阴市",
+     "adcode": "320281",
+     "level": "district",
+     "lat": 31.923602,
+     "lng": 120.280178,
+     "dist_km": 48.3,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "滨湖区",
+     "adcode": "320211",
+     "level": "district",
+     "lat": 31.529773,
+     "lng": 120.2798,
+     "dist_km": 5.3,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "宜兴市",
+     "adcode": "320282",
+     "level": "district",
+     "lat": 31.340511,
+     "lng": 119.81704,
+     "dist_km": 49.6,
+     "price_sqm": null,
+     "rent_ref": null
+    }
+   ]
+  },
+  "350100": {
+   "name": "福州",
+   "tier": 2,
+   "center": [
+    26.07,
+    119.3
+   ],
+   "districts": [
+    {
+     "name": "闽清县",
+     "adcode": "350124",
+     "level": "district",
+     "lat": 26.224491,
+     "lng": 118.858757,
+     "dist_km": 47.3,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "罗源县",
+     "adcode": "350123",
+     "level": "district",
+     "lat": 26.493691,
+     "lng": 119.544564,
+     "dist_km": 53.0,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "连江县",
+     "adcode": "350122",
+     "level": "district",
+     "lat": 26.201064,
+     "lng": 119.53497,
+     "dist_km": 27.6,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "福清市",
+     "adcode": "350181",
+     "level": "district",
+     "lat": 25.722812,
+     "lng": 119.379476,
+     "dist_km": 39.4,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "长乐区",
+     "adcode": "350112",
+     "level": "district",
+     "lat": 25.89147,
+     "lng": 119.589138,
+     "dist_km": 35.1,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "平潭县",
+     "adcode": "350128",
+     "level": "district",
+     "lat": 25.501606,
+     "lng": 119.785437,
+     "dist_km": 79.7,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "永泰县",
+     "adcode": "350125",
+     "level": "district",
+     "lat": 25.870366,
+     "lng": 118.928197,
+     "dist_km": 43.3,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "鼓楼区",
+     "adcode": "350102",
+     "level": "district",
+     "lat": 26.08576,
+     "lng": 119.299693,
+     "dist_km": 1.8,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "晋安区",
+     "adcode": "350111",
+     "level": "district",
+     "lat": 26.085013,
+     "lng": 119.323732,
+     "dist_km": 2.9,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "马尾区",
+     "adcode": "350105",
+     "level": "district",
+     "lat": 26.00159,
+     "lng": 119.434368,
+     "dist_km": 15.4,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "闽侯县",
+     "adcode": "350121",
+     "level": "district",
+     "lat": 26.153456,
+     "lng": 119.126412,
+     "dist_km": 19.7,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "仓山区",
+     "adcode": "350104",
+     "level": "district",
+     "lat": 26.050139,
+     "lng": 119.268451,
+     "dist_km": 3.8,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "台江区",
+     "adcode": "350103",
+     "level": "district",
+     "lat": 26.055883,
+     "lng": 119.309361,
+     "dist_km": 1.8,
+     "price_sqm": null,
+     "rent_ref": null
+    }
+   ]
+  },
+  "530100": {
+   "name": "昆明",
+   "tier": 3,
+   "center": [
+    25.04,
+    102.71
+   ],
+   "districts": [
+    {
+     "name": "东川区",
+     "adcode": "530113",
+     "level": "district",
+     "lat": 26.086244,
+     "lng": 103.185943,
+     "dist_km": 125.8,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "五华区",
+     "adcode": "530102",
+     "level": "district",
+     "lat": 25.046614,
+     "lng": 102.70583,
+     "dist_km": 0.8,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "晋宁区",
+     "adcode": "530115",
+     "level": "district",
+     "lat": 24.672245,
+     "lng": 102.594114,
+     "dist_km": 42.5,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "西山区",
+     "adcode": "530112",
+     "level": "district",
+     "lat": 25.041095,
+     "lng": 102.663096,
+     "dist_km": 4.7,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "安宁市",
+     "adcode": "530181",
+     "level": "district",
+     "lat": 24.922732,
+     "lng": 102.477185,
+     "dist_km": 26.8,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "富民县",
+     "adcode": "530124",
+     "level": "district",
+     "lat": 25.224854,
+     "lng": 102.496307,
+     "dist_km": 29.8,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "盘龙区",
+     "adcode": "530103",
+     "level": "district",
+     "lat": 25.119451,
+     "lng": 102.750152,
+     "dist_km": 9.7,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "石林彝族自治县",
+     "adcode": "530126",
+     "level": "district",
+     "lat": 24.774704,
+     "lng": 103.288668,
+     "dist_km": 65.4,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "禄劝彝族苗族自治县",
+     "adcode": "530128",
+     "level": "district",
+     "lat": 25.554683,
+     "lng": 102.47049,
+     "dist_km": 62.1,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "呈贡区",
+     "adcode": "530114",
+     "level": "district",
+     "lat": 24.888786,
+     "lng": 102.820672,
+     "dist_km": 20.2,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "官渡区",
+     "adcode": "530111",
+     "level": "district",
+     "lat": 24.953243,
+     "lng": 102.747403,
+     "dist_km": 10.4,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "宜良县",
+     "adcode": "530125",
+     "level": "district",
+     "lat": 24.92264,
+     "lng": 103.139771,
+     "dist_km": 45.2,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "嵩明县",
+     "adcode": "530127",
+     "level": "district",
+     "lat": 25.33009,
+     "lng": 103.041568,
+     "dist_km": 46.4,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "寻甸回族彝族自治县",
+     "adcode": "530129",
+     "level": "district",
+     "lat": 25.561154,
+     "lng": 103.254718,
+     "dist_km": 79.7,
+     "price_sqm": null,
+     "rent_ref": null
+    }
+   ]
+  },
+  "520100": {
+   "name": "贵阳",
+   "tier": 3,
+   "center": [
+    26.65,
+    106.63
+   ],
+   "districts": [
+    {
+     "name": "开阳县",
+     "adcode": "520121",
+     "level": "district",
+     "lat": 27.061361,
+     "lng": 106.960825,
+     "dist_km": 56.3,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "息烽县",
+     "adcode": "520122",
+     "level": "district",
+     "lat": 27.093912,
+     "lng": 106.736564,
+     "dist_km": 50.5,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "观山湖区",
+     "adcode": "520115",
+     "level": "district",
+     "lat": 26.619823,
+     "lng": 106.595452,
+     "dist_km": 4.8,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "乌当区",
+     "adcode": "520112",
+     "level": "district",
+     "lat": 26.634414,
+     "lng": 106.746864,
+     "dist_km": 11.7,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "花溪区",
+     "adcode": "520111",
+     "level": "district",
+     "lat": 26.41337,
+     "lng": 106.666606,
+     "dist_km": 26.6,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "清镇市",
+     "adcode": "520181",
+     "level": "district",
+     "lat": 26.576399,
+     "lng": 106.469376,
+     "dist_km": 17.9,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "白云区",
+     "adcode": "520113",
+     "level": "district",
+     "lat": 26.68161,
+     "lng": 106.619512,
+     "dist_km": 3.7,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "修文县",
+     "adcode": "520123",
+     "level": "district",
+     "lat": 26.839725,
+     "lng": 106.588423,
+     "dist_km": 21.5,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "云岩区",
+     "adcode": "520103",
+     "level": "district",
+     "lat": 26.608117,
+     "lng": 106.7206,
+     "dist_km": 10.1,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "南明区",
+     "adcode": "520102",
+     "level": "district",
+     "lat": 26.571575,
+     "lng": 106.710532,
+     "dist_km": 11.8,
+     "price_sqm": null,
+     "rent_ref": null
+    }
+   ]
+  },
+  "360100": {
+   "name": "南昌",
+   "tier": 3,
+   "center": [
+    28.68,
+    115.86
+   ],
+   "districts": [
+    {
+     "name": "青云谱区",
+     "adcode": "360104",
+     "level": "district",
+     "lat": 28.625208,
+     "lng": 115.92087,
+     "dist_km": 8.5,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "进贤县",
+     "adcode": "360124",
+     "level": "district",
+     "lat": 28.380924,
+     "lng": 116.237572,
+     "dist_km": 49.7,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "红谷滩区",
+     "adcode": "360113",
+     "level": "district",
+     "lat": 28.701509,
+     "lng": 115.853225,
+     "dist_km": 2.5,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "新建区",
+     "adcode": "360112",
+     "level": "district",
+     "lat": 28.696439,
+     "lng": 115.810237,
+     "dist_km": 5.2,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "东湖区",
+     "adcode": "360102",
+     "level": "district",
+     "lat": 28.702144,
+     "lng": 115.898736,
+     "dist_km": 4.5,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "青山湖区",
+     "adcode": "360111",
+     "level": "district",
+     "lat": 28.686155,
+     "lng": 115.957236,
+     "dist_km": 9.5,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "西湖区",
+     "adcode": "360103",
+     "level": "district",
+     "lat": 28.660374,
+     "lng": 115.872135,
+     "dist_km": 2.5,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "安义县",
+     "adcode": "360123",
+     "level": "district",
+     "lat": 28.848793,
+     "lng": 115.544129,
+     "dist_km": 36.1,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "南昌县",
+     "adcode": "360121",
+     "level": "district",
+     "lat": 28.56133,
+     "lng": 115.928649,
+     "dist_km": 14.8,
+     "price_sqm": null,
+     "rent_ref": null
+    }
+   ]
+  },
+  "370100": {
+   "name": "济南",
+   "tier": 3,
+   "center": [
+    36.65,
+    117.12
+   ],
+   "districts": [
+    {
+     "name": "钢城区",
+     "adcode": "370117",
+     "level": "district",
+     "lat": 36.059408,
+     "lng": 117.805753,
+     "dist_km": 89.9,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "长清区",
+     "adcode": "370113",
+     "level": "district",
+     "lat": 36.554058,
+     "lng": 116.746409,
+     "dist_km": 35.0,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "商河县",
+     "adcode": "370126",
+     "level": "district",
+     "lat": 37.308886,
+     "lng": 117.151006,
+     "dist_km": 73.3,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "莱芜区",
+     "adcode": "370116",
+     "level": "district",
+     "lat": 36.214899,
+     "lng": 117.669949,
+     "dist_km": 69.0,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "平阴县",
+     "adcode": "370124",
+     "level": "district",
+     "lat": 36.289612,
+     "lng": 116.450127,
+     "dist_km": 72.1,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "济阳区",
+     "adcode": "370115",
+     "level": "district",
+     "lat": 36.977728,
+     "lng": 117.167632,
+     "dist_km": 36.7,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "天桥区",
+     "adcode": "370105",
+     "level": "district",
+     "lat": 36.678434,
+     "lng": 116.981318,
+     "dist_km": 12.8,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "历下区",
+     "adcode": "370102",
+     "level": "district",
+     "lat": 36.665957,
+     "lng": 117.070216,
+     "dist_km": 4.8,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "历城区",
+     "adcode": "370112",
+     "level": "district",
+     "lat": 36.680298,
+     "lng": 117.05915,
+     "dist_km": 6.4,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "章丘区",
+     "adcode": "370114",
+     "level": "district",
+     "lat": 36.681053,
+     "lng": 117.520272,
+     "dist_km": 35.9,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "槐荫区",
+     "adcode": "370104",
+     "level": "district",
+     "lat": 36.652198,
+     "lng": 116.895505,
+     "dist_km": 20.0,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "市中区",
+     "adcode": "370103",
+     "level": "district",
+     "lat": 36.650876,
+     "lng": 116.991643,
+     "dist_km": 11.5,
+     "price_sqm": null,
+     "rent_ref": null
+    }
+   ]
+  },
+  "210200": {
+   "name": "大连",
+   "tier": 3,
+   "center": [
+    38.91,
+    121.61
+   ],
+   "districts": [
+    {
+     "name": "普兰店区",
+     "adcode": "210214",
+     "level": "district",
+     "lat": 39.390484,
+     "lng": 121.933385,
+     "dist_km": 60.3,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "长海县",
+     "adcode": "210224",
+     "level": "district",
+     "lat": 39.271769,
+     "lng": 122.583689,
+     "dist_km": 93.2,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "金州区",
+     "adcode": "210213",
+     "level": "district",
+     "lat": 39.049187,
+     "lng": 121.7774,
+     "dist_km": 21.2,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "瓦房店市",
+     "adcode": "210281",
+     "level": "district",
+     "lat": 39.625757,
+     "lng": 121.974416,
+     "dist_km": 85.5,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "庄河市",
+     "adcode": "210283",
+     "level": "district",
+     "lat": 39.679576,
+     "lng": 122.960686,
+     "dist_km": 144.3,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "甘井子区",
+     "adcode": "210211",
+     "level": "district",
+     "lat": 38.952095,
+     "lng": 121.520372,
+     "dist_km": 9.1,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "旅顺口区",
+     "adcode": "210212",
+     "level": "district",
+     "lat": 38.850826,
+     "lng": 121.256801,
+     "dist_km": 31.3,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "西岗区",
+     "adcode": "210203",
+     "level": "district",
+     "lat": 38.913975,
+     "lng": 121.607519,
+     "dist_km": 0.5,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "中山区",
+     "adcode": "210202",
+     "level": "district",
+     "lat": 38.91754,
+     "lng": 121.640013,
+     "dist_km": 2.7,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "沙河口区",
+     "adcode": "210204",
+     "level": "district",
+     "lat": 38.904005,
+     "lng": 121.589262,
+     "dist_km": 1.9,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "五大连池市",
+     "adcode": "231182",
+     "level": "district",
+     "lat": 48.515221,
+     "lng": 126.198611,
+     "dist_km": 1129.4,
+     "price_sqm": null,
+     "rent_ref": null
+    }
+   ]
+  },
+  "210100": {
+   "name": "沈阳",
+   "tier": 3,
+   "center": [
+    41.8,
+    123.43
+   ],
+   "districts": [
+    {
+     "name": "于洪区",
+     "adcode": "210114",
+     "level": "district",
+     "lat": 41.791609,
+     "lng": 123.302137,
+     "dist_km": 10.6,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "康平县",
+     "adcode": "210123",
+     "level": "district",
+     "lat": 42.724848,
+     "lng": 123.337533,
+     "dist_km": 103.1,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "浑南区",
+     "adcode": "210112",
+     "level": "district",
+     "lat": 41.712338,
+     "lng": 123.443507,
+     "dist_km": 9.8,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "辽中区",
+     "adcode": "210115",
+     "level": "district",
+     "lat": 41.515263,
+     "lng": 122.760765,
+     "dist_km": 64.0,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "沈北新区",
+     "adcode": "210113",
+     "level": "district",
+     "lat": 41.910987,
+     "lng": 123.578477,
+     "dist_km": 17.4,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "新民市",
+     "adcode": "210181",
+     "level": "district",
+     "lat": 41.983626,
+     "lng": 122.830599,
+     "dist_km": 53.7,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "铁西区",
+     "adcode": "210106",
+     "level": "district",
+     "lat": 41.819354,
+     "lng": 123.32877,
+     "dist_km": 8.7,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "苏家屯区",
+     "adcode": "210111",
+     "level": "district",
+     "lat": 41.662783,
+     "lng": 123.33792,
+     "dist_km": 17.1,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "和平区",
+     "adcode": "210102",
+     "level": "district",
+     "lat": 41.787327,
+     "lng": 123.414257,
+     "dist_km": 1.9,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "皇姑区",
+     "adcode": "210105",
+     "level": "district",
+     "lat": 41.822161,
+     "lng": 123.435346,
+     "dist_km": 2.5,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "大东区",
+     "adcode": "210104",
+     "level": "district",
+     "lat": 41.802941,
+     "lng": 123.463782,
+     "dist_km": 2.8,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "沈河区",
+     "adcode": "210103",
+     "level": "district",
+     "lat": 41.79331,
+     "lng": 123.452763,
+     "dist_km": 2.0,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "法库县",
+     "adcode": "210124",
+     "level": "district",
+     "lat": 42.498695,
+     "lng": 123.434072,
+     "dist_km": 77.7,
+     "price_sqm": null,
+     "rent_ref": null
+    }
+   ]
+  },
+  "230100": {
+   "name": "哈尔滨",
+   "tier": 3,
+   "center": [
+    45.8,
+    126.53
+   ],
+   "districts": [
+    {
+     "name": "巴彦县",
+     "adcode": "230126",
+     "level": "district",
+     "lat": 46.083982,
+     "lng": 127.396681,
+     "dist_km": 74.1,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "依兰县",
+     "adcode": "230123",
+     "level": "district",
+     "lat": 46.323673,
+     "lng": 129.560399,
+     "dist_km": 240.9,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "通河县",
+     "adcode": "230128",
+     "level": "district",
+     "lat": 45.988131,
+     "lng": 128.739484,
+     "dist_km": 172.3,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "木兰县",
+     "adcode": "230127",
+     "level": "district",
+     "lat": 45.948453,
+     "lng": 128.036473,
+     "dist_km": 117.8,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "方正县",
+     "adcode": "230124",
+     "level": "district",
+     "lat": 45.849639,
+     "lng": 128.822788,
+     "dist_km": 177.7,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "宾县",
+     "adcode": "230125",
+     "level": "district",
+     "lat": 45.744093,
+     "lng": 127.4597,
+     "dist_km": 72.4,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "延寿县",
+     "adcode": "230129",
+     "level": "district",
+     "lat": 45.443704,
+     "lng": 128.304519,
+     "dist_km": 143.6,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "尚志市",
+     "adcode": "230183",
+     "level": "district",
+     "lat": 45.207013,
+     "lng": 128.00275,
+     "dist_km": 132.4,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "双城区",
+     "adcode": "230113",
+     "level": "district",
+     "lat": 45.380675,
+     "lng": 126.306523,
+     "dist_km": 49.8,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "平房区",
+     "adcode": "230108",
+     "level": "district",
+     "lat": 45.595552,
+     "lng": 126.630818,
+     "dist_km": 24.0,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "阿城区",
+     "adcode": "230112",
+     "level": "district",
+     "lat": 45.546641,
+     "lng": 126.951889,
+     "dist_km": 43.2,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "五常市",
+     "adcode": "230184",
+     "level": "district",
+     "lat": 44.929984,
+     "lng": 127.161081,
+     "dist_km": 108.6,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "道里区",
+     "adcode": "230102",
+     "level": "district",
+     "lat": 45.753912,
+     "lng": 126.610989,
+     "dist_km": 8.1,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "香坊区",
+     "adcode": "230110",
+     "level": "district",
+     "lat": 45.705871,
+     "lng": 126.656943,
+     "dist_km": 14.4,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "南岗区",
+     "adcode": "230103",
+     "level": "district",
+     "lat": 45.757969,
+     "lng": 126.662779,
+     "dist_km": 11.3,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "道外区",
+     "adcode": "230104",
+     "level": "district",
+     "lat": 45.790399,
+     "lng": 126.643102,
+     "dist_km": 8.8,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "呼兰区",
+     "adcode": "230111",
+     "level": "district",
+     "lat": 45.887684,
+     "lng": 126.581769,
+     "dist_km": 10.5,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "松北区",
+     "adcode": "230109",
+     "level": "district",
+     "lat": 45.792957,
+     "lng": 126.51049,
+     "dist_km": 1.7,
+     "price_sqm": null,
+     "rent_ref": null
+    }
+   ]
+  },
+  "220100": {
+   "name": "长春",
+   "tier": 3,
+   "center": [
+    43.82,
+    125.32
+   ],
+   "districts": [
+    {
+     "name": "榆树市",
+     "adcode": "220182",
+     "level": "district",
+     "lat": 44.838314,
+     "lng": 126.527231,
+     "dist_km": 148.5,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "德惠市",
+     "adcode": "220183",
+     "level": "district",
+     "lat": 44.519769,
+     "lng": 125.722149,
+     "dist_km": 84.2,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "双阳区",
+     "adcode": "220112",
+     "level": "district",
+     "lat": 43.522988,
+     "lng": 125.658442,
+     "dist_km": 42.8,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "农安县",
+     "adcode": "220122",
+     "level": "district",
+     "lat": 44.430724,
+     "lng": 125.17837,
+     "dist_km": 68.8,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "公主岭市",
+     "adcode": "220184",
+     "level": "district",
+     "lat": 43.49268,
+     "lng": 124.787695,
+     "dist_km": 56.2,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "南关区",
+     "adcode": "220102",
+     "level": "district",
+     "lat": 43.796234,
+     "lng": 125.300772,
+     "dist_km": 3.1,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "九台区",
+     "adcode": "220113",
+     "level": "district",
+     "lat": 44.149605,
+     "lng": 125.83342,
+     "dist_km": 55.1,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "朝阳区",
+     "adcode": "220104",
+     "level": "district",
+     "lat": 43.831463,
+     "lng": 125.281746,
+     "dist_km": 3.3,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "绿园区",
+     "adcode": "220106",
+     "level": "district",
+     "lat": 43.878718,
+     "lng": 125.249827,
+     "dist_km": 8.6,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "二道区",
+     "adcode": "220105",
+     "level": "district",
+     "lat": 43.863403,
+     "lng": 125.367556,
+     "dist_km": 6.2,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "宽城区",
+     "adcode": "220103",
+     "level": "district",
+     "lat": 43.941137,
+     "lng": 125.320079,
+     "dist_km": 13.5,
+     "price_sqm": null,
+     "rent_ref": null
+    }
+   ]
+  },
+  "130100": {
+   "name": "石家庄",
+   "tier": 3,
+   "center": [
+    38.04,
+    114.51
+   ],
+   "districts": [
+    {
+     "name": "高邑县",
+     "adcode": "130127",
+     "level": "district",
+     "lat": 37.615368,
+     "lng": 114.605929,
+     "dist_km": 48.0,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "辛集市",
+     "adcode": "130181",
+     "level": "district",
+     "lat": 37.942521,
+     "lng": 115.211536,
+     "dist_km": 62.4,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "井陉县",
+     "adcode": "130121",
+     "level": "district",
+     "lat": 38.031567,
+     "lng": 114.139245,
+     "dist_km": 32.5,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "井陉矿区",
+     "adcode": "130107",
+     "level": "district",
+     "lat": 38.06464,
+     "lng": 114.055744,
+     "dist_km": 39.9,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "深泽县",
+     "adcode": "130128",
+     "level": "district",
+     "lat": 38.183879,
+     "lng": 115.194745,
+     "dist_km": 62.0,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "赵县",
+     "adcode": "130133",
+     "level": "district",
+     "lat": 37.756228,
+     "lng": 114.769965,
+     "dist_km": 38.9,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "行唐县",
+     "adcode": "130125",
+     "level": "district",
+     "lat": 38.437049,
+     "lng": 114.547158,
+     "dist_km": 44.3,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "正定县",
+     "adcode": "130123",
+     "level": "district",
+     "lat": 38.146514,
+     "lng": 114.564616,
+     "dist_km": 12.8,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "无极县",
+     "adcode": "130130",
+     "level": "district",
+     "lat": 38.178275,
+     "lng": 114.970301,
+     "dist_km": 43.1,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "新乐市",
+     "adcode": "130184",
+     "level": "district",
+     "lat": 38.343398,
+     "lng": 114.677803,
+     "dist_km": 36.8,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "长安区",
+     "adcode": "130102",
+     "level": "district",
+     "lat": 38.036264,
+     "lng": 114.533072,
+     "dist_km": 2.1,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "新华区",
+     "adcode": "130105",
+     "level": "district",
+     "lat": 38.049986,
+     "lng": 114.457725,
+     "dist_km": 4.7,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "赞皇县",
+     "adcode": "130129",
+     "level": "district",
+     "lat": 37.665655,
+     "lng": 114.379847,
+     "dist_km": 43.2,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "栾城区",
+     "adcode": "130111",
+     "level": "district",
+     "lat": 37.900357,
+     "lng": 114.642111,
+     "dist_km": 19.4,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "灵寿县",
+     "adcode": "130126",
+     "level": "district",
+     "lat": 38.30711,
+     "lng": 114.376671,
+     "dist_km": 31.9,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "平山县",
+     "adcode": "130131",
+     "level": "district",
+     "lat": 38.259601,
+     "lng": 114.179681,
+     "dist_km": 37.8,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "晋州市",
+     "adcode": "130183",
+     "level": "district",
+     "lat": 38.033139,
+     "lng": 115.037946,
+     "dist_km": 46.2,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "藁城区",
+     "adcode": "130109",
+     "level": "district",
+     "lat": 38.021631,
+     "lng": 114.840722,
+     "dist_km": 29.0,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "元氏县",
+     "adcode": "130132",
+     "level": "district",
+     "lat": 37.766694,
+     "lng": 114.519607,
+     "dist_km": 30.4,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "裕华区",
+     "adcode": "130108",
+     "level": "district",
+     "lat": 38.006422,
+     "lng": 114.525694,
+     "dist_km": 4.0,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "桥西区",
+     "adcode": "130104",
+     "level": "district",
+     "lat": 38.024445,
+     "lng": 114.443818,
+     "dist_km": 6.0,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "鹿泉区",
+     "adcode": "130110",
+     "level": "district",
+     "lat": 38.085819,
+     "lng": 114.307343,
+     "dist_km": 18.5,
+     "price_sqm": null,
+     "rent_ref": null
+    }
+   ]
+  },
+  "140100": {
+   "name": "太原",
+   "tier": 3,
+   "center": [
+    37.87,
+    112.55
+   ],
+   "districts": [
+    {
+     "name": "娄烦县",
+     "adcode": "140123",
+     "level": "district",
+     "lat": 38.067007,
+     "lng": 111.790635,
+     "dist_km": 70.1,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "古交市",
+     "adcode": "140181",
+     "level": "district",
+     "lat": 37.906683,
+     "lng": 112.168436,
+     "dist_km": 33.7,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "清徐县",
+     "adcode": "140121",
+     "level": "district",
+     "lat": 37.607931,
+     "lng": 112.352751,
+     "dist_km": 33.9,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "杏花岭区",
+     "adcode": "140107",
+     "level": "district",
+     "lat": 37.893756,
+     "lng": 112.564152,
+     "dist_km": 2.9,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "尖草坪区",
+     "adcode": "140108",
+     "level": "district",
+     "lat": 37.939368,
+     "lng": 112.479621,
+     "dist_km": 9.9,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "迎泽区",
+     "adcode": "140106",
+     "level": "district",
+     "lat": 37.862808,
+     "lng": 112.557106,
+     "dist_km": 1.0,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "阳曲县",
+     "adcode": "140122",
+     "level": "district",
+     "lat": 38.057982,
+     "lng": 112.666523,
+     "dist_km": 23.3,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "小店区",
+     "adcode": "140105",
+     "level": "district",
+     "lat": 37.736352,
+     "lng": 112.559275,
+     "dist_km": 14.9,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "晋源区",
+     "adcode": "140110",
+     "level": "district",
+     "lat": 37.71478,
+     "lng": 112.471346,
+     "dist_km": 18.6,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "万柏林区",
+     "adcode": "140109",
+     "level": "district",
+     "lat": 37.859126,
+     "lng": 112.509236,
+     "dist_km": 3.8,
+     "price_sqm": null,
+     "rent_ref": null
+    }
+   ]
+  },
+  "460200": {
+   "name": "三亚",
+   "tier": 3,
+   "center": [
+    18.25,
+    109.51
+   ],
+   "districts": [
+    {
+     "name": "崖州区",
+     "adcode": "460205",
+     "level": "district",
+     "lat": 18.359182,
+     "lng": 109.168216,
+     "dist_km": 38.1,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "海棠区",
+     "adcode": "460202",
+     "level": "district",
+     "lat": 18.38589,
+     "lng": 109.731518,
+     "dist_km": 27.8,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "吉阳区",
+     "adcode": "460203",
+     "level": "district",
+     "lat": 18.283316,
+     "lng": 109.574285,
+     "dist_km": 7.7,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "天涯区",
+     "adcode": "460204",
+     "level": "district",
+     "lat": 18.30053,
+     "lng": 109.448083,
+     "dist_km": 8.6,
+     "price_sqm": null,
+     "rent_ref": null
+    }
+   ]
+  },
+  "620100": {
+   "name": "兰州",
+   "tier": 4,
+   "center": [
+    36.06,
+    103.83
+   ],
+   "districts": [
+    {
+     "name": "红古区",
+     "adcode": "620111",
+     "level": "district",
+     "lat": 36.346085,
+     "lng": 102.857555,
+     "dist_km": 92.9,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "安宁区",
+     "adcode": "620105",
+     "level": "district",
+     "lat": 36.104725,
+     "lng": 103.716468,
+     "dist_km": 11.4,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "永登县",
+     "adcode": "620121",
+     "level": "district",
+     "lat": 36.736421,
+     "lng": 103.257969,
+     "dist_km": 91.0,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "皋兰县",
+     "adcode": "620122",
+     "level": "district",
+     "lat": 36.332725,
+     "lng": 103.944946,
+     "dist_km": 32.0,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "西固区",
+     "adcode": "620104",
+     "level": "district",
+     "lat": 36.088836,
+     "lng": 103.625695,
+     "dist_km": 18.6,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "七里河区",
+     "adcode": "620103",
+     "level": "district",
+     "lat": 36.066494,
+     "lng": 103.783768,
+     "dist_km": 4.2,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "榆中县",
+     "adcode": "620123",
+     "level": "district",
+     "lat": 35.843443,
+     "lng": 104.109737,
+     "dist_km": 34.8,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "城关区",
+     "adcode": "620102",
+     "level": "district",
+     "lat": 36.057259,
+     "lng": 103.822893,
+     "dist_km": 0.7,
+     "price_sqm": null,
+     "rent_ref": null
+    }
+   ]
+  },
+  "460100": {
+   "name": "海口",
+   "tier": 4,
+   "center": [
+    20.04,
+    110.32
+   ],
+   "districts": [
+    {
+     "name": "美兰区",
+     "adcode": "460108",
+     "level": "district",
+     "lat": 20.030968,
+     "lng": 110.361917,
+     "dist_km": 4.5,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "琼山区",
+     "adcode": "460107",
+     "level": "district",
+     "lat": 19.986222,
+     "lng": 110.379853,
+     "dist_km": 8.7,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "秀英区",
+     "adcode": "460105",
+     "level": "district",
+     "lat": 20.009796,
+     "lng": 110.289274,
+     "dist_km": 4.6,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "龙华区",
+     "adcode": "460106",
+     "level": "district",
+     "lat": 20.032894,
+     "lng": 110.324263,
+     "dist_km": 0.9,
+     "price_sqm": null,
+     "rent_ref": null
+    }
+   ]
+  },
+  "440400": {
+   "name": "珠海",
+   "tier": 4,
+   "center": [
+    22.27,
+    113.58
+   ],
+   "districts": [
+    {
+     "name": "斗门区",
+     "adcode": "440403",
+     "level": "district",
+     "lat": 22.211919,
+     "lng": 113.290921,
+     "dist_km": 30.4,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "香洲区",
+     "adcode": "440402",
+     "level": "district",
+     "lat": 22.268594,
+     "lng": 113.538263,
+     "dist_km": 4.3,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "金湾区",
+     "adcode": "440404",
+     "level": "district",
+     "lat": 22.149361,
+     "lng": 113.357794,
+     "dist_km": 26.5,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "澳门大学横琴校区(由澳门实施管辖)",
+     "adcode": "440499",
+     "level": "district",
+     "lat": 22.12912,
+     "lng": 113.543871,
+     "dist_km": 16.1,
+     "price_sqm": null,
+     "rent_ref": null
+    }
+   ]
+  },
+  "650100": {
+   "name": "乌鲁木齐",
+   "tier": 4,
+   "center": [
+    43.83,
+    87.62
+   ],
+   "districts": [
+    {
+     "name": "达坂城区",
+     "adcode": "650107",
+     "level": "district",
+     "lat": 43.362058,
+     "lng": 88.308216,
+     "dist_km": 76.0,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "头屯河区",
+     "adcode": "650106",
+     "level": "district",
+     "lat": 43.835207,
+     "lng": 87.505983,
+     "dist_km": 9.2,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "新市区",
+     "adcode": "650104",
+     "level": "district",
+     "lat": 43.891865,
+     "lng": 87.58984,
+     "dist_km": 7.3,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "天山区",
+     "adcode": "650102",
+     "level": "district",
+     "lat": 43.793073,
+     "lng": 87.629117,
+     "dist_km": 4.2,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "米东区",
+     "adcode": "650109",
+     "level": "district",
+     "lat": 43.973273,
+     "lng": 87.652195,
+     "dist_km": 16.1,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "水磨沟区",
+     "adcode": "650105",
+     "level": "district",
+     "lat": 43.831482,
+     "lng": 87.63919,
+     "dist_km": 1.5,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "乌鲁木齐县",
+     "adcode": "650121",
+     "level": "district",
+     "lat": 43.507405,
+     "lng": 87.461054,
+     "dist_km": 38.1,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "沙依巴克区",
+     "adcode": "650103",
+     "level": "district",
+     "lat": 43.799783,
+     "lng": 87.595204,
+     "dist_km": 3.9,
+     "price_sqm": null,
+     "rent_ref": null
+    }
+   ]
+  },
+  "150100": {
+   "name": "呼和浩特",
+   "tier": 4,
+   "center": [
+    40.84,
+    111.75
+   ],
+   "districts": [
+    {
+     "name": "托克托县",
+     "adcode": "150122",
+     "level": "district",
+     "lat": 40.276516,
+     "lng": 111.18725,
+     "dist_km": 78.7,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "武川县",
+     "adcode": "150125",
+     "level": "district",
+     "lat": 41.094727,
+     "lng": 111.444188,
+     "dist_km": 38.2,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "新城区",
+     "adcode": "150102",
+     "level": "district",
+     "lat": 40.856919,
+     "lng": 111.658554,
+     "dist_km": 7.9,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "和林格尔县",
+     "adcode": "150123",
+     "level": "district",
+     "lat": 40.378134,
+     "lng": 111.814947,
+     "dist_km": 51.6,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "玉泉区",
+     "adcode": "150104",
+     "level": "district",
+     "lat": 40.751768,
+     "lng": 111.667377,
+     "dist_km": 12.0,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "赛罕区",
+     "adcode": "150105",
+     "level": "district",
+     "lat": 40.791143,
+     "lng": 111.694314,
+     "dist_km": 7.2,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "清水河县",
+     "adcode": "150124",
+     "level": "district",
+     "lat": 39.920251,
+     "lng": 111.640748,
+     "dist_km": 102.7,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "回民区",
+     "adcode": "150103",
+     "level": "district",
+     "lat": 40.80766,
+     "lng": 111.616815,
+     "dist_km": 11.8,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "土默特左旗",
+     "adcode": "150121",
+     "level": "district",
+     "lat": 40.727589,
+     "lng": 111.156998,
+     "dist_km": 51.5,
+     "price_sqm": null,
+     "rent_ref": null
+    }
+   ]
+  },
+  "640100": {
+   "name": "银川",
+   "tier": 4,
+   "center": [
+    38.49,
+    106.23
+   ],
+   "districts": [
+    {
+     "name": "灵武市",
+     "adcode": "640181",
+     "level": "district",
+     "lat": 38.101862,
+     "lng": 106.335439,
+     "dist_km": 44.1,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "兴庆区",
+     "adcode": "640104",
+     "level": "district",
+     "lat": 38.473493,
+     "lng": 106.284012,
+     "dist_km": 5.0,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "永宁县",
+     "adcode": "640121",
+     "level": "district",
+     "lat": 38.276927,
+     "lng": 106.248991,
+     "dist_km": 23.8,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "西夏区",
+     "adcode": "640105",
+     "level": "district",
+     "lat": 38.501757,
+     "lng": 106.156689,
+     "dist_km": 6.5,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "贺兰县",
+     "adcode": "640122",
+     "level": "district",
+     "lat": 38.578515,
+     "lng": 106.360431,
+     "dist_km": 15.0,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "金凤区",
+     "adcode": "640106",
+     "level": "district",
+     "lat": 38.473824,
+     "lng": 106.234945,
+     "dist_km": 1.8,
+     "price_sqm": null,
+     "rent_ref": null
+    }
+   ]
+  },
+  "630100": {
+   "name": "西宁",
+   "tier": 4,
+   "center": [
+    36.62,
+    101.78
+   ],
+   "districts": [
+    {
+     "name": "湟源县",
+     "adcode": "630123",
+     "level": "district",
+     "lat": 36.682464,
+     "lng": 101.254567,
+     "dist_km": 47.4,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "大通回族土族自治县",
+     "adcode": "630121",
+     "level": "district",
+     "lat": 36.926806,
+     "lng": 101.683606,
+     "dist_km": 35.2,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "城西区",
+     "adcode": "630104",
+     "level": "district",
+     "lat": 36.628354,
+     "lng": 101.763967,
+     "dist_km": 1.7,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "城北区",
+     "adcode": "630105",
+     "level": "district",
+     "lat": 36.650117,
+     "lng": 101.764359,
+     "dist_km": 3.6,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "湟中区",
+     "adcode": "630106",
+     "level": "district",
+     "lat": 36.501591,
+     "lng": 101.569923,
+     "dist_km": 22.9,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "城中区",
+     "adcode": "630103",
+     "level": "district",
+     "lat": 36.545687,
+     "lng": 101.703438,
+     "dist_km": 10.7,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "城东区",
+     "adcode": "630102",
+     "level": "district",
+     "lat": 36.59987,
+     "lng": 101.801835,
+     "dist_km": 3.0,
+     "price_sqm": null,
+     "rent_ref": null
+    }
+   ]
+  },
+  "540100": {
+   "name": "拉萨",
+   "tier": 4,
+   "center": [
+    29.65,
+    91.14
+   ],
+   "districts": [
+    {
+     "name": "当雄县",
+     "adcode": "540122",
+     "level": "district",
+     "lat": 30.475773,
+     "lng": 91.0996,
+     "dist_km": 91.9,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "林周县",
+     "adcode": "540121",
+     "level": "district",
+     "lat": 29.896395,
+     "lng": 91.263916,
+     "dist_km": 29.9,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "墨竹工卡县",
+     "adcode": "540127",
+     "level": "district",
+     "lat": 29.853196,
+     "lng": 91.737886,
+     "dist_km": 62.0,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "堆龙德庆区",
+     "adcode": "540103",
+     "level": "district",
+     "lat": 29.649693,
+     "lng": 91.001505,
+     "dist_km": 13.4,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "达孜区",
+     "adcode": "540104",
+     "level": "district",
+     "lat": 29.672916,
+     "lng": 91.347993,
+     "dist_km": 20.3,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "尼木县",
+     "adcode": "540123",
+     "level": "district",
+     "lat": 29.434888,
+     "lng": 90.162675,
+     "dist_km": 97.5,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "城关区",
+     "adcode": "540102",
+     "level": "district",
+     "lat": 29.657546,
+     "lng": 91.138838,
+     "dist_km": 0.8,
+     "price_sqm": null,
+     "rent_ref": null
+    },
+    {
+     "name": "曲水县",
+     "adcode": "540124",
+     "level": "district",
+     "lat": 29.357305,
+     "lng": 90.742005,
+     "dist_km": 50.4,
+     "price_sqm": null,
+     "rent_ref": null
+    }
+   ]
+  }
+ }
+}

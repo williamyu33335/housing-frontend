@@ -1,0 +1,436 @@
+{
+ "schema_version": 1,
+ "city_code": "450100",
+ "generated_at": "2026-11-04T23:57:58+0800",
+ "source": "高德 POI place/around（以每套房/每个楼盘的坐标为圆心，直线距离）",
+ "note": "near 是最近一个的直线距离（米），不是步行距离；n 是搜索窗口内的总数。同一楼盘的多套房共用一个坐标，所以共用一个键——它们本来就在同一栋楼。scores 由 backend/amenity_score.py 预计算，前端只读。",
+ "categories": {
+  "metro": {
+   "label": "地铁站",
+   "radius": 3000
+  },
+  "school": {
+   "label": "小学",
+   "radius": 3000
+  },
+  "hospital": {
+   "label": "医院",
+   "radius": 3000
+  },
+  "mall": {
+   "label": "购物中心",
+   "radius": 3000
+  },
+  "park": {
+   "label": "公园",
+   "radius": 2000
+  },
+  "market": {
+   "label": "菜市场",
+   "radius": 2000
+  },
+  "food": {
+   "label": "美食街",
+   "radius": 2500
+  },
+  "night": {
+   "label": "夜市",
+   "radius": 1500
+  }
+ },
+ "coverage": {
+  "listings": 35,
+  "with_coord": 31,
+  "unique_coords": 9,
+  "source_file": "房源_南宁_挂楼盘_WGS84.csv"
+ },
+ "by_coord": {
+  "22.85356,108.39446": {
+   "metro": {
+    "near": 1561,
+    "n": 3
+   },
+   "school": {
+    "near": 1204,
+    "n": 12
+   },
+   "hospital": {
+    "near": 1549,
+    "n": 6
+   },
+   "mall": {
+    "near": 1377,
+    "n": 14
+   },
+   "park": {
+    "near": null,
+    "n": 0
+   },
+   "market": {
+    "near": 983,
+    "n": 17
+   },
+   "food": {
+    "near": 1005,
+    "n": 25
+   },
+   "night": {
+    "near": null,
+    "n": 0
+   },
+   "radius_m": 3000,
+   "captured_at": "2026-11-04T23:58:00+0800",
+   "scores": {
+    "commute": 47,
+    "family": 45,
+    "leisure": 36
+   },
+   "lat": 22.853564,
+   "lng": 108.394463
+  },
+  "22.79493,108.48710": {
+   "metro": {
+    "near": null,
+    "n": 0
+   },
+   "school": {
+    "near": 981,
+    "n": 8
+   },
+   "hospital": {
+    "near": 2334,
+    "n": 3
+   },
+   "mall": {
+    "near": 2643,
+    "n": 2
+   },
+   "park": {
+    "near": 1014,
+    "n": 2
+   },
+   "market": {
+    "near": 1089,
+    "n": 10
+   },
+   "food": {
+    "near": 1490,
+    "n": 6
+   },
+   "night": {
+    "near": null,
+    "n": 0
+   },
+   "radius_m": 3000,
+   "captured_at": "2026-11-04T23:58:03+0800",
+   "scores": {
+    "commute": 18,
+    "family": 38,
+    "leisure": 37
+   },
+   "lat": 22.794926,
+   "lng": 108.487098
+  },
+  "22.83682,108.29619": {
+   "metro": {
+    "near": 780,
+    "n": 11
+   },
+   "school": {
+    "near": 629,
+    "n": 22
+   },
+   "hospital": {
+    "near": 581,
+    "n": 46
+   },
+   "mall": {
+    "near": 204,
+    "n": 16
+   },
+   "park": {
+    "near": 657,
+    "n": 6
+   },
+   "market": {
+    "near": 667,
+    "n": 96
+   },
+   "food": {
+    "near": 151,
+    "n": 46
+   },
+   "night": {
+    "near": 293,
+    "n": 16
+   },
+   "radius_m": 3000,
+   "captured_at": "2026-11-04T23:58:06+0800",
+   "scores": {
+    "commute": 63,
+    "family": 63,
+    "leisure": 63
+   },
+   "lat": 22.836823,
+   "lng": 108.296194
+  },
+  "22.87526,108.30983": {
+   "metro": {
+    "near": 719,
+    "n": 8
+   },
+   "school": {
+    "near": 292,
+    "n": 19
+   },
+   "hospital": {
+    "near": 28,
+    "n": 44
+   },
+   "mall": {
+    "near": 851,
+    "n": 6
+   },
+   "park": {
+    "near": 879,
+    "n": 3
+   },
+   "market": {
+    "near": 74,
+    "n": 105
+   },
+   "food": {
+    "near": 64,
+    "n": 56
+   },
+   "night": {
+    "near": 66,
+    "n": 6
+   },
+   "radius_m": 3000,
+   "captured_at": "2026-11-04T23:58:09+0800",
+   "scores": {
+    "commute": 61,
+    "family": 66,
+    "leisure": 60
+   },
+   "lat": 22.875264,
+   "lng": 108.309833
+  },
+  "22.84674,108.35645": {
+   "metro": {
+    "near": 228,
+    "n": 11
+   },
+   "school": {
+    "near": 567,
+    "n": 18
+   },
+   "hospital": {
+    "near": 743,
+    "n": 31
+   },
+   "mall": {
+    "near": 1527,
+    "n": 13
+   },
+   "park": {
+    "near": 960,
+    "n": 12
+   },
+   "market": {
+    "near": 553,
+    "n": 54
+   },
+   "food": {
+    "near": 714,
+    "n": 45
+   },
+   "night": {
+    "near": 1106,
+    "n": 2
+   },
+   "radius_m": 3000,
+   "captured_at": "2026-11-04T23:58:12+0800",
+   "scores": {
+    "commute": 80,
+    "family": 72,
+    "leisure": 67
+   },
+   "lat": 22.846743,
+   "lng": 108.356446
+  },
+  "22.78712,108.22770": {
+   "metro": {
+    "near": 1915,
+    "n": 4
+   },
+   "school": {
+    "near": 480,
+    "n": 12
+   },
+   "hospital": {
+    "near": 1177,
+    "n": 4
+   },
+   "mall": {
+    "near": 483,
+    "n": 13
+   },
+   "park": {
+    "near": 1579,
+    "n": 1
+   },
+   "market": {
+    "near": 431,
+    "n": 21
+   },
+   "food": {
+    "near": 365,
+    "n": 23
+   },
+   "night": {
+    "near": 741,
+    "n": 2
+   },
+   "radius_m": 3000,
+   "captured_at": "2026-11-04T23:58:14+0800",
+   "scores": {
+    "commute": 53,
+    "family": 65,
+    "leisure": 55
+   },
+   "lat": 22.787117,
+   "lng": 108.227698
+  },
+  "23.19454,108.16603": {
+   "metro": {
+    "near": null,
+    "n": 0
+   },
+   "school": {
+    "near": 320,
+    "n": 4
+   },
+   "hospital": {
+    "near": 320,
+    "n": 2
+   },
+   "mall": {
+    "near": 452,
+    "n": 9
+   },
+   "park": {
+    "near": 1622,
+    "n": 1
+   },
+   "market": {
+    "near": 61,
+    "n": 24
+   },
+   "food": {
+    "near": 579,
+    "n": 39
+   },
+   "night": {
+    "near": null,
+    "n": 0
+   },
+   "radius_m": 3000,
+   "captured_at": "2026-11-04T23:58:17+0800",
+   "scores": {
+    "commute": 39,
+    "family": 70,
+    "leisure": 57
+   },
+   "lat": 23.194544,
+   "lng": 108.166025
+  },
+  "22.71350,108.37235": {
+   "metro": {
+    "near": 1282,
+    "n": 5
+   },
+   "school": {
+    "near": 371,
+    "n": 11
+   },
+   "hospital": {
+    "near": 1041,
+    "n": 4
+   },
+   "mall": {
+    "near": 1471,
+    "n": 4
+   },
+   "park": {
+    "near": 1234,
+    "n": 1
+   },
+   "market": {
+    "near": 639,
+    "n": 19
+   },
+   "food": {
+    "near": 1229,
+    "n": 22
+   },
+   "night": {
+    "near": null,
+    "n": 0
+   },
+   "radius_m": 3000,
+   "captured_at": "2026-11-04T23:58:20+0800",
+   "scores": {
+    "commute": 60,
+    "family": 65,
+    "leisure": 55
+   },
+   "lat": 22.713498,
+   "lng": 108.372353
+  },
+  "22.78625,108.48240": {
+   "metro": {
+    "near": null,
+    "n": 0
+   },
+   "school": {
+    "near": 435,
+    "n": 10
+   },
+   "hospital": {
+    "near": 1377,
+    "n": 3
+   },
+   "mall": {
+    "near": 1970,
+    "n": 2
+   },
+   "park": {
+    "near": 1121,
+    "n": 2
+   },
+   "market": {
+    "near": 566,
+    "n": 21
+   },
+   "food": {
+    "near": 780,
+    "n": 9
+   },
+   "night": {
+    "near": null,
+    "n": 0
+   },
+   "radius_m": 3000,
+   "captured_at": "2026-11-04T23:58:23+0800",
+   "scores": {
+    "commute": 29,
+    "family": 57,
+    "leisure": 51
+   },
+   "lat": 22.786254,
+   "lng": 108.482399
+  }
+ }
+}

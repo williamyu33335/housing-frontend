@@ -4,9 +4,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="app-version" content="V8.9.1">
+  <meta name="app-version" content="V8.11.0">
   <title>全国房产金融 WebGIS 智能决策仿真系统</title>
-  <!-- 🏠 V8.9.1 本地托管：不依赖任何外部 CDN。
+  <!-- 🏠 V8.11.0 本地托管：不依赖任何外部 CDN。
        起因：jsdelivr 的 echarts（1MB）实测 25~60 秒，loading 卡在首屏，
        用户看到的就是白屏。vendor/ 里的三个文件跟 index.html 一起部署。 -->
   <link rel="stylesheet" href="vendor/leaflet.css">
@@ -271,15 +271,50 @@
     /* 匹配打开时，结果栏整个让位——三个界面永远只出现一个 */
     body[data-view="match"] #leftPanel,
     body[data-view="match"] #rightPanel { display: none !important; }
-    #matchEntryBtn {
+
+    /* ===== V8.10 顶部悬浮入口 =====
+       用户说得对：结果页要滑很久，入口不能跟着内容滚走。
+       做法是 sticky 贴着面板顶端（不是浮在屏幕中间），滚动时永远在最上面，
+       往下滑也不会慢慢"飘"到内容区挡住字。 */
+    #rightPanel { --pp: 22px; }
+    /* sticky 会被"内容盒"夹住：结果视图里去掉面板上内边距，入口才真正贴着面板顶边 */
+    body[data-view="result"] #rightPanel { padding-top: 0; }
+    body[data-view="result"] #rightPanel .panel-head { padding-top: 22px; }
+    #matchDock {
+      position: sticky; top: 0; z-index: 26;
       display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
-      width: 100%; cursor: pointer; text-align: left;
-      margin: 0 0 12px; padding: 12px 16px; border-radius: 12px;
+      /* button 的 width:auto 是"包裹内容"，不是撑满——必须显式算上左右负边距 */
+      width: calc(100% + var(--pp) * 2);
+      box-sizing: border-box;
+      margin: 0 calc(var(--pp) * -1) 14px;
+      padding: 11px var(--pp);
+      border: none; border-radius: 0 0 14px 14px;
       background: linear-gradient(135deg, #0ea5e9, #6366f1);
-      color: #fff; border: none; font-size: 15px; font-weight: 700;
-      box-shadow: 0 8px 22px rgba(56,189,248,.28);
+      color: #fff; text-align: left; cursor: pointer;
+      font-size: 15px; font-weight: 800; line-height: 1.35;
+      box-shadow: 0 12px 26px rgba(2, 6, 23, .45);
     }
-    #matchEntryBtn small { font-weight: 400; font-size: 12px; opacity: .85; }
+    #matchDock small { font-weight: 400; font-size: 12px; opacity: .9; }
+    #matchDock:active { filter: brightness(.94); }
+
+    /* ===== V8.10 左边侧栏的小口袋：改参数 =====
+       原来那个 "← 改参数" 是灰色小字，队长说"太不显眼"。
+       现在做成贴左边缘的口袋：随手能点到，又只占一行字的位置。 */
+    #paramPocket {
+      position: fixed; left: 0; top: 46%; z-index: 8800;
+      display: none; flex-direction: column; align-items: center; gap: 4px;
+      padding: 12px 7px 14px; border: none; cursor: pointer;
+      border-radius: 0 12px 12px 0;
+      background: linear-gradient(160deg, #f59e0b, #ef4444);
+      color: #fff; font-weight: 800; font-size: 12px;
+      box-shadow: 6px 4px 18px rgba(0, 0, 0, .45);
+      -webkit-tap-highlight-color: transparent;
+    }
+    #paramPocket .pp-icon { font-size: 16px; line-height: 1; }
+    #paramPocket .pp-text { writing-mode: vertical-rl; letter-spacing: 3px; line-height: 1.1; }
+    #paramPocket:hover { padding-left: 11px; }
+    body[data-view="result"] #paramPocket,
+    body[data-view="match"] #paramPocket { display: flex; }
 
     /* 匹配覆盖层：独立居中，不挤压左右栏 */
     /* 匹配面板钉在最顶端：通栏、明暖黄，不遮住下面的解析 */
@@ -1001,7 +1036,7 @@
     }
 
     /* ============================================================
-       🏙️ V2.0 空间折叠：城市能级 / 通勤 / 时光机
+       🏙️ V2.0 城市与通勤：城市能级 / 通勤 / 时光机
        ============================================================ */
     .spatial-chips {
       display: flex;
@@ -1079,6 +1114,19 @@
       line-height: 1.5;
       border-top: 1px dashed rgba(148, 163, 184, 0.25);
       padding-top: 8px;
+    }
+
+    /* 🚦 早晚高峰假设：必须一眼看出"这是假设，不是实测" */
+    .peak-badge {
+      display: inline-block;
+      margin-top: 6px;
+      padding: 3px 9px;
+      border-radius: 7px;
+      background: rgba(251, 191, 36, .16);
+      border: 1px solid rgba(251, 191, 36, .45);
+      color: #fbbf24;
+      font-size: 11px;
+      line-height: 1.5;
     }
 
     .timemachine-card {
@@ -2313,9 +2361,36 @@
         font-size: 16px;
       }
 
-      /* 结果屏的渐进披露：先给结论卡，再展开全量 */
-      body.m-compact #rightPanel > *:not(#mSummary) {
+      /* 结果屏的渐进披露：先给结论卡，再展开全量。
+         V8.10：顶部匹配入口 / 左侧口袋是"导航"，不属于被收起的分析内容 */
+      body.m-compact #rightPanel > *:not(#mSummary):not(#matchDock) {
         display: none !important;
+      }
+
+      /* V8.10 手机端：入口贴着屏幕顶端（含刘海安全区），滚多久都在 */
+      #rightPanel {
+        --pp: 14px;
+      }
+      body[data-view="result"] #rightPanel {
+        padding-top: 0 !important;
+      }
+      body[data-view="result"] #rightPanel .panel-head {
+        padding-top: calc(12px + env(safe-area-inset-top, 0px));
+      }
+      #matchDock {
+        margin: 0 calc(var(--pp) * -1) 10px;
+        padding: 9px var(--pp);
+        font-size: 14px;
+        border-radius: 0 0 12px 12px;
+      }
+      #paramPocket {
+        top: 42%;
+        padding: 10px 6px 12px;
+      }
+      body[data-mtab="sim"][data-mscreen="result"] #paramPocket,
+      body[data-mtab="list"] #paramPocket,
+      body[data-mtab="me"] #paramPocket {
+        display: flex;
       }
 
       /* ---------- 结论卡 ---------- */
@@ -3065,20 +3140,25 @@
   <div class="panel-reopen" id="reopenLeft">📋 参数配置</div>
   <div class="panel-reopen" id="reopenRight">📊 分析看板</div>
 
+  <!-- V8.10 左边侧栏的小口袋：结果页/匹配页都能一键回到参数 -->
+  <button id="paramPocket" type="button" title="打开参数面板（改完再算一次）">
+    <span class="pp-icon">📋</span><span class="pp-text">改参数</span>
+  </button>
+
   <div class="splash-screen" id="splashScreen">
     <h1 class="splash-title">全国房产金融决策仿真系统</h1>
-    <p class="splash-subtitle">V8.9.1 · 把 30 年的账算给你看 ｜ 手机上的买房账本</p>
+    <p class="splash-subtitle">V8.11.0 · 把 30 年的账算给你看 ｜ 手机上的买房账本</p>
     <button class="splash-btn" onclick="enterSystem()">进入全景中国地图</button>
   </div>
 
   <div id="map"></div>
-  <div id="appBadge">V8.9.1</div>
+  <div id="appBadge">V8.11.0</div>
   <div id="errBanner"></div>
   <div class="map-hint" id="mapHint">🛰️ 点省份进去 → 点城市看区县 → 点片区。也可以直接点右上角「换城市」。</div>
 
   <div class="glass-panel" id="leftPanel">
     <div class="panel-head">
-      <h2>仿真参数配置 <span class="ver-chip">V8.9.1</span></h2>
+      <h2>仿真参数配置 <span class="ver-chip">V8.11.0</span></h2>
       <button class="panel-close" onclick="hidePanel('leftPanel')" title="收起面板">✕</button>
     </div>
 
@@ -3206,6 +3286,18 @@
           <label>买房后单程通勤（分钟）</label>
           <input type="number" id="ownCommuteMin" value="28" min="0" max="180">
           <div class="form-hint" id="commuteHint">已按片区几何距离自动估算，可手动修正。</div>
+        </div>
+        <!-- 🚦 V8.11 早晚高峰：真实分时段路况还没有，这里只是一个"假设倍数"，
+             默认关闭；打开后所有通勤时间按倍数放大，并在报告里写明是假设。 -->
+        <div class="form-item">
+          <label class="risk-check" style="cursor:pointer;">
+            <input type="checkbox" id="peakCommute">
+            按早晚高峰估算（假设拥堵 ×1.45）
+          </label>
+          <div class="form-hint">
+            这是假设值，不是实测：高峰拥堵数据还没采。打开后单程时间 ×1.45，
+            结论会自动收紧；真实路况到位后，这个开关会换成按路段实测的时间。
+          </div>
         </div>
         <div id="spatialChips" class="spatial-chips"></div>
       </div>
@@ -3519,7 +3611,7 @@
         const el = document.getElementById("errBanner");
         if (!el) return;
         el.style.display = "block";
-        el.textContent = "⚠️ 前端运行错误：" + msg + "（版本 V8.9.1，请把这条发给经纬）";
+        el.textContent = "⚠️ 前端运行错误：" + msg + "（版本 V8.11.0，请把这条发给经纬）";
       }
       window.addEventListener("error", function (e) {
         showErr((e.message || "未知错误") + " @ " + (e.filename || "").split("/").pop() + ":" + (e.lineno || 0));
@@ -3687,9 +3779,69 @@
       return 2 * R * Math.asin(Math.sqrt(a));
     }
 
-    // 非南宁城市：按“核心区 / 主城区 / 近郊新区”三环生成可推演区位
+    // 🗺️ V8.10 真实区县中心（42 城 → 456 个行政区）
+    //    以前非南宁城市只有"核心区/主城区/近郊新区"三个假区位，坐标是
+    //    市中心向东北偏移 2.5 / 8 / 16 公里——那不是任何一条街。
+    //    现在用高德 config/district 的行政区中心（已转 WGS-84）。
+    //    位置是真的；片区均价还是估算的，两个字段分开标，不许混着说。
+    let districtCenters = null;
+
+    async function loadDistrictCenters() {
+      try {
+        const res = await fetch("districts_centers.json", { cache: "no-store" });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        districtCenters = await res.json();
+        const n = Object.keys((districtCenters && districtCenters.cities) || {}).length;
+        document.documentElement.dataset.districtCenters = String(n);
+      } catch (_) {
+        document.documentElement.dataset.districtCenters = "missing";
+      }
+    }
+
+    function realDistrictsOf(city) {
+      if (!city || !districtCenters || !districtCenters.cities) return null;
+      const hit = districtCenters.cities[String(city.code)];
+      if (!hit || !hit.districts || !hit.districts.length) return null;
+      return hit;
+    }
+
+    // 真实区县 → 可推演区位。位置用真坐标，价格按"离市中心多远"折一个估算，
+    // 并在 desc / price_source 里写清楚，界面上不会把估算说成事实。
+    function zoneFromRealDistrict(city, d) {
+      const speed = TIER_SPEED[city.tier] || 22;
+      const radius = TIER_RADIUS[city.tier] || 11;
+      const dist = (typeof d.dist_km === "number" && isFinite(d.dist_km))
+        ? d.dist_km
+        : haversineKm(city.lat, city.lng, d.lat, d.lng);
+      const ratio = Math.max(0, Math.min(1, dist / Math.max(1, radius)));
+      const mult = Math.max(0.65, Math.min(1.30, 1.30 - 0.65 * ratio));
+      const realPrice = Number(d.price_sqm) > 0 ? Number(d.price_sqm) : null;
+      const price = realPrice || Math.round(city.price * mult / 100) * 100;
+      const rent = Math.max(500, Math.round(city.rent * 70 * mult / 100) * 100);
+      return {
+        name: `${city.name}·${d.name}`,
+        district: d.name,
+        lat: d.lat,
+        lng: d.lng,
+        price_sqm: realPrice || price,
+        rent_ref: rent,
+        house_ref: Math.max(20, Math.round(price * 90 / 10000)),
+        commute_min: Math.max(6, Math.round(dist * 1.35 / speed * 60)),
+        desc: `真实行政区中心 · 距市中心约 ${dist.toFixed(1)} km` +
+          (realPrice ? " · 片区均价来自基准数据" : " · 片区均价按距中心衰减估算"),
+        price_source: realPrice ? "real" : "estimated",
+      };
+    }
+
+    // 非南宁城市：优先进真实区县；没有数据才退回"三环"估算（并明确标估算）
     function formCityZones(city) {
-      if (city.zones && city.zones.length) return city.zones;
+      if (city.zones && city.zones.length) return city.zones;   // 南宁：真实八区 + 真实片区价
+      const real = realDistrictsOf(city);
+      if (real) {
+        return real.districts
+          .map((d) => zoneFromRealDistrict(city, d))
+          .sort((a, b) => a.commute_min - b.commute_min);
+      }
       const speed = TIER_SPEED[city.tier] || 22;
       const radius = TIER_RADIUS[city.tier] || 11;
       return CITY_ZONES.map(z => {
@@ -3705,7 +3857,8 @@
           rent_ref: Math.max(600, Math.round(city.rent * 70 * z.rentMult / 100) * 100),
           price_sqm: Math.round(city.price * z.priceMult / 100) * 100,
           commute_min: Math.max(6, Math.round(km * 1.35 / speed * 60)),
-          desc: z.desc
+          desc: z.desc + " · 估算区位（不是真实行政区中心）",
+          price_source: "estimated"
         };
       });
     }
@@ -3813,7 +3966,7 @@
       countyLayer.addTo(map);
     }
 
-    // 🏗️ V8.9.1 在售楼盘图层：117 个"有均价 + 有坐标"的南宁楼盘。
+    // 🏗️ V8.11.0 在售楼盘图层：314 个"有均价 + 有坐标"的南宁楼盘（豆包补全 600 个坐标，只画有均价的）。
     //    数据是本地保存页解析出来的，没发过网络请求。
     let projectsLayer = null;
     let projectsData = null;
@@ -4057,6 +4210,12 @@
       const fly = !opts || opts.fly !== false;
       currentCity = city;
       regionList = formCityZones(city);
+      // 数据来源可见：真实行政区 / 三环估算 / 南宁真实八区
+      try {
+        document.documentElement.dataset.zoneSource =
+          (city.zones && city.zones.length) ? "nanning"
+            : (realDistrictsOf(city) ? "real" : "synthetic");
+      } catch (_) { }
       const sel = document.getElementById("regionSel");
       sel.disabled = false;
       sel.innerHTML = "";
@@ -4184,7 +4343,7 @@
       refreshSpatialChips();
     }
 
-    // 🏪 V8.9.1 周边设施：数据来自 数据/fetch_poi.py 采的高德 POI 计数。
+    // 🏪 V8.11.0 周边设施：数据来自 数据/fetch_poi.py 采的高德 POI 计数。
     // 没采到就什么都不加——宁可少一行，不拿 0 冒充"周边很荒"。
     let poiNearby = null;
     let poiNearbyState = "idle";
@@ -4244,12 +4403,15 @@
       };
     }
 
-    // 🧭 片区便利分（0~100）：地铁权重最高，其次是医院、学校、商场。
+    // 🧭 周边便利分（0~100）：地铁权重最高，其次是医院、学校、商场。
     // 只对采过 POI 的区有值；没采到返回 null，调用方要知道"没有"≠"0 分"。
-    /* ===== 周边便利分（V8.9.1） =====
-       数据：amenities_nanning.json（每区 7 类设施：最近距离 + 数量）
-       算法：距离衰减 × 偏好权重 − 闹静惩罚。细节不给用户看，只给分数和"最近多远"。 */
+    /* ===== 周边便利分（V8.10 起由 Python 预计算） =====
+       数据：amenities_nanning.json（片区级，8 区 × 8 类）/ amenities_listings.json（房源级，按坐标）
+       算法：距离衰减 × 偏好权重 − 闹静惩罚，规则只有一份：backend/amenity_score.py
+       前端只读 scores，不再自己算——否则"片区一套算法、房源一套算法"迟早对不上。
+       没有 scores 字段时（旧数据）才回退到下面的本地公式。 */
     let amenities = null;
+    let listingAmenities = null;
 
     async function loadAmenities() {
       try {
@@ -4262,19 +4424,48 @@
       }
     }
 
+    // 🏠 V8.10 房源级：按"纬度,经度"（5 位小数）索引；同一楼盘的多套房共用一个键
+    async function loadListingAmenities() {
+      try {
+        const res = await fetch("amenities_listings.json", { cache: "no-store" });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        listingAmenities = await res.json();
+        document.documentElement.dataset.listingAmenities =
+          String(Object.keys(listingAmenities.by_coord || {}).length);
+      } catch (_) {
+        document.documentElement.dataset.listingAmenities = "missing";
+      }
+    }
+
+    function coordKeyOf(lat, lng) {
+      const la = Number(lat), ln = Number(lng);
+      if (!isFinite(la) || !isFinite(ln) || Math.abs(la) < 0.001) return null;
+      return la.toFixed(5) + "," + ln.toFixed(5);
+    }
+
+    // 这套房自己的周边数据；没有就是 null（不是空行）。
+    function listingAmenityRow(x) {
+      const byc = listingAmenities && listingAmenities.by_coord;
+      if (!byc || !x) return null;
+      const k = coordKeyOf(x.lat, x.lng);
+      return k ? (byc[k] || null) : null;
+    }
+
     const AMENITY_PREFS = {
       commute: { label: "通勤优先", w: { metro: 6, school: 1.2, hospital: 1.2, mall: 1, park: 0.6, market: 1, food: 0.6 } },
       family: { label: "家庭刚需", w: { metro: 2, school: 4.5, hospital: 3, mall: 1.2, park: 2, market: 3, food: 1 } },
       leisure: { label: "宜居休闲", w: { metro: 1.5, school: 1, hospital: 2, mall: 1, park: 4.5, market: 2.2, food: 2 } },
     };
+    // night 只用于扣分：夜市贴脸是吵，不是方便（豆包的原话：只有高干扰设施才该扣分）
     const AMENITY_META = {
-      metro: { label: "地铁站", cap: 3000 },
-      school: { label: "小学", cap: 2500 },
-      hospital: { label: "医院", cap: 3000 },
-      mall: { label: "购物中心", cap: 3000 },
-      park: { label: "公园", cap: 2000 },
-      market: { label: "菜市场", cap: 2000 },
-      food: { label: "美食街", cap: 2500 },
+      metro: { label: "地铁站", cap: 3000, kind: "positive" },
+      school: { label: "小学", cap: 2500, kind: "positive" },
+      hospital: { label: "医院", cap: 3000, kind: "positive" },
+      mall: { label: "购物中心", cap: 3000, kind: "positive" },
+      park: { label: "公园", cap: 2000, kind: "positive" },
+      market: { label: "菜市场", cap: 2000, kind: "positive" },
+      food: { label: "美食街", cap: 2500, kind: "positive" },
+      night: { label: "夜市", cap: 1500, kind: "negative" },
     };
 
     // 距离衰减：门口 1 分，越远越低，超过上限归零
@@ -4284,47 +4475,98 @@
       return 1 - dist / cap;
     }
 
+    // 只给"旧数据没有 scores"时用：规则和 backend/amenity_score.py 一致
+    function amenityScoreLocal(row, pref) {
+      if (!row) return null;
+      const w = (AMENITY_PREFS[pref] || AMENITY_PREFS.commute).w;
+      let got = 0, max = 0, seen = 0;
+      Object.keys(w).forEach((k) => {
+        const m = AMENITY_META[k];
+        if (!m || !row[k]) return;      // 没采到 -> 不进分母
+        seen += 1;
+        max += w[k];
+        got += w[k] * decayed(row[k].near, m.cap);
+      });
+      if (!max) return null;
+      let score = (got / max) * 100;
+      const pen = (key, rules) => {
+        const d = row[key] && row[key].near;
+        if (d == null) return 0;
+        for (const [lim, pts] of rules) if (d < lim) return pts;
+        return 0;
+      };
+      const penalty = Math.min(20,
+        pen("mall", [[150, 10], [300, 4]]) +
+        pen("food", [[120, 8], [250, 3]]) +
+        pen("night", [[200, 12], [400, 6]]));
+      return Math.max(0, Math.min(100, Math.round(score - penalty)));
+    }
+
+    // 一个"周边数据行"的分数：优先用预计算，旧数据才现算
+    function scoreOfRow(row, pref) {
+      if (!row) return null;
+      const pre = row.scores && row.scores[pref];
+      if (typeof pre === "number") return pre;
+      return amenityScoreLocal(row, pref);
+    }
+
     function amenityScore(districtName, pref) {
       if (!amenities) return null;
       const row = (amenities.districts || {})[districtName];
       if (!row) return null;
-      const w = (AMENITY_PREFS[pref] || AMENITY_PREFS.commute).w;
-      let got = 0, max = 0;
-      Object.keys(w).forEach((k) => {
-        const m = AMENITY_META[k];
-        if (!m) return;
-        max += w[k];
-        const d = row[k] ? row[k].near : null;
-        got += w[k] * decayed(d, m.cap);
-      });
-      let score = max > 0 ? (got / max) * 100 : 0;
-
-      // 闹静比：商业贴脸是噪音，不是便利
-      const mall = row.mall ? row.mall.near : null;
-      const food = row.food ? row.food.near : null;
-      if (mall != null && mall < 150) score -= 10;
-      else if (mall != null && mall < 300) score -= 4;
-      if (food != null && food < 120) score -= 8;
-      else if (food != null && food < 250) score -= 3;
-
-      return Math.max(0, Math.min(100, Math.round(score)));
+      return scoreOfRow(row, pref || "commute");
     }
 
-    // 给 UI 用的完整信息（分数 + 逐个设施的最近距离）
-    window.__amenityInfo = function (districtName, pref) {
-      if (!amenities) return null;
-      const row = (amenities.districts || {})[districtName];
+    // 一套房的便利分：房源级优先，片区级兜底
+    function amenityScoreOfRow(x, pref) {
+      const p = pref || "commute";
+      const own = listingAmenityRow(x);
+      if (own) return scoreOfRow(own, p);
+      if (x && x.amenity_score != null) return x.amenity_score;   // 后端已经算好的
+      return amenityScore(x && x.district_name, p);
+    }
+
+    // 给 UI 用的完整信息（分数 + 逐个设施的最近距离 + 这份数据是哪一级）
+    function amenityInfoFor(x, pref) {
+      const p = pref || "commute";
+      const own = listingAmenityRow(x);
+      const row = own || (amenities && (amenities.districts || {})[x && x.district_name]);
       if (!row) return null;
-      const items = Object.keys(AMENITY_META).map((k) => ({
+      const items = Object.keys(AMENITY_META).filter((k) => row[k]).map((k) => ({
         key: k,
         label: AMENITY_META[k].label,
+        kind: AMENITY_META[k].kind,
         near: row[k] ? row[k].near : null,
         n: row[k] ? row[k].n : null,
       }));
-      return { score: amenityScore(districtName, pref || "commute"), items, pref: pref || "commute" };
+      return {
+        score: scoreOfRow(row, p),
+        items,
+        pref: p,
+        level: own ? "listing" : "district",
+        radius_m: row.radius_m || 3000,
+        captured_at: row.captured_at || null,
+      };
+    }
+    window.__amenityInfoFor = amenityInfoFor;
+
+    window.__amenityInfo = function (districtName, pref) {
+      const p = pref || "commute";
+      if (!amenities) return null;
+      const row = (amenities.districts || {})[districtName];
+      if (!row) return null;
+      const items = Object.keys(AMENITY_META).filter((k) => row[k]).map((k) => ({
+        key: k,
+        label: AMENITY_META[k].label,
+        kind: AMENITY_META[k].kind,
+        near: row[k] ? row[k].near : null,
+        n: row[k] ? row[k].n : null,
+      }));
+      return { score: scoreOfRow(row, p), items, pref: p, level: "district",
+               radius_m: row.radius_m || 3000, captured_at: row.captured_at || null };
     };
 
-    // 兼容旧调用
+    // 兼容旧调用（只传片区名的地方还很多）
     window.__poiScore = function (d, pref) {
       const info = window.__amenityInfo(d, pref);
       return info ? info.score : null;
@@ -4356,6 +4598,10 @@
       if (proj) items.push(proj);
       const poi = poiChipFor(city, zone);
       if (poi) items.push(poi);
+      const peakEl = document.getElementById("peakCommute");
+      if (peakEl && peakEl.checked) {
+        items.push({ t: "🚦 高峰假设 ×1.45", cls: "warn", title: "这是假设值，不是实测：真实分时段路况还没采" });
+      }
       box.innerHTML = items.map(i => `<span class="spatial-chip ${i.cls}"${i.title ? ` title="${escapeHtml(i.title)}"` : ""}>${escapeHtml(i.t)}</span>`).join("");
     }
 
@@ -4366,6 +4612,8 @@
       const fam = famEl ? (parseInt(famEl.value) || 2) : 2;
       const rentMin = nv("rentCommuteMin");
       const ownMin = nv("ownCommuteMin");
+      const peakEl = document.getElementById("peakCommute");
+      const peak = !!(peakEl && peakEl.checked);
       return {
         city_name: city.name,
         city_tier: city.tier,
@@ -4376,6 +4624,8 @@
         family_size: fam,
         rent_commute_min: rentMin,
         own_commute_min: ownMin,
+        // 🚦 假设倍数：1.0 = 不假设（默认）；打开开关就是 1.45，界面会写明是假设
+        commute_peak_factor: peak ? 1.45 : 1.0,
         rent_transport_month: Math.round(120 + 4 * rentMin),
         own_transport_month: Math.round(120 + 4 * ownMin)
       };
@@ -4460,7 +4710,8 @@
         </div>
         <div class="spatial-note">
           套内约 <b>${sp.live_area_sqm != null ? sp.live_area_sqm : "--"} ㎡</b>（公摊 ${sp.public_share_pct != null ? sp.public_share_pct : "--"}%，房产证按建面计价，公摊也付钱）。
-          ${escapeHtml(sp.area_note)}。时间效率：租房期 ${sp.commute.rent_score} 分 / 买房后 ${sp.commute.own_score} 分；通勤时间成本 ${formatNum(sp.commute.time_cost_month_rent, 0)} → ${formatNum(sp.commute.time_cost_month, 0)} 元/月，交通费 ${formatNum(sp.commute.transport_month.rent, 0)} → ${formatNum(sp.commute.transport_month.own, 0)} 元/月。
+          ${escapeHtml(sp.area_note)}。通勤省时：租房期 ${sp.commute.rent_score} 分 / 买房后 ${sp.commute.own_score} 分；通勤时间成本 ${formatNum(sp.commute.time_cost_month_rent, 0)} → ${formatNum(sp.commute.time_cost_month, 0)} 元/月，交通费 ${formatNum(sp.commute.transport_month.rent, 0)} → ${formatNum(sp.commute.transport_month.own, 0)} 元/月。
+          ${sp.commute.peak_applied ? `<br><span class="peak-badge">🚦 ${escapeHtml(sp.commute.peak_note)}：平峰 ${sp.commute.own_min_raw} 分钟 → 高峰约 ${sp.commute.own_min} 分钟。</span>` : ""}
           ${realAsset !== null ? `30 年后名义资产 ${formatNum(nominal, 2)} 万，按今日物价只值 <b>${formatNum(realAsset, 2)} 万</b>。` : ""}
         </div>
       </div>`;
@@ -5028,7 +5279,7 @@
         ["down_strategy", "首付策略"], ["down_payment_wan", "首付(万)"],
         ["liquid_asset_end_wan", "期末资产(万)"], ["real_asset_wan", "今日购买力(万)"], ["buffer_months", "现金缓冲(月)"], ["adapt_score", "稳健分"],
         ["comfort_score", "舒适度"], ["surplus_happiness", "幸福感"],
-        ["time_efficiency", "时间效率"], ["suitability_score", "合适度"],
+        ["time_efficiency", "通勤省时"], ["suitability_score", "合适度"],
         ["comprehensive_score", "综合得分"]
       ];
       const hasRentLevel = dataList[0].rent_level !== undefined;
@@ -5234,10 +5485,10 @@
 
     function scoreStrip(sysItem, userItem) {
       const dims = [
-        { key: "time_efficiency", label: "时间效率", digits: 1 },
-        { key: "comfort_score", label: "居住舒适度", digits: 1 },
-        { key: "adapt_score", label: "抗风险稳健度", digits: 1 },
-        { key: "surplus_happiness", label: "结余幸福感", digits: 1 },
+        { key: "time_efficiency", label: "通勤省时", digits: 1 },
+        { key: "comfort_score", label: "住得舒服", digits: 1 },
+        { key: "adapt_score", label: "抗风险", digits: 1 },
+        { key: "surplus_happiness", label: "每月剩多少", digits: 1 },
       ];
       const fmt = (v, d) => Number(v || 0).toFixed(d);
       const sysScore = Number(sysItem.comprehensive_score || 0);
@@ -5288,7 +5539,7 @@
         </div>
         <div class="cmp-score-dims">${dimHtml}</div>
         <div class="cmp-score-tradeoff">${trade}<br>
-          综合得分不是资产排行：它把时间、舒适、抗风险、结余幸福感一起加权。要不要为了这些非现金维度，接受资产/利息上的差距，是你自己的选择。
+          综合得分不是资产排行：它把时间、舒适、抗风险、每月剩多少一起加权。要不要为了这些非现金维度，接受资产/利息上的差距，是你自己的选择。
         </div>
       </div>`;
     }
@@ -5445,7 +5696,7 @@
           <thead><tr><th>年份</th><th>推荐 · 自付支出</th><th>你的 · 自付支出</th><th>推荐 · 现金</th><th>你的 · 现金</th></tr></thead>
           <tbody>${yearTable.html}</tbody>
         </table>
-        <div class="cmp-foot">支出 = 生活 + 物业 + 交通 + 房贷自付。公积金只能用于购房/还贷，抵扣掉的月供不算支出；期末资产只算现金，不含公积金账户余额和房子净值。鼠标悬停每一格可看拆分。</div>
+        <div class="cmp-foot">支出 = 生活 + 物业 + 交通 + 房贷自付。公积金只能用于购房/还贷，抵扣掉的月供不算支出；期末资产只算现金，不含公积金账户余额和房子本身。鼠标悬停每一格可看拆分。</div>
         ${outflowExplain(res)}
         ${crossNote}
         <div id="cmpMonthDrill" style="display:none; margin-top:12px;">
@@ -5507,16 +5758,16 @@
           ["装修预算", sysItem.reno_budget_wan, userItem.reno_budget_wan, 0, " 万", 1],
         ]],
         ["💰 30 年后", [
-          ["30 年后净值（现金＋房子）", sysItem.net_worth_end_wan, userItem.net_worth_end_wan, 1, " 万", 2],
+          ["30 年后家底（现金＋房子）", sysItem.net_worth_end_wan, userItem.net_worth_end_wan, 1, " 万", 2],
           ["其中现金", sysItem.liquid_asset_end_wan, userItem.liquid_asset_end_wan, 1, " 万", 2],
-          ["净值（今日购买力）", sysItem.real_net_worth_end_wan, userItem.real_net_worth_end_wan, 1, " 万", 2],
+          ["家底（今日购买力）", sysItem.real_net_worth_end_wan, userItem.real_net_worth_end_wan, 1, " 万", 2],
           ["最低现金可撑", sysItem.buffer_months, userItem.buffer_months, 1, " 个月", 1],
         ]],
         ["📊 五维评分", [
-          ["抗风险稳健度", sysItem.adapt_score, userItem.adapt_score, 1, "", 1],
-          ["居住舒适度", sysItem.comfort_score, userItem.comfort_score, 1, "", 1],
-          ["结余幸福感", sysItem.surplus_happiness, userItem.surplus_happiness, 1, "", 1],
-          ["时间效率", sysItem.time_efficiency, userItem.time_efficiency, 1, "", 1],
+          ["抗风险", sysItem.adapt_score, userItem.adapt_score, 1, "", 1],
+          ["住得舒服", sysItem.comfort_score, userItem.comfort_score, 1, "", 1],
+          ["每月剩多少", sysItem.surplus_happiness, userItem.surplus_happiness, 1, "", 1],
+          ["通勤省时", sysItem.time_efficiency, userItem.time_efficiency, 1, "", 1],
           ["综合得分", sysItem.comprehensive_score, userItem.comprehensive_score, 1, "", 2],
         ]],
       ];
@@ -5540,14 +5791,14 @@
         ${scoreStrip(sysItem, userItem)}
         <div class="cmp-bars">
           ${cmpBar("综合得分", sysItem.comprehensive_score, userItem.comprehensive_score, false, "", 2)}
-          ${cmpBar("30 年后净值", sysItem.net_worth_end_wan, userItem.net_worth_end_wan, false)}
+          ${cmpBar("30 年后家底", sysItem.net_worth_end_wan, userItem.net_worth_end_wan, false)}
           ${cmpBar("30 年总利息", sysItem.total_interest_wan, userItem.total_interest_wan, true)}
         </div>
         ${body}
         ${timeSection(res)}
         <div class="cmp-foot">绿 = 这一项更优，红 = 更差。首付、贷款本金属于中性指标，不判优劣：首付多则本金少，是一体两面。
           ${(Number(sysItem.adapt_score) === 0 && Number(userItem.adapt_score) === 0)
-            ? "<br>⚠️ 两套方案抗风险稳健度都是 0：说明它们都贴着 70% 红线，安全余量为 0，只是勉强可行。"
+            ? "<br>⚠️ 两套方案抗风险都是 0：说明它们都贴着 70% 红线，安全余量为 0，只是勉强可行。"
             : ""}</div>
       `;
       document.getElementById("modalTitle").innerText = "📊 方案对比 | 系统推荐 vs 你的方案";
@@ -5617,7 +5868,7 @@
       const html = `
     <div class="dr-wrap">
       <div class="dr-section">
-        <div class="dr-title">🏙️ 空间折叠</div>
+        <div class="dr-title">🏙️ 城市与通勤</div>
         ${row("目标城市", sp ? `${escapeHtml(sp.city_name)} · ${escapeHtml(sp.tier_label)}` : escapeHtml(regionName))}
         ${row("可购面积 / 人均", sp ? `${sp.own_area_sqm} ㎡ / ${sp.area_per_person} ㎡（${sp.family_label}）` : "--")}
         ${row("单程通勤（租房 → 买房）", sp ? `${sp.commute.rent_min} → ${sp.commute.own_min} 分钟` : "--")}
@@ -5659,15 +5910,15 @@
           <div><div style="font-size:18px;font-weight:800;color:#38bdf8;">${fmt(item.adapt_score, 1)}</div><div style="font-size:11px;color:#94a3b8;">抗风险稳健</div></div>
           <div><div style="font-size:18px;font-weight:800;color:#f59e0b;">${fmt(item.comfort_score, 1)}</div><div style="font-size:11px;color:#94a3b8;">居住舒适</div></div>
           <div><div style="font-size:18px;font-weight:800;color:#8b5cf6;">${fmt(item.surplus_happiness, 1)}</div><div style="font-size:11px;color:#94a3b8;">结余幸福</div></div>
-          <div><div style="font-size:18px;font-weight:800;color:#0ea5e9;">${fmt(item.time_efficiency, 1)}</div><div style="font-size:11px;color:#94a3b8;">时间效率</div></div>
+          <div><div style="font-size:18px;font-weight:800;color:#0ea5e9;">${fmt(item.time_efficiency, 1)}</div><div style="font-size:11px;color:#94a3b8;">通勤省时</div></div>
           <div><div style="font-size:18px;font-weight:800;color:#ec4899;">${fmt(item.suitability_score, 1)}</div><div style="font-size:11px;color:#94a3b8;">综合合适度</div></div>
           <div><div style="font-size:18px;font-weight:800;color:#10b981;">${fmt(item.comprehensive_score, 1)}</div><div style="font-size:11px;color:#94a3b8;">综合得分</div></div>
         </div>
         <div style="margin-top:12px;">
           ${row("30 年后现金（名义）", `${fmt(item.liquid_asset_end_wan, 2)} 万元`, "ok")}
           ${row("房子价值（按买入价与年增值估算）", item.house_value_end_wan !== undefined ? `${fmt(item.house_value_end_wan, 2)} 万元` : "--")}
-          ${row("30 年后净值（现金＋房子）", item.net_worth_end_wan !== undefined ? `${fmt(item.net_worth_end_wan, 2)} 万元` : "--", "ok")}
-          ${row("净值按今日物价", item.real_net_worth_end_wan !== undefined ? `${fmt(item.real_net_worth_end_wan, 2)} 万元` : "--", "warn")}
+          ${row("30 年后家底（现金＋房子）", item.net_worth_end_wan !== undefined ? `${fmt(item.net_worth_end_wan, 2)} 万元` : "--", "ok")}
+          ${row("家底按今日物价", item.real_net_worth_end_wan !== undefined ? `${fmt(item.real_net_worth_end_wan, 2)} 万元` : "--", "warn")}
           ${row("周期最低现金余额", item.min_cash_wan !== undefined ? `${fmt(item.min_cash_wan, 2)} 万元` : "--")}
         </div>
       </div>
@@ -5850,7 +6101,7 @@
         ? `高达 <span style="${cGreen}">${asset} 万元</span> 的流动现金${realAssetText}`
         : `<span style="${cBlue}">${asset} 万元</span> 的流动现金${realAssetText}`;
 
-      // 5. 时间效率动态评价
+      // 5. 通勤省时动态评价
       const timeText = time >= 80
         ? `高达 <span style="${cGreen}">${time} 分</span>`
         : `<span style="${cBlue}">${time} 分</span>`;
@@ -5976,7 +6227,7 @@
         <strong>1. 杠杆的温柔面：</strong>虽然房屋总价高达 ${houseTotalWan} 万，但通过精明的蓄水，你只需 <span style="${cBlue}">${downPaymentWan.toFixed(1)} 万元</span> 首付即可上车，避免了砸锅卖铁的窘境。<br>
         <strong>2. 毫无压迫的月度账单：</strong>${expenseHtml}，你不用把有限的青春悉数上交给冷冰冰的利息账单。<br>
         <strong>3. 留住的不是钱，是光：</strong>每月 <span style="${cGreen}">${formatNum(remainingCash, 0)} 元</span> 的纯现金流，是随时可以辞职看世界的底气。${surplusHtml}。<br>
-        <strong>4. 必然的取舍：</strong>虽然这份舒适可能让你在时间效率（${time}分）或资产积累（${asset}万）上做出让步，但谁在乎呢？你过得开心，才是对这个世界最漂亮的反击。
+        <strong>4. 必然的取舍：</strong>虽然这份舒适可能让你在通勤上（${time} 分）、资产上（${asset} 万）做出让步，但谁在乎呢？你过得开心，才是对这个世界最漂亮的反击。
         
         <span class="section-title">三、 写给你的生活指南</span>
         1. <strong>把租房当成生活美学：</strong>花心思布置租来的家，买最好的床垫，买一束鲜艳的花。房子是别人的，但岁月是你自己的。<br>
@@ -5994,7 +6245,7 @@
         <strong>1. 极客的算盘：</strong>房屋总价 ${houseTotalWan} 万，你选择了 ${loanYears} 年的贷款期限，产生了${interestPhrase}。这看似是一笔沉重的买路钱，但它是你撬动未来资产的支点。<br>
         <strong>2. 极致的资产冲刺：</strong>30 年后，当你彻底卸下债务，手里将握着 ${assetText}，那是资本为你疯狂打工的最强核武器。<br>
         <strong>3. 现金流的代价：</strong>想要在30年后拥有惊人的财富，就必须在当下承受压力。你的真实月供为 <span style="${cBlue}">${formatNum(actualNetMortgage, 0)} 元</span>，红线上方仅剩 <span style="${redlineMargin > 0 ? cGreen : cRed}">${formatNum(redlineMargin, 0)} 元</span> 的缓冲。${expenseHtml}。<br>
-        <strong>4. 战略性的蛰伏：</strong>${triggerRentShort} 这种用时间换取空间的战术，让时间效率得分达到了 ${timeText}。
+        <strong>4. 战略性的蛰伏：</strong>${triggerRentShort} 这种用时间换取空间的战术，让通勤省时得分达到了 ${timeText}。
         
         <span class="section-title">三、 写给你的生活指南</span>
         1. <strong>做金钱的执剑人：</strong>守住你的本金！把首付投入到年化收益能跑赢房贷利率的稳健基金里，去吃市场的无风险利差。<br>
@@ -6030,7 +6281,7 @@
         <strong>1. 首付与杠杆：</strong>首付 ${downPaymentWan.toFixed(1)} 万，贷 ${loanPrincipalWan.toFixed(1)} 万。${triggerLoanShort} 期间你需要承担${interestPhrase}。<br>
         <strong>2. 收工时间表：</strong>租房 ${rentYears} 年 + 还贷 ${loanYears} 年 = ${rentYears + loanYears} 年。之后那 ${Math.max(0, 30 - (rentYears + loanYears))} 年，你的工资不再有月供这个出口。<br>
         <strong>3. 及格线以上的人生：</strong>${expenseHtml}。每月结余 <span style="${cBlue}">${formatNum(remainingCash, 0)} 元</span>，${surplusHtml}。<br>
-        <strong>4. 时间效率的兑现：</strong>时间效率 ${timeText}。省下来的不是利息，是"还没老就先自由"的那段时间；30 年后你手上还有 ${assetText}。
+        <strong>4. 通勤的兑现：</strong>你每天花在路上的时间，折成通勤省时是 ${timeText}。省下来的不是利息，是"还没老就先自由"的那段时间；30 年后你手上还有 ${assetText}。
 
         <span class="section-title">三、 写给你的生活指南</span>
         1. <strong>把"收工年"标在日历上：</strong>${rentYears + loanYears} 年后你不再有月供。从今天起，所有关于换工作、换城市的决定，都可以按"那时候我已经没有债"来规划。<br>
@@ -6046,7 +6297,7 @@
         
         <span class="section-title">二、 锋芒毕露的数据解剖</span>
         <strong>1. 雷霆万钧的杠杆：</strong>总价 ${houseTotalWan} 万，贷款 ${loanPrincipalWan.toFixed(1)} 万。你几乎没有犹豫，极短的租房期后直接拿下红本。<br>
-        <strong>2. 效率就是生命：</strong>时间效率达到 ${timeText}，你像是一个精算师，将付给银行的利息锁定在 <span style="${totalInterestWan > 50 ? cRed : cBlue}">${totalInterestWan.toFixed(1)} 万元</span>。<br>
+        <strong>2. 效率就是生命：</strong>通勤省时达到 ${timeText}，你像是一个精算师，将付给银行的利息锁定在 <span style="${totalInterestWan > 50 ? cRed : cBlue}">${totalInterestWan.toFixed(1)} 万元</span>。<br>
         <strong>3. 战斗状态的面板：</strong>家庭月支出占比达到了 <span style="${cRed}">${expenseRatio}%</span>，${expenseHtml}。你想赢，就必须承受这份张力。<br>
         <strong>4. 金钱的嘉奖：</strong>30 年后你将手握 ${assetText}。在通胀时代，快鱼吃慢鱼。这套方案强制你保持极高的职场竞争力，不接受任何懈怠。
         
@@ -6076,7 +6327,7 @@
       }
 
       // ==========================================
-      // 🏙️ 空间折叠叙事（V2.0）：这一节，是整套报告的灵魂
+      // 🏙️ 城市与通勤叙事（V2.0）：这一节，是整套报告的灵魂
       // ==========================================
       const sp = (res && res.spatial) ? res.spatial : null;
       let spatialHtml = "";
@@ -6099,11 +6350,11 @@
             ? `房价收入比 ${sp.pir}，压力和希望并存，这是大多数普通人真实的战场。`
             : `房价收入比 ${sp.pir}，在这座城市，努力和回报还没有彻底脱钩。`;
         spatialHtml = `
-        <span class="section-title">四、 空间折叠：你在哪座城市，买的是哪种人生</span>
+        <span class="section-title">四、 城市与通勤：你在哪座城市，买的是哪种人生</span>
         这套方案落在 <b>${escapeHtml(sp.city_name)} · ${escapeHtml(sp.tier_label)}</b>，${escapeHtml(sp.family_label)}。按片区 ${formatNum(sp.district_price_sqm, 0)} 元/㎡ 折算，${houseTotalWan} 万只能买到 <b>${sp.own_area_sqm} ㎡</b>，人均 <b>${sp.area_per_person} ㎡</b>。${areaVerdict}<br>
         你的税后收入，是本地平均薪资（${formatNum(sp.city_avg_salary, 0)} 元/月）的 <b>${sp.rel_income} 倍</b>。这个倍数决定了你在这座城市里，到底是“被平均”，还是“有余裕”。${cityVerdict}<br>
-        ${commuteVerdict} 按当地时薪折算，买房后每天往返 ${sp.commute.own_min * 2} 分钟（单程 ${sp.commute.own_min} 分钟），每月相当于隐性支付 <b>${formatNum(sp.commute.time_cost_month, 0)} 元</b>——它不会出现在工资条上，但它真实地吃掉你的人生。通勤折现后，你的时间效率是 <b>${time} 分</b>（租房期 ${sp.commute.rent_score} 分 / 买房后 ${sp.commute.own_score} 分）。<br>
-        最后是那个最容易被忽略的真相：30 年后你手里的 ${asset} 万，是名义资产；按 30 年通胀系数 ${sp.inflation_factor_30y}× 折算，真实购买力只剩 <b>${realAssetWan !== null ? formatNum(realAssetWan, 2) : "--"} 万元</b>。这正是我们反复拒绝“画大饼”的原因——数字会膨胀，人生不会。
+        ${commuteVerdict} 按当地时薪折算，买房后每天往返 ${sp.commute.own_min * 2} 分钟（单程 ${sp.commute.own_min} 分钟），每月相当于隐性支付 <b>${formatNum(sp.commute.time_cost_month, 0)} 元</b>——它不会出现在工资条上，但它真实地吃掉你的人生。通勤折现后，你的通勤省时是 <b>${time} 分</b>（租房期 ${sp.commute.rent_score} 分 / 买房后 ${sp.commute.own_score} 分）。<br>
+        最后是那个最容易被忽略的真相：30 年后你手里的 ${asset} 万，是名义资产；按 30 年通胀系数 ${sp.inflation_factor_30y}× 折算，按今天物价只剩 <b>${realAssetWan !== null ? formatNum(realAssetWan, 2) : "--"} 万元</b>。这正是我们反复拒绝“画大饼”的原因——数字会膨胀，人生不会。
         ${(res.market && res.market.house_price_growth_pct > 0 && topItem.purchase_price_wan)
             ? `<br>房价按每年 <b>${res.market.house_price_growth_pct}%</b> 增长：你在租 ${rentYears} 年后买入时，总价已变成 <b>${formatNum(topItem.purchase_price_wan, 1)} 万</b>，首付与贷款都按这个价格重算。`
             : ""}`;
@@ -6122,7 +6373,7 @@
       if (rk && rk.mode === "aggressive") {
         riskHtml = `
         <span class="section-title">五、 悬崖方案：踩在刀尖上的全速前进</span>
-        你主动选择了 <b>${rk.loan_cap_pct}%</b> 的生存线。系统不再替你留那 30% 的安全垫——它把每一分钱都压进了时间效率里。${rk.squeeze_life ? "你甚至勾选了节衣缩食，把可支配生活开销压到 8 折。" : ""}
+        你主动选择了 <b>${rk.loan_cap_pct}%</b> 的生存线。系统不再替你留那 30% 的安全垫——它把每一分钱都压进了"早点还完"这件事里。${rk.squeeze_life ? "你甚至勾选了节衣缩食，把可支配生活开销压到 8 折。" : ""}
         ${bufferLine}
         这不是一个可以推荐给任何人的方案，它是一个只属于“现在就要”的选择：任何一次失业、一场病、一个必须随的份子钱，都会让你踩空。
         但我也必须承认，在房价和收入的双重挤压下，有些人确实只剩下这一条路。系统把它算清楚，不是为了鼓励你跳，而是让你知道自己在跳什么。`;
@@ -6277,7 +6528,7 @@
         if (!topArr || topArr.length === 0) return;
         const top10 = topArr.slice(0, 10);
         const assetKey = currentAssetView === "real" ? "real_net_worth_end_wan" : "net_worth_end_wan";
-        const assetName = currentAssetView === "real" ? "净值·今日购买力(万)" : "30年后净值(万)";
+        const assetName = currentAssetView === "real" ? "家底·今日购买力(万)" : "30年后家底(万)";
         const assetData = top10.map(i => (typeof i[assetKey] === "number" ? i[assetKey] : i.net_worth_end_wan));
         const scoreData = top10.map(i => i.comprehensive_score);
         // 📱 390px 上 10 根柱子 + 双轴，标签必须倾斜，否则会叠成一团
@@ -6397,7 +6648,7 @@
         const opt = {
           animation: false,
           title: { text: `榜首方案能力雷达图`, left: 'center', textStyle: { fontSize: 13, color: '#f8fafc' } },
-          radar: { indicator: [{ name: '资产积累', max: 100 }, { name: '抗风险', max: 100 }, { name: '居住舒适', max: 100 }, { name: '结余幸福', max: 100 }, { name: '时间效率', max: 100 }], radius: '62%', splitArea: { areaStyle: { color: ['rgba(30,41,59,0.5)', 'rgba(15,23,42,0.5)'] } }, axisLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } }, splitLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } } },
+          radar: { indicator: [{ name: '资产积累', max: 100 }, { name: '抗风险', max: 100 }, { name: '居住舒适', max: 100 }, { name: '结余幸福', max: 100 }, { name: '通勤省时', max: 100 }], radius: '62%', splitArea: { areaStyle: { color: ['rgba(30,41,59,0.5)', 'rgba(15,23,42,0.5)'] } }, axisLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } }, splitLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } } },
           series: [{ type: 'radar', data: [{ value: dataArr, name: '方案能力', areaStyle: { color: 'rgba(37, 99, 235, 0.35)' }, lineStyle: { color: '#3b82f6', width: 2 }, itemStyle: { color: '#3b82f6' } }] }]
         };
         chart.setOption(opt, true);
@@ -6428,8 +6679,8 @@
         ? `你的方案利息 <b>${a.total_interest_wan} 万</b>，比推荐方案少 ${Math.abs(d.interest_wan)} 万——这一点你算得没错。`
         : `利息上你其实没占到便宜：你的方案 <b>${a.total_interest_wan} 万</b>，反而比推荐方案多 ${Math.abs(d.interest_wan)} 万，因为首付留得多、贷款本金反而更大。`;
       const assetLine = d.asset_wan > 0
-        ? `把 30 年拉通看，净值（现金＋房子）${a.net_worth_end_wan} 万 对 ${b.net_worth_end_wan} 万，你少 ${Math.abs(d.asset_wan)} 万（按今天物价算少 ${Math.abs(d.real_asset_wan)} 万）。`
-        : `把 30 年拉通看，净值你是 ${a.net_worth_end_wan} 万、推荐方案 ${b.net_worth_end_wan} 万——<b>单看钱，你的方案反而多 ${Math.abs(d.asset_wan)} 万</b>。它排名靠前，是因为“综合最优”不是“资产最多”：五维加权里还算了居住舒适度、通勤时间、结余幸福感，不只看净值。`;
+        ? `把 30 年拉通看，家底（现金＋房子）${a.net_worth_end_wan} 万 对 ${b.net_worth_end_wan} 万，你少 ${Math.abs(d.asset_wan)} 万（按今天物价算少 ${Math.abs(d.real_asset_wan)} 万）。`
+        : `把 30 年拉通看，家底你是 ${a.net_worth_end_wan} 万、推荐方案 ${b.net_worth_end_wan} 万——<b>单看钱，你的方案反而多 ${Math.abs(d.asset_wan)} 万</b>。它排名靠前，是因为“综合最优”不是“资产最多”：五维加权里还算了住得舒服、通勤省时、每月剩多少，不只看家底。`;
       const costLine = b.buffer_months + 1 < a.buffer_months
         ? `但推荐方案不是白拿的：它把首付掏到 ${b.down_payment_wan} 万，手上现金只够撑 <b>${b.buffer_months} 个月</b>；你的方案留了 ${a.buffer_months} 个月。这就是它的代价。`
         : `推荐方案的现金缓冲是 ${b.buffer_months} 个月，你的方案是 ${a.buffer_months} 个月，承压能力差不多。`;
@@ -6447,7 +6698,7 @@
 
       if (!res.feasible) {
         const near = (res.near_feasible || []).slice(0, 3).map(s =>
-          `<li>租 ${s.rent_year} 年 + 贷 ${s.loan_year} 年 · ${downLabel(s.down_strategy)} · 净值 ${s.net_worth_end_wan} 万</li>`
+          `<li>租 ${s.rent_year} 年 + 贷 ${s.loan_year} 年 · ${downLabel(s.down_strategy)} · 家底 ${s.net_worth_end_wan} 万</li>`
         ).join("");
         box.innerHTML = `
           <div class="toggle-card anchor-fail" data-anchor-infeasible="1"
@@ -6469,7 +6720,7 @@
         ? `你的方案利息 <b>${a.total_interest_wan} 万</b>，比推荐方案少 ${Math.abs(d.interest_wan)} 万——这一点你算得没错。`
         : `利息上你其实没占到便宜：你的方案 <b>${a.total_interest_wan} 万</b>，反而比推荐方案多 ${Math.abs(d.interest_wan)} 万。`;
       const assetLine = d.asset_wan > 0
-        ? `把 30 年拉通看，净值（现金＋房子）${a.net_worth_end_wan} 万 对 ${b.net_worth_end_wan} 万，你少 ${Math.abs(d.asset_wan)} 万（按今天物价算少 ${Math.abs(d.real_asset_wan)} 万）。`
+        ? `把 30 年拉通看，家底（现金＋房子）${a.net_worth_end_wan} 万 对 ${b.net_worth_end_wan} 万，你少 ${Math.abs(d.asset_wan)} 万（按今天物价算少 ${Math.abs(d.real_asset_wan)} 万）。`
         : `把 30 年拉通看，期末资产你是 ${a.liquid_asset_end_wan} 万、推荐方案 ${b.liquid_asset_end_wan} 万——单看钱，你的方案反而多 ${Math.abs(d.asset_wan)} 万。`;
 
       box.innerHTML = `
@@ -6480,8 +6731,8 @@
           </div>
           <div class="anchor-stats">
             <div><span>30 年总利息</span><b>${a.total_interest_wan} 万</b></div>
-            <div><span>净值（现金＋房子）</span><b>${a.net_worth_end_wan} 万</b></div>
-            <div><span>净值（今日购买力）</span><b>${a.real_net_worth_end_wan} 万</b></div>
+            <div><span>家底（现金＋房子）</span><b>${a.net_worth_end_wan} 万</b></div>
+            <div><span>家底（今日购买力）</span><b>${a.real_net_worth_end_wan} 万</b></div>
           </div>
           <p style="line-height:1.8; margin:10px 0;">
             ${interestLine}${assetLine}
@@ -6499,17 +6750,31 @@
     }
 
 
-    // 🖥️ 结果视图：收起左侧参数（省空间、少渲染），右栏加宽
+    /* ============================================================
+       🖥️ V8.10 三视图互斥：params（填数字）/ result（看结论）/ match（挑房）
+       ------------------------------------------------------------
+       规则只有一条：同一时刻只能有一个视图可见。
+       以前是"该显示时显示"，没写"不该显示时隐藏"，结果两块面板叠在一起、
+       关不掉也切不走（记忆体 6.0 记过这个）。现在改成显式状态机：
+         · body[data-view] 决定桌面端哪个面板可见（CSS 早就在守这条）；
+         · 手机端同步 data-mtab / data-mscreen，Tab 与视图永远一致。
+       ============================================================ */
+    const VIEWS = ["params", "result", "match"];
+
     function setView(v) {
+      if (VIEWS.indexOf(v) < 0) v = "params";
       document.body.dataset.view = v;
-      const b1 = document.getElementById("backToParamsBtn");
-      const b2 = document.getElementById("matchEntryBtn");
-      if (v === "params") {          // 只有回参数页才收起来
-        if (b1) b1.remove();
-        if (b2) b2.remove();
-      } else if (v === "result") {   // 回结果页要把回头路重新挂上
-        try { ensureMatchEntry(); } catch (_) { }
+
+      // 入口是"结果视图专属的导航"：参数页不需要它，匹配页由匹配面板自己收尾
+      if (v === "result") { try { ensureMatchDock(); } catch (_) { } }
+      else { removeMatchDock(); }
+
+      // 📱 手机端：视图和 Tab / 二级屏是一套状态，必须一起切，否则会出现"两块面板叠着"
+      if (window.innerWidth <= 760 && window.MApp) {
+        if (v === "params") { window.MApp.setTab("sim"); window.MApp.setScreen("params"); }
+        else if (v === "result") { window.MApp.setTab("sim"); window.MApp.setScreen("result"); }
       }
+
       // 面板宽度变了，ECharts 不会自己知道——不 resize 就会一直是被压扁的旧尺寸
       const relayout = () => {
         try { map && map.invalidateSize(); } catch (_) { }
@@ -6521,31 +6786,45 @@
     }
     window.__setView = setView;
 
-    // 🔎 显眼的"找房"入口：贴在右栏顶部
-    function ensureMatchEntry() {
+    /* 🔎 顶部悬浮入口：贴着面板顶端，滚动时永远在最上面。
+       为什么用 sticky 而不是 fixed：fixed 要算面板宽度，一旦窗口 resize、
+       或者结果视图把面板从 820 加宽到 1180，它就会错位；sticky 天生跟着容器走。 */
+    function ensureMatchDock() {
       const rp = document.getElementById("rightPanel");
-      if (!rp || document.getElementById("matchEntryBtn")) return;
-      const btn = document.createElement("button");
-      btn.id = "matchEntryBtn";
-      btn.type = "button";
-      btn.innerHTML = "🔎 进入推荐房源匹配 <small>按你算出来的条件，挑出最适合的房子</small>";
-      btn.onclick = function () {
+      if (!rp || document.getElementById("matchDock")) return;
+      const dock = document.createElement("button");
+      dock.id = "matchDock";
+      dock.type = "button";
+      dock.innerHTML = "🔎 进入推荐房源匹配<small>按你算出来的条件，挑出最适合的房子</small>";
+      dock.onclick = function () {
         if (window.MApp && window.MApp.openMatchPanel) window.MApp.openMatchPanel();
         else showToast("房源匹配还没准备好，稍后再试");
       };
-
-      // ← 改参数：结果视图把左栏藏起来了，必须留一条回头路
-      const back = document.createElement("button");
-      back.id = "backToParamsBtn";
-      back.type = "button";
-      back.textContent = "← 改参数，重新算";
-      back.style.cssText = "margin:0 0 10px;padding:9px 14px;border-radius:10px;cursor:pointer;" +
-        "background:rgba(148,163,184,.18);color:#cbd5e1;border:1px solid rgba(148,163,184,.45);font-size:13px;";
-      back.onclick = function () { setView("params"); };
-
-      rp.insertBefore(btn, rp.firstChild);
-      rp.insertBefore(back, rp.firstChild);
+      // 放在面板最前面：和面板同宽、同圆角，看起来像页签栏，不像贴片广告
+      rp.insertBefore(dock, rp.firstChild);
     }
+
+    function removeMatchDock() {
+      const d = document.getElementById("matchDock");
+      if (d) d.remove();
+    }
+
+    /* 📋 回参数：左侧口袋点一下就开。
+       桌面端要把左栏重新 show 出来（结果视图只把左栏 display:none，没清 .show）；
+       手机端交给 setView 联动 Tab，不用单独处理。 */
+    function openParamsView() {
+      const ov = document.getElementById("matchOverlay");
+      if (ov) ov.classList.remove("on");
+      try { showPanel("leftPanel"); } catch (_) { }
+      setView("params");
+      try { map && map.invalidateSize(); } catch (_) { }
+    }
+    window.__openParams = openParamsView;
+
+    (function bindParamPocket() {
+      const pocket = document.getElementById("paramPocket");
+      if (pocket) pocket.onclick = openParamsView;
+    })();
 
     function renderResult(res) {
       document.getElementById("emptyState").style.display = "none";
@@ -6576,7 +6855,7 @@
           <div class="metric"><div class="val">${gb.rent_year} 年</div><div class="lbl">租房年限</div></div>
           <div class="metric"><div class="val">${gb.loan_year} 年</div><div class="lbl">贷款年限</div></div>
           <div class="metric"><div class="val">${formatNum(gb.comprehensive_score, 2)}</div><div class="lbl">综合得分</div></div>
-          <div class="metric"><div class="val">${formatNum(gb.net_worth_end_wan, 2)}万</div><div class="lbl">30 年后净值</div></div>
+          <div class="metric"><div class="val">${formatNum(gb.net_worth_end_wan, 2)}万</div><div class="lbl">30 年后家底</div></div>
           <div class="metric"><div class="val" style="color:#fbbf24">${gb.real_net_worth_end_wan !== undefined ? formatNum(gb.real_net_worth_end_wan, 2) : "--"}万</div><div class="lbl">按今日物价</div></div>
         </div>
       </div>`;
@@ -6590,14 +6869,14 @@
         generateAIExpertReport(topArr[0], res, "综合最优");
       }
 
-      // 🏙️ 空间折叠面板 + ⏳ 时光机
+      // 🏙️ 城市与通勤面板 + ⏳ 时光机
       renderCareerCard(res.career);
       renderRiskCard(res.risk);
       if (res.spatial) {
         renderSpatialCard(res.spatial, res);
       } else {
         document.getElementById("spatialBox").innerHTML =
-          `<div class="warning-box">⚠️ 当前后端引擎尚未升级到 V6.0，空间折叠系数（面积 / 通勤 / 真实购买力）没有参与计算。请先部署新版 main.py，再刷新本页。</div>`;
+          `<div class="warning-box">⚠️ 当前后端引擎尚未升级到 V6.0，城市与通勤系数（面积 / 通勤 / 按今天物价）没有参与计算。请先部署新版 main.py，再刷新本页。</div>`;
       }
       renderTimeMachine(res);
 
@@ -6636,7 +6915,7 @@
     function renderEntropy(ew) {
       // 熵权细节不再对外展示（V7.7）：保留函数以免旧调用点报错，但直接返回
       if (!document.getElementById("entropyCard")) return;
-      const labels = { asset: "期末资产", adapt: "抗风险", comfort: "舒适度", happiness: "幸福感", time: "时间效率" };
+      const labels = { asset: "期末资产", adapt: "抗风险", comfort: "舒适度", happiness: "幸福感", time: "通勤省时" };
       let html = `<div style="font-weight:600;color:#60a5fa;margin-bottom:12px;font-size:13px;">熵权法自动计算出的五维指标权重</div><div class="ew-grid">`;
       Object.keys(labels).forEach(k => {
         let w = typeof ew[`weight_${k}`] !== "undefined" ? ew[`weight_${k}`] : 0;
@@ -6723,9 +7002,9 @@
           const src = document.documentElement.dataset.citySource === "db" ? "库" : "内置";
           document.documentElement.dataset.citySourceLabel = src;
           const badge = document.getElementById("appBadge");
-          if (badge) badge.textContent = `V8.9.1 · ${src}`;
+          if (badge) badge.textContent = `V8.11.0 · ${src}`;
           const chip = document.querySelector(".ver-chip");
-          if (chip) chip.textContent = `V8.9.1 · ${src}`;
+          if (chip) chip.textContent = `V8.11.0 · ${src}`;
         })();
 
         const nn = CITY_DB.find(c => c.code === "450100");
@@ -6735,6 +7014,9 @@
         loadPoiNearby();
         loadProjects();
         loadAmenities();
+        loadListingAmenities();
+        // ⚠️ 这个必须 await：?city= 直达时马上要 applyCity，晚一步就会退回假区位
+        await loadDistrictCenters();
         // 🚩 默认全国视角，不自动跳南宁；?city=450100 或 ?city=南宁 可直达
         const cityParam = new URLSearchParams(location.search).get("city");
         const preset = cityParam
@@ -6863,7 +7145,7 @@
       };
       if (currentMode === "relative") payload.rent_monthly_base = parseFloat(document.getElementById("rentBase").value);
 
-      // 🏙️ V2.0 空间折叠参数：城市能级、片区单价、家庭规模、双阶段通勤
+      // 🏙️ V2.0 城市与通勤参数：城市能级、片区单价、家庭规模、双阶段通勤
       Object.assign(payload, spatialRequestFields());
 
       // 🧭 V6.1 风险姿态与隐形支出
@@ -6948,8 +7230,7 @@
 
         // 渲染表格与分析（先把 DOM 与 ECharts 的重活干完）
         renderResult(result);
-      setView("result");
-      ensureMatchEntry();
+        setView("result");
         if (useAnchor && result.mode === "anchor") {
           renderAnchorBox(result);
         } else clearAnchorBox();
@@ -6994,7 +7275,7 @@
         });
       });
 
-      // 🏙️ 空间折叠：这些输入会即时改变“可购面积 / 房价收入比”芯片
+      // 🏙️ 城市与通勤：这些输入会即时改变“可购面积 / 房价收入比”芯片
       ["houseTotalWan", "monthIncomeNet", "initialSavingsWan"].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.addEventListener("input", refreshSpatialChips);
@@ -7016,6 +7297,18 @@
         const el = document.getElementById(id);
         if (el) el.addEventListener("input", () => { commuteManual = true; refreshSpatialChips(); });
       });
+
+      // 🚦 早晚高峰开关：只改芯片和请求参数，不改输入框里的数字——
+      // 输入框永远代表"平峰实际单程"，倍数在发请求时才乘上去。
+      const peakBox = document.getElementById("peakCommute");
+      if (peakBox) {
+        peakBox.addEventListener("change", () => {
+          refreshSpatialChips();
+          showToast(peakBox.checked
+            ? "已按假设 ×1.45 估算高峰通勤（不是实测数据）"
+            : "已回到平峰通勤");
+        });
+      }
 
       // 🧪 演示/验收钩子：?autorun=1 自动跑一次默认推演（不影响正常使用）
       if (new URLSearchParams(location.search).get("autorun") === "1") {
@@ -7432,7 +7725,10 @@
         summaryBox = document.createElement("div");
         summaryBox.id = "mSummary";
         summaryBox.className = "m-keep";
-        rp.insertBefore(summaryBox, rp.firstChild);
+        // 顶部匹配入口是导航，必须排在结论卡前面——不能把入口顶下去
+        const dock = $("matchDock");
+        if (dock && dock.parentNode === rp) rp.insertBefore(summaryBox, dock.nextSibling);
+        else rp.insertBefore(summaryBox, rp.firstChild);
         return summaryBox;
       }
 
@@ -7444,12 +7740,17 @@
       }
 
       function setTab(name, opts) {
-      const ov = document.getElementById("matchOverlay");
-      if (ov) ov.classList.remove("on");
+        const ov = document.getElementById("matchOverlay");
+        if (ov) ov.classList.remove("on");
         if (!isMobile()) return;
         if (!name) return;
         tab = name;
         body.dataset.mtab = name;
+        // 切 Tab 等于"离开当前视图"：匹配覆盖层已经关了，视图状态必须跟着走，
+        // 否则 body 上还挂着 data-view="match"，回推演时会看见两个面板互斥打架。
+        if (body.dataset.view === "match") {
+          body.dataset.view = (name === "sim" && screen === "result") ? "result" : "params";
+        }
         if (name === "sim") body.dataset.mscreen = screen;
         paintTabs();
         if (name === "list") ensureListings();
@@ -7493,7 +7794,7 @@
 
       /* ---------- 结论卡 ---------- */
       const DIMS = [
-        ["时间效率", "time_efficiency"],
+        ["通勤省时", "time_efficiency"],
         ["居住舒适", "comfort_score"],
         ["抗风险", "adapt_score"],
         ["结余幸福", "surplus_happiness"],
@@ -7546,7 +7847,7 @@
         } else if (da < -0.05) {
           s2 = "，钱反而多 <b>" + wan(-da) + " 万</b>；推荐是赢在别的维度。";
         } else {
-          s2 = "，净值（含房子）也几乎一样。";
+          s2 = "，家底（含房子）也几乎一样。";
         }
 
         const cost = [];
@@ -7613,7 +7914,7 @@
 
         const kpis =
           kpi("综合得分", wan(b.comprehensive_score, 1), "分") +
-          kpi("30 年后净值", wan(b.net_worth_end_wan), "万") +
+          kpi("30 年后家底", wan(b.net_worth_end_wan), "万") +
           kpi(payLabel, payVal == null ? "—" : Number(payVal).toLocaleString(), payUnit) +
           kpi("30 年总利息", wan(b.total_interest_wan), "万") +
           kpi("首付", wan(b.down_payment_wan), "万") +
@@ -7628,7 +7929,7 @@
           '<div class="m-sum-sub">' + sub + "</div>" +
           '<div class="m-sum-verdict">' + verdict + "</div>" +
           '<div class="m-kpis">' + kpis + "</div>" +
-          '<div class="m-sum-note">净值 = 现金 + 房子 − 剩余房贷；车不计入资产。</div>' +
+          '<div class="m-sum-note">家底 = 现金 + 房子 − 剩余房贷；车不计入资产。</div>' +
           (() => {
             const am = res.spatial && res.spatial.area_match;
             if (!am || am.status !== "over") return "";
@@ -7672,7 +7973,10 @@
             const v = el ? parseFloat(el.value) : NaN;
             return isNaN(v) ? -1 : v;
           })(),
-          limit: 12
+          limit: 12,
+          // V8.10：偏好与权重一起发给后端，后端和前端用同一套排序口径
+          pref: currentPref,
+          amenity_weight: 0.12
         };
       }
 
@@ -7800,7 +8104,7 @@
         }
 
         const localNote = json.__local
-          ? '<div class="m-note" style="color:#94a3b8;">（这批结果是本地按同一套规则算的：后端还没升级到 V8.9.1，部署后会自动改为后端计算。）</div>'
+          ? '<div class="m-note" style="color:#94a3b8;">（这批结果是本地按同一套规则算的：后端还没升级到 V8.11.0，部署后会自动改为后端计算。）</div>'
           : "";
 
         if (list.length) {
@@ -7905,18 +8209,20 @@
         if (window.__setView) window.__setView("result");
       }
 
-      function poiOf(district) {
-        const fn = window.__poiScore;
-        return typeof fn === "function" ? fn(district) : null;
+      function poiOf(any) {
+        // V8.10：优先这套房自己的周边数据，没有才退回片区
+        try { return amenityScoreOfRow(any, currentPref); } catch (_) { return null; }
       }
 
-      // 排序：预算/面积贴合为主（这是刚需的第一约束），便利分只做微调
+      // 排序：预算/面积贴合为主（这是刚需的第一约束），便利分只做微调。
+      // 12% 这个权重是刻意压住的：豆包提醒过，配套权重一高，预算就沦为次要条件，
+      // 那不是"更智能"，那是把用户带去看买不起的房子。
       function sortPanelRows() {
         panelRows.sort((a, b) => {
           const sa = Math.abs(a.price_delta_pct || 0) + Math.abs(a.area_delta_pct || 0)
-            - (window.__poiScore(a.district_name, currentPref) || 0) * 0.12;
+            - (poiOf(a) || 0) * 0.12;
           const sb = Math.abs(b.price_delta_pct || 0) + Math.abs(b.area_delta_pct || 0)
-            - (window.__poiScore(b.district_name, currentPref) || 0) * 0.12;
+            - (poiOf(b) || 0) * 0.12;
           return sa - sb;
         });
       }
@@ -7927,7 +8233,14 @@
         const rows = panelRows.slice(0, panelShown);
         grid.innerHTML = rows.map((x, i) => {
           const pps = x.price_sqm ? Math.round(x.price_sqm) : null;
-          const poi = poiOf(x.district_name);
+          const info = (window.__amenityInfoFor && window.__amenityInfoFor(x, currentPref)) || null;
+          const metro = info && info.items ? info.items.filter((it) => it.key === "metro")[0] : null;
+          const poiLine = info && info.score != null
+            ? '<div class="mp-poi">🧭 周边便利 ' + info.score + " 分" +
+              (info.level === "listing"
+                ? (metro && metro.near != null ? " · 最近地铁 " + metro.near + " 米" : " · 按这套房坐标量")
+                : " · 片区级（还没有这套房的楼下数据）") + "</div>"
+            : "";
           return '<div class="mp-card" data-card="' + i + '">' +
             '<div style="display:flex;justify-content:space-between;gap:8px;">' +
             "<b>" + esc(x.community || "未命名小区") + "</b>" +
@@ -7938,7 +8251,7 @@
             '<div class="mp-meta">📍 ' + esc(x.district_name || "区位未知") +
             (x.price_delta_pct != null ? " · 比预算" + (x.price_delta_pct > 0 ? "贵 " : "便宜 ") +
               wan(Math.abs(x.price_delta_pct), 1) + "%" : "") + "</div>" +
-            (poi != null ? '<div class="mp-poi">🧭 周边便利 ' + poi + " 分</div>" : "") +
+            poiLine +
             '<button type="button" data-panel-open="' + i + '">看看这套 →</button>' +
             "</div>";
         }).join("");
@@ -7975,7 +8288,8 @@
           try { window.HousingApp.map.flyTo([x.lat, x.lng], 16, { duration: 1.0 }); } catch (_) { }
         }
         const pref = currentPref;
-        const info = window.__amenityInfo ? window.__amenityInfo(x.district_name, pref) : null;
+        // V8.10：优先这套房自己的周边（按坐标），没有才退回片区（区中心）
+        const info = window.__amenityInfoFor ? window.__amenityInfoFor(x, pref) : null;
         const pps = x.price_sqm ? Math.round(x.price_sqm) : null;
         const grid = document.getElementById("mpGrid");
         const sub = document.getElementById("mpSub");
@@ -7984,11 +8298,28 @@
           ? "这套房的明细（地图已定位到小区）"
           : "这套房的明细（房源只登记到「区」，地图不假装定位到楼栋）";
 
-        const poiRows = info ? info.items.map((it) =>
-          '<div class="d-item">' + it.label + "：" +
-          (it.near == null ? '<span>附近没有</span>' :
+        const poiRows = info ? (info.items || []).map((it) =>
+          '<div class="d-item">' + (it.kind === "negative" ? "🔇 " : "") + it.label + "：" +
+          (it.near == null ? '<span>这个范围内没有</span>' :
             "最近 <span>" + it.near + " 米</span>" + (it.n != null ? " · 周边共 " + it.n + " 处" : "")) +
           "</div>").join("") : "";
+
+        const poiSource = info
+          ? (info.level === "listing"
+            ? "周边距离以这套房的坐标为圆心，按各类设施的搜索范围（2~3 公里）量的直线距离；不是步行时间。"
+            : "周边距离以「区中心」为圆心（还没有这套房自己的楼下数据，会偏——青秀区的中心就落在山边上）。")
+          : "这套房还没有周边数据：我们不拿区均值的空白冒充结论。";
+
+        // 🏚 V8.10 单套信息：二手房真正的差别在楼层/朝向/建成年代。
+        // 数据没有时如实说"只到楼盘"，不假装知道是哪一套。
+        const unitCells = [
+          ["楼层", x.floor_info || x.floor],
+          ["总楼层", x.total_floors],
+          ["朝向", x.orientation],
+          ["建成", x.built_year],
+          ["电梯", x.elevator],
+          ["房号", x.unit_no],
+        ].filter(([, v]) => v != null && v !== "");
 
         grid.innerHTML =
           '<div class="mp-detail" style="grid-column:1/-1;">' +
@@ -7999,12 +8330,16 @@
           (pps ? '<div class="d-item">单价：<span>' + pps.toLocaleString() + " 元/㎡</span></div>" : "") +
           '<div class="d-item">户型：<span>' + (x.bedrooms ? x.bedrooms + " 室" : "—") + "</span></div>" +
           '<div class="d-item">区位：<span>' + esc(x.district_name || "—") + "</span></div>" +
-          '<div class="d-item">便利分：<span>' + (info ? info.score : "—") + " 分</span></div>" +
+          '<div class="d-item">便利分：<span>' + (info && info.score != null ? info.score + " 分" : "—") + "</span></div>" +
+          unitCells.map(([k, v]) => '<div class="d-item">' + k + "：<span>" + esc(v) + "</span></div>").join("") +
           "</div>" +
           (poiRows ? '<div class="d-grid">' + poiRows + "</div>" : "") +
-          '<div class="d-note">位置精度：' + (exact ? "精确到小区" : "只到区（区位中心近似，不是楼栋）") +
-          "。周边距离以片区中心为圆心量，是直线距离，不是步行时间；" +
-          "高峰拥堵、夜市噪音这些还没有数据，暂时没有算进去。</div>" +
+          (unitCells.length ? "" :
+            '<div class="d-note">这套房只有楼盘级信息（小区、总价、面积），没有「哪层哪套」：' +
+            "楼层、朝向、建成年代都还不清楚。</div>") +
+          '<div class="d-note">' + poiSource +
+          ' 高峰拥堵、夜市噪音这些还没有分时段数据，只对贴脸的商业做扣分。</div>' +
+          '<div class="d-note">位置精度：' + (exact ? "精确到小区" : "只到区（区位中心近似，不是楼栋）") + "。</div>" +
           '<div style="display:flex;gap:10px;margin-top:10px;">' +
           '<button type="button" id="mpBack" style="flex:1;padding:9px;border-radius:9px;border:1.5px solid #d97706;background:#fff;color:#92400e;font-weight:700;cursor:pointer;">← 返回列表</button>' +
           '<button type="button" id="mpUse" style="flex:1.6;padding:9px;border-radius:9px;border:none;background:#d97706;color:#fff;font-weight:700;cursor:pointer;">用这套去推演</button>' +
@@ -8176,7 +8511,7 @@
         const ha = window.HousingApp || {};
         const city = ha.currentCity || null;
         const res = ha.currentResult || null;
-        const ver = ($("appBadge") && $("appBadge").textContent) || "V8.9.1";
+        const ver = ($("appBadge") && $("appBadge").textContent) || "V8.11.0";
 
         const ar = $("anchorRentYear"), al = $("anchorLoanYear"), ad = $("anchorDownStrategy");
         const planned = (ar && ar.value !== "" && al && al.value !== "")
@@ -8189,8 +8524,21 @@
 
         const bestLine = (res && res.top_comprehensive && res.top_comprehensive[0])
           ? ("租 " + res.top_comprehensive[0].rent_year + " 年 · 贷 " + res.top_comprehensive[0].loan_year +
-            " 年，净值 " + wan(res.top_comprehensive[0].net_worth_end_wan) + " 万")
+            " 年，家底 " + wan(res.top_comprehensive[0].net_worth_end_wan) + " 万")
           : "";
+
+        // V8.10：数据到哪一层，这里就说哪一层——比任何"智能"都值钱
+        const ds = document.documentElement.dataset;
+        const zoneSrc = ds.zoneSource || "";
+        const zoneLine = zoneSrc === "real"
+          ? "片区用的是真实行政区中心，片区价按距市中心衰减估算"
+          : (zoneSrc === "nanning" ? "南宁八区用的是真实片区价"
+            : "片区坐标是估算的（还没有这个城市的真实区县中心）");
+        const amCount = Number(ds.listingAmenities);
+        const amenityLine = amCount > 0
+          ? ("周边设施已采到 " + amCount + " 个房源坐标；没采到的房源只说“片区级”，" +
+             "不拿区均值的空白冒充这套房的楼下")
+          : "周边设施只有片区级数据（以区中心为圆心），房源级的还没采到";
 
         box.innerHTML =
           '<div class="m-card"><h4>当前状态</h4>' +
@@ -8209,7 +8557,9 @@
           "<p><b>2.5% 通胀</b>：30 年后的一万块，不是今天的一万块。</p></div>" +
 
           '<div class="m-card"><h4>数据与口径</h4>' +
-          "<p>42 城基准 + 2890 个区县；房源是库里在售，只到区的会标“区位中心”。</p>" +
+          "<p>42 城基准 + 2890 个区县；" + zoneLine + "</p>" +
+          "<p>" + amenityLine + "</p>" +
+          "<p>房源只到区的会标“区位中心近似”，不假装定位到楼栋。</p>" +
           "<p>公积金不算现金：租房只累积，还贷只抵月供。</p>" +
           "<p>新房和二手房还共用一套基准价，这是下一版要还的债。</p></div>" +
 
@@ -8378,7 +8728,7 @@
       /**
        * 朋友的原话：先说答案，再说为什么。
        * 所以手机上把「方案 / 图 / 解释」提到结论卡后面，
-       * 长分析（薪资曲线、空间折叠、模型假设）留在最后。
+       * 长分析（薪资曲线、城市与通勤、模型假设）留在最后。
        */
       function arrangeResult(isMob) {
         const rp = $("rightPanel");
