@@ -4,9 +4,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="app-version" content="V8.9">
+  <meta name="app-version" content="V8.9.1">
   <title>全国房产金融 WebGIS 智能决策仿真系统</title>
-  <!-- 🏠 V8.9 本地托管：不依赖任何外部 CDN。
+  <!-- 🏠 V8.9.1 本地托管：不依赖任何外部 CDN。
        起因：jsdelivr 的 echarts（1MB）实测 25~60 秒，loading 卡在首屏，
        用户看到的就是白屏。vendor/ 里的三个文件跟 index.html 一起部署。 -->
   <link rel="stylesheet" href="vendor/leaflet.css">
@@ -268,6 +268,9 @@
       body[data-view="result"] #leftPanel { display: none !important; }
       body[data-view="result"] #rightPanel { width: min(1180px, calc(100% - 120px)); }
     }
+    /* 匹配打开时，结果栏整个让位——三个界面永远只出现一个 */
+    body[data-view="match"] #leftPanel,
+    body[data-view="match"] #rightPanel { display: none !important; }
     #matchEntryBtn {
       display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
       width: 100%; cursor: pointer; text-align: left;
@@ -344,9 +347,19 @@
     }
     .proj-toggle:hover { border-color: #94a3b8; }
     .proj-toggle.on {
-      background: linear-gradient(135deg, #0284c7, #2563eb);
-      color: #fff; border-color: #7dd3fc;
-      box-shadow: 0 8px 24px rgba(37,99,235,.45);
+      background: linear-gradient(135deg, #f59e0b, #ef4444);
+      color: #fff; border-color: #fde68a;
+      box-shadow: 0 10px 28px rgba(239,68,68,.5);
+      animation: projPulse 2.2s ease-in-out infinite;
+    }
+    @keyframes projPulse {
+      0%, 100% { box-shadow: 0 10px 28px rgba(239,68,68,.45); }
+      50% { box-shadow: 0 10px 40px rgba(245,158,11,.85); }
+    }
+    /* 没开的时候也得扎眼：亮黄描边 + 微光 */
+    .proj-toggle:not(.on) {
+      background: #fbbf24; color: #422006; border-color: #fef3c7;
+      box-shadow: 0 8px 22px rgba(251,191,36,.45);
     }
     .proj-toggle b { font-size: 14px; opacity: .9; background: rgba(0,0,0,.25);
       padding: 1px 8px; border-radius: 8px; }
@@ -3054,18 +3067,18 @@
 
   <div class="splash-screen" id="splashScreen">
     <h1 class="splash-title">全国房产金融决策仿真系统</h1>
-    <p class="splash-subtitle">V8.9 · 把 30 年的账算给你看 ｜ 手机上的买房账本</p>
+    <p class="splash-subtitle">V8.9.1 · 把 30 年的账算给你看 ｜ 手机上的买房账本</p>
     <button class="splash-btn" onclick="enterSystem()">进入全景中国地图</button>
   </div>
 
   <div id="map"></div>
-  <div id="appBadge">V8.9</div>
+  <div id="appBadge">V8.9.1</div>
   <div id="errBanner"></div>
   <div class="map-hint" id="mapHint">🛰️ 点省份进去 → 点城市看区县 → 点片区。也可以直接点右上角「换城市」。</div>
 
   <div class="glass-panel" id="leftPanel">
     <div class="panel-head">
-      <h2>仿真参数配置 <span class="ver-chip">V8.9</span></h2>
+      <h2>仿真参数配置 <span class="ver-chip">V8.9.1</span></h2>
       <button class="panel-close" onclick="hidePanel('leftPanel')" title="收起面板">✕</button>
     </div>
 
@@ -3460,8 +3473,8 @@
           <!-- 这里动态填入后台的报错原因 -->
         </div>
         <button class="splash-btn" style="width: 100%; padding: 12px; font-size: 16px; margin-top: 10px;"
-          onclick="closeFailModal()">
-          我明白了，继续奋斗！🚀
+          onclick="closeFailModal(); window.__setView && window.__setView('params');">
+          回去改改参数 🔧
         </button>
       </div>
     </div>
@@ -3506,7 +3519,7 @@
         const el = document.getElementById("errBanner");
         if (!el) return;
         el.style.display = "block";
-        el.textContent = "⚠️ 前端运行错误：" + msg + "（版本 V8.9，请把这条发给经纬）";
+        el.textContent = "⚠️ 前端运行错误：" + msg + "（版本 V8.9.1，请把这条发给经纬）";
       }
       window.addEventListener("error", function (e) {
         showErr((e.message || "未知错误") + " @ " + (e.filename || "").split("/").pop() + ":" + (e.lineno || 0));
@@ -3800,7 +3813,7 @@
       countyLayer.addTo(map);
     }
 
-    // 🏗️ V8.9 在售楼盘图层：117 个"有均价 + 有坐标"的南宁楼盘。
+    // 🏗️ V8.9.1 在售楼盘图层：117 个"有均价 + 有坐标"的南宁楼盘。
     //    数据是本地保存页解析出来的，没发过网络请求。
     let projectsLayer = null;
     let projectsData = null;
@@ -4171,7 +4184,7 @@
       refreshSpatialChips();
     }
 
-    // 🏪 V8.9 周边设施：数据来自 数据/fetch_poi.py 采的高德 POI 计数。
+    // 🏪 V8.9.1 周边设施：数据来自 数据/fetch_poi.py 采的高德 POI 计数。
     // 没采到就什么都不加——宁可少一行，不拿 0 冒充"周边很荒"。
     let poiNearby = null;
     let poiNearbyState = "idle";
@@ -4233,7 +4246,7 @@
 
     // 🧭 片区便利分（0~100）：地铁权重最高，其次是医院、学校、商场。
     // 只对采过 POI 的区有值；没采到返回 null，调用方要知道"没有"≠"0 分"。
-    /* ===== 周边便利分（V8.9） =====
+    /* ===== 周边便利分（V8.9.1） =====
        数据：amenities_nanning.json（每区 7 类设施：最近距离 + 数量）
        算法：距离衰减 × 偏好权重 − 闹静惩罚。细节不给用户看，只给分数和"最近多远"。 */
     let amenities = null;
@@ -6489,6 +6502,14 @@
     // 🖥️ 结果视图：收起左侧参数（省空间、少渲染），右栏加宽
     function setView(v) {
       document.body.dataset.view = v;
+      const b1 = document.getElementById("backToParamsBtn");
+      const b2 = document.getElementById("matchEntryBtn");
+      if (v === "params") {          // 只有回参数页才收起来
+        if (b1) b1.remove();
+        if (b2) b2.remove();
+      } else if (v === "result") {   // 回结果页要把回头路重新挂上
+        try { ensureMatchEntry(); } catch (_) { }
+      }
       // 面板宽度变了，ECharts 不会自己知道——不 resize 就会一直是被压扁的旧尺寸
       const relayout = () => {
         try { map && map.invalidateSize(); } catch (_) { }
@@ -6512,7 +6533,18 @@
         if (window.MApp && window.MApp.openMatchPanel) window.MApp.openMatchPanel();
         else showToast("房源匹配还没准备好，稍后再试");
       };
+
+      // ← 改参数：结果视图把左栏藏起来了，必须留一条回头路
+      const back = document.createElement("button");
+      back.id = "backToParamsBtn";
+      back.type = "button";
+      back.textContent = "← 改参数，重新算";
+      back.style.cssText = "margin:0 0 10px;padding:9px 14px;border-radius:10px;cursor:pointer;" +
+        "background:rgba(148,163,184,.18);color:#cbd5e1;border:1px solid rgba(148,163,184,.45);font-size:13px;";
+      back.onclick = function () { setView("params"); };
+
       rp.insertBefore(btn, rp.firstChild);
+      rp.insertBefore(back, rp.firstChild);
     }
 
     function renderResult(res) {
@@ -6691,9 +6723,9 @@
           const src = document.documentElement.dataset.citySource === "db" ? "库" : "内置";
           document.documentElement.dataset.citySourceLabel = src;
           const badge = document.getElementById("appBadge");
-          if (badge) badge.textContent = `V8.9 · ${src}`;
+          if (badge) badge.textContent = `V8.9.1 · ${src}`;
           const chip = document.querySelector(".ver-chip");
-          if (chip) chip.textContent = `V8.9 · ${src}`;
+          if (chip) chip.textContent = `V8.9.1 · ${src}`;
         })();
 
         const nn = CITY_DB.find(c => c.code === "450100");
@@ -6902,6 +6934,8 @@
             }
             document.getElementById('failReasonBox').innerHTML = failMsg;
             document.getElementById('failModal').style.display = "flex";
+            // 🔙 失败就别把人锁在结果页里：左栏必须回来，否则他没地方改参数
+            setView("params");
             return;
           }
 
@@ -7766,7 +7800,7 @@
         }
 
         const localNote = json.__local
-          ? '<div class="m-note" style="color:#94a3b8;">（这批结果是本地按同一套规则算的：后端还没升级到 V8.9，部署后会自动改为后端计算。）</div>'
+          ? '<div class="m-note" style="color:#94a3b8;">（这批结果是本地按同一套规则算的：后端还没升级到 V8.9.1，部署后会自动改为后端计算。）</div>'
           : "";
 
         if (list.length) {
@@ -7904,18 +7938,17 @@
             '<div class="mp-meta">📍 ' + esc(x.district_name || "区位未知") +
             (x.price_delta_pct != null ? " · 比预算" + (x.price_delta_pct > 0 ? "贵 " : "便宜 ") +
               wan(Math.abs(x.price_delta_pct), 1) + "%" : "") + "</div>" +
-            (poi != null ? '<div class="mp-poi">🧭 周边便利 ' + poi + " 分 · 点开看明细</div>" : "") +
-            '<button type="button" data-panel-use="' + i + '">用这套去推演</button>' +
+            (poi != null ? '<div class="mp-poi">🧭 周边便利 ' + poi + " 分</div>" : "") +
+            '<button type="button" data-panel-open="' + i + '">看看这套 →</button>' +
             "</div>";
         }).join("");
 
-        grid.querySelectorAll("[data-panel-use]").forEach((b) => {
+        // 卡片和按钮都只做一件事：打开详情。推演按钮只在详情里出现——
+        // 用户还没看过这套房，先让他相信，再问要不要拿它算。
+        grid.querySelectorAll("[data-panel-open]").forEach((b) => {
           b.onclick = (ev) => {
             ev.stopPropagation();
-            const x = panelRows[Number(b.getAttribute("data-panel-use"))];
-            if (!x) return;
-            closeMatchPanel();
-            useMatchRowById(x);
+            openListingDetail(Number(b.getAttribute("data-panel-open")));
           };
         });
         // 点卡片本身 → 定位到这套房 + 看明细（不是让它再选一次）
@@ -7935,7 +7968,10 @@
       function openListingDetail(i) {
         const x = panelRows[i];
         if (!x) return;
-        if (x.lat && x.lng && window.HousingApp && window.HousingApp.map) {
+        // 📍 只有"精确坐标"才飞过去；区中心近似的房源飞过去等于骗人——
+        //    用户会看到指针落在区中心，以为那就是楼盘。
+        const exact = !x.geo_approximate && x.geo_level && x.geo_level !== "district";
+        if (exact && x.lat && x.lng && window.HousingApp && window.HousingApp.map) {
           try { window.HousingApp.map.flyTo([x.lat, x.lng], 16, { duration: 1.0 }); } catch (_) { }
         }
         const pref = currentPref;
@@ -7944,7 +7980,9 @@
         const grid = document.getElementById("mpGrid");
         const sub = document.getElementById("mpSub");
         if (!grid) return;
-        sub.textContent = "这套房的明细（地图已定位）";
+        sub.textContent = exact
+          ? "这套房的明细（地图已定位到小区）"
+          : "这套房的明细（房源只登记到「区」，地图不假装定位到楼栋）";
 
         const poiRows = info ? info.items.map((it) =>
           '<div class="d-item">' + it.label + "：" +
@@ -7964,7 +8002,8 @@
           '<div class="d-item">便利分：<span>' + (info ? info.score : "—") + " 分</span></div>" +
           "</div>" +
           (poiRows ? '<div class="d-grid">' + poiRows + "</div>" : "") +
-          '<div class="d-note">周边距离以片区中心为圆心量，是直线距离，不是步行时间；' +
+          '<div class="d-note">位置精度：' + (exact ? "精确到小区" : "只到区（区位中心近似，不是楼栋）") +
+          "。周边距离以片区中心为圆心量，是直线距离，不是步行时间；" +
           "高峰拥堵、夜市噪音这些还没有数据，暂时没有算进去。</div>" +
           '<div style="display:flex;gap:10px;margin-top:10px;">' +
           '<button type="button" id="mpBack" style="flex:1;padding:9px;border-radius:9px;border:1.5px solid #d97706;background:#fff;color:#92400e;font-weight:700;cursor:pointer;">← 返回列表</button>' +
@@ -8137,7 +8176,7 @@
         const ha = window.HousingApp || {};
         const city = ha.currentCity || null;
         const res = ha.currentResult || null;
-        const ver = ($("appBadge") && $("appBadge").textContent) || "V8.9";
+        const ver = ($("appBadge") && $("appBadge").textContent) || "V8.9.1";
 
         const ar = $("anchorRentYear"), al = $("anchorLoanYear"), ad = $("anchorDownStrategy");
         const planned = (ar && ar.value !== "" && al && al.value !== "")
