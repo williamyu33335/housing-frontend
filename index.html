@@ -4,9 +4,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="app-version" content="V8.12.0">
+  <meta name="app-version" content="V8.13.0">
   <title>全国房产金融 WebGIS 智能决策仿真系统</title>
-  <!-- 🏠 V8.12.0 本地托管：不依赖任何外部 CDN。
+  <!-- 🏠 V8.13.0 本地托管：不依赖任何外部 CDN。
        起因：jsdelivr 的 echarts（1MB）实测 25~60 秒，loading 卡在首屏，
        用户看到的就是白屏。vendor/ 里的三个文件跟 index.html 一起部署。 -->
   <link rel="stylesheet" href="vendor/leaflet.css">
@@ -380,6 +380,77 @@
     .mp-detail .d-item { font-size: 13px; }
     .mp-detail .d-item span { color: #92400e; font-weight: 700; }
     .mp-detail .d-note { font-size: 12px; color: #78350f; margin-top: 8px; }
+
+    /* ===== V8.13 房源详情独立页（App 的做法：点进去就是新一页，不叠在列表里） ===== */
+    .listing-page {
+      position: fixed; inset: 0; z-index: 9500; display: none;
+      background: rgba(2, 6, 23, .14); backdrop-filter: blur(0px);
+      align-items: stretch; justify-content: flex-end;
+    }
+    .listing-page.on { display: flex; }
+    .lp-card {
+      width: min(760px, 62%); height: 100dvh; max-height: 100dvh;
+      display: flex; flex-direction: column;
+      background: #0b1220; color: #e2e8f0;
+      border-left: 1px solid rgba(148, 163, 184, .28);
+      box-shadow: -30px 0 80px rgba(0, 0, 0, .6); overflow: hidden;
+      animation: lpIn .22s ease-out;
+    }
+    @keyframes lpIn { from { transform: translateX(24px); opacity: .6; } to { transform: none; opacity: 1; } }
+    .lp-head {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 18px; border-bottom: 1px solid rgba(148, 163, 184, .18);
+      background: rgba(15, 23, 42, .85);
+    }
+    .lp-title { flex: 1; font-size: 16px; font-weight: 800; }
+    .lp-back, .lp-close {
+      cursor: pointer; border-radius: 10px; padding: 7px 12px; font-size: 13px;
+      border: 1px solid rgba(148, 163, 184, .45); background: rgba(148, 163, 184, .14);
+      color: #cbd5e1;
+    }
+    .lp-close { padding: 7px 11px; }
+    .lp-body { padding: 16px 18px 8px; overflow: auto; flex: 1 1 auto; }
+    .lp-price { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+    .lp-price b { font-size: 30px; color: #fbbf24; }
+    .lp-price span { color: #94a3b8; font-size: 13px; }
+    .lp-facts { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px 16px; margin: 14px 0; }
+    .lp-facts .k { color: #94a3b8; font-size: 12px; }
+    .lp-facts .v { font-size: 15px; font-weight: 700; }
+    .lp-sec { margin: 16px 0 4px; font-size: 13px; font-weight: 800; color: #7dd3fc; }
+    .lp-poi { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 6px 14px; font-size: 13px; }
+    .lp-poi span { color: #cbd5e1; }
+    .lp-note { margin-top: 12px; font-size: 12px; color: #94a3b8; line-height: 1.7; }
+    .lp-foot {
+      display: flex; gap: 10px; padding: 12px 18px;
+      border-top: 1px solid rgba(148, 163, 184, .18); background: rgba(15, 23, 42, .9);
+    }
+    .lp-foot button {
+      flex: 1; cursor: pointer; padding: 12px; border-radius: 12px;
+      font-size: 15px; font-weight: 800; border: none;
+    }
+    .lp-use { background: linear-gradient(135deg, #f59e0b, #ef4444); color: #fff; }
+    .lp-ghost { background: rgba(148, 163, 184, .16); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, .35) !important; }
+    /* 选中的房源在地图上呼吸 */
+    .pin-pulse {
+      width: 18px; height: 18px; border-radius: 50%; background: #fbbf24;
+      box-shadow: 0 0 0 0 rgba(251, 191, 36, .75); animation: pinPulse 1.6s ease-out infinite;
+    }
+    @keyframes pinPulse {
+      0% { box-shadow: 0 0 0 0 rgba(251, 191, 36, .7); }
+      70% { box-shadow: 0 0 0 26px rgba(251, 191, 36, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0); }
+    }
+
+    @media (max-width: 760px) {
+      .listing-page { padding: 0; background: rgba(2, 6, 23, .5); }
+      .lp-card { width: 100%; height: 100dvh; max-height: none; border-radius: 0; border: 0; }
+      .lp-body { padding: 12px 14px 6px; }
+      .lp-foot { padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 0px)); }
+      .lp-price b { font-size: 26px; }
+      /* 匹配面板在手机上整屏，不要只占半屏 */
+      #matchPanel { max-height: 100dvh !important; height: 100dvh; border-radius: 0; }
+      #matchOverlay.collapsed #matchPanel { height: auto; }
+    }
 
     /* 楼盘图层开关 + 价格档 */
     .project-layer-ctl { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
@@ -3158,18 +3229,18 @@
 
   <div class="splash-screen" id="splashScreen">
     <h1 class="splash-title">全国房产金融决策仿真系统</h1>
-    <p class="splash-subtitle">V8.12.0 · 把 30 年的账算给你看 ｜ 手机上的买房账本</p>
+    <p class="splash-subtitle">V8.13.0 · 把 30 年的账算给你看 ｜ 手机上的买房账本</p>
     <button class="splash-btn" onclick="enterSystem()">进入全景中国地图</button>
   </div>
 
   <div id="map"></div>
-  <div id="appBadge">V8.12.0</div>
+  <div id="appBadge">V8.13.0</div>
   <div id="errBanner"></div>
   <div class="map-hint" id="mapHint">🛰️ 点省份进去 → 点城市看区县 → 点片区。也可以直接点右上角「换城市」。</div>
 
   <div class="glass-panel" id="leftPanel">
     <div class="panel-head">
-      <h2>仿真参数配置 <span class="ver-chip">V8.12.0</span></h2>
+      <h2>仿真参数配置 <span class="ver-chip">V8.13.0</span></h2>
       <button class="panel-close" onclick="hidePanel('leftPanel')" title="收起面板">✕</button>
     </div>
 
@@ -3609,6 +3680,19 @@
     </div>
   </div>
 
+  <!-- 🏠 V8.13 房源详情独立页：点「看看这套」进这里，不再挤在匹配面板的格子里 -->
+  <div class="listing-page" id="listingPage">
+    <div class="lp-card" id="lpCard">
+      <div class="lp-head">
+        <button type="button" class="lp-back" id="lpBack">← 返回列表</button>
+        <div class="lp-title" id="lpTitle">房源</div>
+        <button type="button" class="lp-close" id="lpClose" aria-label="关闭">✕</button>
+      </div>
+      <div class="lp-body" id="lpBody"></div>
+      <div class="lp-foot" id="lpFoot"></div>
+    </div>
+  </div>
+
   <div class="toast" id="toastBox"></div>
   <div class="loading-mask" id="loadingMask">
     <div class="loading-spinner"></div>
@@ -3622,7 +3706,7 @@
         const el = document.getElementById("errBanner");
         if (!el) return;
         el.style.display = "block";
-        el.textContent = "⚠️ 前端运行错误：" + msg + "（版本 V8.12.0，请把这条发给经纬）";
+        el.textContent = "⚠️ 前端运行错误：" + msg + "（版本 V8.13.0，请把这条发给经纬）";
       }
       window.addEventListener("error", function (e) {
         showErr((e.message || "未知错误") + " @ " + (e.filename || "").split("/").pop() + ":" + (e.lineno || 0));
@@ -3776,6 +3860,76 @@
     let amapVector = null;
     let provinceLayer = null;
     let cityLayer = null;
+
+    /* ============================================================
+       🌏 双坐标系：同一份数据，要在两张底图上都对准
+       ------------------------------------------------------------
+       我们有两张底图：
+         · Esri 卫星影像 = WGS-84（所有数据入库/存储都用这套）
+         · 高德矢量地图 = GCJ-02（和 WGS 差 500~800 米，俗称"火星坐标"）
+       只存一套坐标，切底图就会"楼盘跑到江里、房源飘到隔壁小区"。
+       所以：数据存 WGS-84，画之前按当前底图转一次；
+       楼盘有豆包单独给的 lat_g/lng_g，直接用，不再现算。
+       ============================================================ */
+    function wgs2gcj(lat, lng) {
+      const A = 6378245.0, EE = 0.00669342162296594323;
+      const x = lng - 105.0, y = lat - 35.0;
+      const rad = lat / 180.0 * Math.PI;
+      let magic = 1 - EE * Math.sin(rad) ** 2;
+      const sq = Math.sqrt(magic);
+      let dlat = -100.0 + 2.0 * x + 3.0 * y + 0.2 * y * y + 0.1 * x * y + 0.2 * Math.sqrt(Math.abs(x));
+      dlat += (20.0 * Math.sin(6.0 * x * Math.PI) + 20.0 * Math.sin(2.0 * x * Math.PI)) * 2.0 / 3.0;
+      dlat += (20.0 * Math.sin(y * Math.PI) + 40.0 * Math.sin(y / 3.0 * Math.PI)) * 2.0 / 3.0;
+      dlat += (160.0 * Math.sin(y / 12.0 * Math.PI) + 320 * Math.sin(y * Math.PI / 30.0)) * 2.0 / 3.0;
+      let dlng = 300.0 + x + 2.0 * y + 0.1 * x * x + 0.1 * x * y + 0.1 * Math.sqrt(Math.abs(x));
+      dlng += (20.0 * Math.sin(6.0 * x * Math.PI) + 20.0 * Math.sin(2.0 * x * Math.PI)) * 2.0 / 3.0;
+      dlng += (20.0 * Math.sin(x * Math.PI) + 40.0 * Math.sin(x / 3.0 * Math.PI)) * 2.0 / 3.0;
+      dlng += (150.0 * Math.sin(x / 12.0 * Math.PI) + 300.0 * Math.sin(x / 30.0 * Math.PI)) * 2.0 / 3.0;
+      dlat = (dlat * 180.0) / ((A * (1 - EE)) / (magic * sq) * Math.PI);
+      dlng = (dlng * 180.0) / (A / sq * Math.cos(rad) * Math.PI);
+      return [lat + dlat, lng + dlng];
+    }
+
+    // WGS 点 → 当前底图的坐标
+    function mapLL(lat, lng) {
+      if (isSatellite) return L.latLng(lat, lng);
+      const g = wgs2gcj(lat, lng);
+      return L.latLng(g[0], g[1]);
+    }
+    // 楼盘点：豆包给了 GCJ 就直接用（省一次计算，也和数据文件对得上）
+    function projLL(p) {
+      if (!isSatellite && p.lat_g && p.lng_g) return L.latLng(p.lat_g, p.lng_g);
+      return mapLL(p.lat, p.lng);
+    }
+    // Leaflet 的 GeoJSON 坐标回调：[lng, lat] → LatLng
+    function geoToLatLng(coords) { return mapLL(coords[1], coords[0]); }
+
+    // GCJ 点 → WGS（切回卫星图时要把地图中心还原；迭代 3 次，误差 <1 米）
+    function gcj2wgs(lat, lng) {
+      let wlat = lat, wlng = lng;
+      for (let i = 0; i < 3; i++) {
+        const g = wgs2gcj(wlat, wlng);
+        wlat -= (g[0] - lat);
+        wlng -= (g[1] - lng);
+      }
+      return [wlat, wlng];
+    }
+
+    // 切底图后重画所有图层（点 + 边界）。不重画的话，数据还停在上一套坐标里。
+    function refreshGeoForBasemap() {
+      try { renderRegionMarkers(); } catch (_) { }
+      try { renderProjects(); } catch (_) { }
+      try { renderListingMarkers(); } catch (_) { }
+      try { if (countyData) drawCountyLayer(); } catch (_) { }
+      try {
+        if (mapView === "cities" && currentProvincePrefix) {
+          drawCitiesByProvince(Number(currentProvincePrefix), null);
+        } else if (globalProvinceData) {
+          drawProvinces(true);
+        }
+      } catch (_) { }
+    }
+    window.__refreshGeoForBasemap = refreshGeoForBasemap;
 
     let currentTopItem = null;
 
@@ -3969,6 +4123,7 @@
       if (!feats.length) return;
       console.info(`[V7.3] 画出 ${ad4} 的 ${feats.length} 个区县`);
       countyLayer = L.geoJSON({ type: 'FeatureCollection', features: feats }, {
+        coordsToLatLng: geoToLatLng,
         renderer: countyRenderer,
         pane: 'countyPane',
         interactive: false,
@@ -3977,7 +4132,7 @@
       countyLayer.addTo(map);
     }
 
-    // 🏗️ V8.12.0 在售楼盘图层：314 个"有均价 + 有坐标"的南宁楼盘（豆包补全 600 个坐标，只画有均价的）。
+    // 🏗️ V8.13.0 在售楼盘图层：314 个"有均价 + 有坐标"的南宁楼盘（豆包补全 600 个坐标，只画有均价的）。
     //    数据是本地保存页解析出来的，没发过网络请求。
     let projectsLayer = null;
     let projectsData = null;
@@ -4077,7 +4232,7 @@
         const lo = p.area_min || 60, hi = p.area_max || lo;
         // 300+ 个点挤在 10 公里内，半径一大就糊成一团；小一点反而能看出密度
         const r = Math.max(3, Math.min(8, 2.5 + (lo + hi) / 90));
-        const m = L.circleMarker([p.lat, p.lng], {
+        const m = L.circleMarker(projLL(p), {
           pane: "markers", radius: r,
           color: projectColor(p.price), weight: 1.5, opacity: 0.9,
           fillColor: projectColor(p.price), fillOpacity: 0.22
@@ -4164,7 +4319,7 @@
       // 1) 精确坐标：一房一点
       exact.forEach(item => {
         const color = priceColor(item.total_price);
-        const m = L.marker([item.lat, item.lng], {
+        const m = L.marker(mapLL(item.lat, item.lng), {
           pane: "markers",
           icon: L.divIcon({ className: "", html:
             `<div style="width:12px;height:12px;border-radius:50%;background:${color};border:2px solid rgba(15,23,42,.85);box-shadow:0 0 8px ${color}"></div>`,
@@ -4184,7 +4339,7 @@
         const lat = items[0].lat, lng = items[0].lng;
         const prices = items.map(x => x.total_price / 10000);
         const lo = Math.min(...prices).toFixed(0), hi = Math.max(...prices).toFixed(0);
-        const m = L.marker([lat, lng], {
+        const m = L.marker(mapLL(lat, lng), {
           pane: "markers",
           icon: L.divIcon({ className: "", html:
             `<div style="min-width:44px;height:26px;padding:0 6px;border-radius:13px;background:rgba(15,23,42,.86);
@@ -4270,7 +4425,7 @@
       if (map) {
         map.invalidateSize();
         if (fly) {
-          map.flyTo([city.lat, city.lng], city.tier <= 2 ? 9 : 10, { duration: 1.2 });
+          map.flyTo(mapLL(city.lat, city.lng), city.tier <= 2 ? 9 : 10, { duration: 1.2 });
           map.once('moveend', () => {
             if (!map.hasLayer(regionMarkersGroup)) regionMarkersGroup.addTo(map);
             map.invalidateSize();
@@ -4307,7 +4462,7 @@
             iconSize: [80, 50],
             iconAnchor: [40, 50]
           });
-        const m = L.marker([r.lat, r.lng], { icon: customIcon });
+        const m = L.marker(mapLL(r.lat, r.lng), { icon: customIcon });
 
         const popupDom = document.createElement('div');
         popupDom.style.cssText = "color:#1e293b; font-size:13px;";
@@ -4369,7 +4524,7 @@
       refreshSpatialChips();
     }
 
-    // 🏪 V8.12.0 周边设施：数据来自 数据/fetch_poi.py 采的高德 POI 计数。
+    // 🏪 V8.13.0 周边设施：数据来自 数据/fetch_poi.py 采的高德 POI 计数。
     // 没采到就什么都不加——宁可少一行，不拿 0 冒充"周边很荒"。
     let poiNearby = null;
     let poiNearbyState = "idle";
@@ -4850,19 +5005,27 @@
 
     /* ============ 底图切换 ============ */
     document.getElementById("layerSwitchBtn").onclick = function () {
+      // 切底图 = 换坐标系：中心点、所有点图层、所有边界都要按新坐标系重画，
+      // 否则地图换了一张，数据还停在上一套坐标上（差 500 米，肉眼一眼能看出来）。
+      const c = map ? map.getCenter() : null;
       if (isSatellite) {
         map.removeLayer(esriSat); map.addLayer(amapVector);
         isSatellite = false;
         document.getElementById("layerIcon").textContent = "🗺️";
-        document.getElementById("layerText").textContent = "当前底图：矢量地图 · 点击切换";
-        showToast("已切换至矢量底图");
+        document.getElementById("layerText").textContent = "当前底图：高德矢量（GCJ-02）· 点击切换";
       } else {
         map.removeLayer(amapVector); map.addLayer(esriSat);
         isSatellite = true;
         document.getElementById("layerIcon").textContent = "🛰️";
-        document.getElementById("layerText").textContent = "当前底图：卫星影像 · 点击切换";
-        showToast("已切换至高清卫星底图");
+        document.getElementById("layerText").textContent = "当前底图：卫星影像（WGS-84）· 点击切换";
       }
+      if (c && map) {
+        // 旧中心是上一套坐标里的数值，转成新坐标系再 setView，否则视野会偏 500 米
+        const nc = isSatellite ? gcj2wgs(c.lat, c.lng) : wgs2gcj(c.lat, c.lng);
+        map.setView([nc[0], nc[1]], map.getZoom(), { animate: false });
+      }
+      refreshGeoForBasemap();
+      showToast(isSatellite ? "已切换至卫星影像（WGS-84）" : "已切换至高德矢量（GCJ-02），点位已同步换算");
     };
 
     function enterSystem() {
@@ -5036,6 +5199,7 @@
         if (currentProvinceLayer) { map.removeLayer(currentProvinceLayer); currentProvinceLayer = null; }
 
         currentProvinceLayer = L.geoJSON(globalProvinceData, {
+          coordsToLatLng: geoToLatLng,
           pane: 'provincePane',
           style: { ...baseStyle, renderer: null },
           onEachFeature: function (feature, layer) {
@@ -5082,6 +5246,7 @@
         }
 
         currentCityLayer = L.geoJSON(cityFeatures, {
+          coordsToLatLng: geoToLatLng,
           pane: 'cityPane',
           style: { ...baseStyle, renderer: null, color: '#60a5fa' },
           onEachFeature: function (feature, layer) {
@@ -7052,9 +7217,9 @@
           const src = document.documentElement.dataset.citySource === "db" ? "库" : "内置";
           document.documentElement.dataset.citySourceLabel = src;
           const badge = document.getElementById("appBadge");
-          if (badge) badge.textContent = `V8.12.0 · ${src}`;
+          if (badge) badge.textContent = `V8.13.0 · ${src}`;
           const chip = document.querySelector(".ver-chip");
-          if (chip) chip.textContent = `V8.12.0 · ${src}`;
+          if (chip) chip.textContent = `V8.13.0 · ${src}`;
         })();
 
         const nn = CITY_DB.find(c => c.code === "450100");
@@ -7103,7 +7268,7 @@
       sel.value = name;
       currentZone = regionList.find(x => x.name === name) || currentZone;
       syncZoneToForm(true);
-      if (map) map.flyTo([lat, lng], 12, { duration: 1.2 });
+      if (map) map.flyTo(mapLL(lat, lng), 12, { duration: 1.2 });
       revealPanels();
       showToast(`已切换至【${name}】，去「推演」填数字`);
       maybeJumpToSim();
@@ -7117,7 +7282,7 @@
       // 切换片区：重算几何通勤、可购面积、房价收入比
       syncZoneToForm(true);
       revealPanels();
-      if (map) map.flyTo([find.lat, find.lng], 12, { duration: 1.2 });
+      if (map) map.flyTo(mapLL(find.lat, find.lng), 12, { duration: 1.2 });
       maybeJumpToSim();
     };
 
@@ -8156,7 +8321,7 @@
         }
 
         const localNote = json.__local
-          ? '<div class="m-note" style="color:#94a3b8;">（这批结果是本地按同一套规则算的：后端还没升级到 V8.12.0，部署后会自动改为后端计算。）</div>'
+          ? '<div class="m-note" style="color:#94a3b8;">（这批结果是本地按同一套规则算的：后端还没升级到 V8.13.0，部署后会自动改为后端计算。）</div>'
           : "";
 
         if (list.length) {
@@ -8281,6 +8446,8 @@
       function closeMatchPanel() {
         const ov = document.getElementById("matchOverlay");
         if (ov) ov.classList.remove("on");
+        lpReturnToMatch = false;
+        try { closeListingPage(); } catch (_) { }
         if (window.__setView) window.__setView("result");
       }
 
@@ -8430,26 +8597,85 @@
           "</div>";
       }
 
-      /* 房源详情：地图定位 + 这套房的全部已知信息（含周边逐项距离） */
+      /* ============================================================
+         🏠 V8.13 房源详情：独立一页（App 的做法）
+         ------------------------------------------------------------
+         以前是"在匹配面板的格子里塞一张详情卡"——列表没了、地图还在旁边，
+         用户根本不知道说的是哪一套。现在点进去就是新一页：
+           · 地图上给这套房一个呼吸光点，其它房源点变淡（一眼知道选的是哪套）；
+           · 页面独占，返回才回到列表；
+           · 手机上整屏，底部固定操作条（拇指够得到）。
+         ============================================================ */
+      let highlightMarker = null;
+      let lpReturnToMatch = false;
+
+      function highlightListing(x) {
+        clearHighlight(false);
+        if (!map) return;
+        const ll = (x.geo_approximate || !x.lat)
+          ? mapLL(x.lat, x.lng)
+          : mapLL(x.lat, x.lng);
+        highlightMarker = L.marker(ll, {
+          zIndexOffset: 1200,
+          icon: L.divIcon({
+            className: "", html: '<div class="pin-pulse"></div>',
+            iconSize: [18, 18], iconAnchor: [9, 9],
+          }),
+        }).addTo(map);
+        // 其它房源点变淡：不然旁边一堆点，看不出选的是哪一套
+        if (listingsLayer) {
+          try { listingsLayer.eachLayer((l) => l.setOpacity && l.setOpacity(0.18)); } catch (_) { }
+        }
+      }
+
+      function clearHighlight(restore) {
+        if (highlightMarker && map) {
+          try { map.removeLayer(highlightMarker); } catch (_) { }
+        }
+        highlightMarker = null;
+        if (restore !== false && listingsLayer) {
+          try { listingsLayer.eachLayer((l) => l.setOpacity && l.setOpacity(1)); } catch (_) { }
+        }
+      }
+
+      function closeListingPage() {
+        const page = document.getElementById("listingPage");
+        if (page) page.classList.remove("on");
+        clearHighlight(true);
+        // 是从匹配面板点进来的，就回到面板；否则什么都不做
+        if (lpReturnToMatch) {
+          const ov = document.getElementById("matchOverlay");
+          if (ov) ov.classList.add("on");
+          lpReturnToMatch = false;
+        }
+      }
+
       function openListingDetail(i) {
         const x = panelRows[i];
         if (!x) return;
-        // 📍 只有"精确坐标"才飞过去；区中心近似的房源飞过去等于骗人——
-        //    用户会看到指针落在区中心，以为那就是楼盘。
+        // 打开详情时先把匹配面板收起来：不然左边还是那张黄表，地图被盖住，
+        // "这套在哪"根本看不到（用户原话：旁边一堆房源，我都不知道选的是哪套）。
+        const ov = document.getElementById("matchOverlay");
+        if (ov) { lpReturnToMatch = ov.classList.contains("on"); ov.classList.remove("on"); }
+
+        // 📍 只有"精确坐标"才飞过去；区中心近似的房源飞过去等于骗人
         const exact = !x.geo_approximate && x.geo_level && x.geo_level !== "district";
         if (exact && x.lat && x.lng && window.HousingApp && window.HousingApp.map) {
-          try { window.HousingApp.map.flyTo([x.lat, x.lng], 16, { duration: 1.0 }); } catch (_) { }
+          const m = window.HousingApp.map;
+          try {
+            m.flyTo(mapLL(x.lat, x.lng), 16, { duration: 0.9 });
+            // 桌面端详情页占右边 62%，把选中的点挪到"可见那半边"的中间
+            const drawer = window.innerWidth > 760 ? Math.min(760, window.innerWidth * 0.62) : 0;
+            if (drawer) {
+              setTimeout(() => { try { m.panBy([Math.round(drawer / 2), 0], { animate: true, duration: .4 }); } catch (_) { } }, 1000);
+            }
+          } catch (_) { }
         }
+        highlightListing(x);
+
         const pref = currentPref;
-        // V8.10：优先这套房自己的周边（按坐标），没有才退回片区（区中心）
         const info = window.__amenityInfoFor ? window.__amenityInfoFor(x, pref) : null;
         const pps = x.price_sqm ? Math.round(x.price_sqm) : null;
-        const grid = document.getElementById("mpGrid");
-        const sub = document.getElementById("mpSub");
-        if (!grid) return;
-        sub.textContent = exact
-          ? "这套房的明细（地图已定位到小区）"
-          : "这套房的明细（房源只登记到「区」，地图不假装定位到楼栋）";
 
         const poiRows = info ? (info.items || []).map((it) =>
           '<div class="d-item">' + (it.kind === "negative" ? "🔇 " : "") + it.label + "：" +
@@ -8463,8 +8689,6 @@
             : "周边距离以「区中心」为圆心（还没有这套房自己的楼下数据，会偏——青秀区的中心就落在山边上）。")
           : "这套房还没有周边数据：我们不拿区均值的空白冒充结论。";
 
-        // 🏚 V8.10 单套信息：二手房真正的差别在楼层/朝向/建成年代。
-        // 数据没有时如实说"只到楼盘"，不假装知道是哪一套。
         const unitCells = [
           ["楼层", x.floor_info || x.floor],
           ["总楼层", x.total_floors],
@@ -8474,35 +8698,58 @@
           ["房号", x.unit_no],
         ].filter(([, v]) => v != null && v !== "");
 
-        grid.innerHTML =
-          '<div class="mp-detail" style="grid-column:1/-1;">' +
-          "<h4>" + esc(x.community || "未命名小区") + " · " + wan(x.price_wan) + " 万</h4>" +
-          '<div class="d-grid">' +
-          '<div class="d-item">建面：<span>' + wan(x.area_sqm, 1) + " ㎡</span></div>" +
-          '<div class="d-item">套内：<span>' + wan(x.live_area_sqm, 1) + " ㎡</span></div>" +
-          (pps ? '<div class="d-item">单价：<span>' + pps.toLocaleString() + " 元/㎡</span></div>" : "") +
-          '<div class="d-item">户型：<span>' + (x.bedrooms ? x.bedrooms + " 室" : "—") + "</span></div>" +
-          '<div class="d-item">区位：<span>' + esc(x.district_name || "—") + "</span></div>" +
-          '<div class="d-item">便利分：<span>' + (info && info.score != null ? info.score + " 分" : "—") + "</span></div>" +
-          unitCells.map(([k, v]) => '<div class="d-item">' + k + "：<span>" + esc(v) + "</span></div>").join("") +
-          "</div>" +
-          (poiRows ? '<div class="d-grid">' + poiRows + "</div>" : "") +
-          (unitCells.length ? "" :
-            '<div class="d-note">这套房只有楼盘级信息（小区、总价、面积），没有「哪层哪套」：' +
-            "楼层、朝向、建成年代都还不清楚。</div>") +
-          '<div class="d-note">' + poiSource +
-          ' 高峰拥堵、夜市噪音这些还没有分时段数据，只对贴脸的商业做扣分。</div>' +
-          '<div class="d-note">位置精度：' + (exact ? "精确到小区" : "只到区（区位中心近似，不是楼栋）") + "。</div>" +
-          '<div style="display:flex;gap:10px;margin-top:10px;">' +
-          '<button type="button" id="mpBack" style="flex:1;padding:9px;border-radius:9px;border:1.5px solid #d97706;background:#fff;color:#92400e;font-weight:700;cursor:pointer;">← 返回列表</button>' +
-          '<button type="button" id="mpUse" style="flex:1.6;padding:9px;border-radius:9px;border:none;background:#d97706;color:#fff;font-weight:700;cursor:pointer;">用这套去推演</button>' +
-          "</div></div>";
+        const title = document.getElementById("lpTitle");
+        if (title) title.textContent = (x.community || "未命名小区") + " · " + wan(x.price_wan) + " 万";
 
-        const back = document.getElementById("mpBack");
-        if (back) back.onclick = () => paintMatchPanel();
-        const use = document.getElementById("mpUse");
-        if (use) use.onclick = () => { closeMatchPanel(); useMatchRowById(x); };
+        const body = document.getElementById("lpBody");
+        if (!body) return;
+        body.innerHTML =
+          '<div class="lp-price"><b>' + wan(x.price_wan) + " 万</b>" +
+          '<span>' + (pps ? pps.toLocaleString() + " 元/㎡" : "单价未填") + " · " +
+          (exact ? "精确到小区" : "只到区（区位中心近似）") + "</span></div>" +
+          '<div class="lp-facts">' +
+          '<div><div class="k">建面</div><div class="v">' + wan(x.area_sqm, 1) + " ㎡</div></div>" +
+          '<div><div class="k">套内</div><div class="v">' + wan(x.live_area_sqm, 1) + " ㎡</div></div>" +
+          '<div><div class="k">户型</div><div class="v">' + (x.bedrooms ? x.bedrooms + " 室" : "—") + "</div></div>" +
+          '<div><div class="k">区位</div><div class="v">' + esc(x.district_name || "—") + "</div></div>" +
+          '<div><div class="k">便利分</div><div class="v">' + (info && info.score != null ? info.score + " 分" : "—") + "</div></div>" +
+          unitCells.map(([k, v]) => '<div><div class="k">' + k + '</div><div class="v">' + esc(v) + "</div></div>").join("") +
+          "</div>" +
+          (poiRows ? '<div class="lp-sec">周边（直线距离）</div><div class="lp-poi">' + poiRows + "</div>" : "") +
+          '<div class="lp-note">' + poiSource + "</div>" +
+          (unitCells.length ? "" :
+            '<div class="lp-note">这套房只有楼盘级信息（小区、总价、面积），没有「哪层哪套」：楼层、朝向、建成年代还不清楚。</div>') +
+          '<div class="lp-note">位置精度：' + (exact ? "精确到小区" : "只到区（区位中心近似，不是楼栋）") + "。价格是挂牌价，不是成交价。</div>";
+
+        const foot = document.getElementById("lpFoot");
+        if (foot) {
+          foot.innerHTML =
+            '<button type="button" class="lp-ghost" id="lpBack2">← 返回列表</button>' +
+            '<button type="button" class="lp-use" id="lpUse2">用这套去推演</button>';
+          const b = document.getElementById("lpBack2");
+          if (b) b.onclick = closeListingPage;
+          const u = document.getElementById("lpUse2");
+          if (u) u.onclick = () => { closeListingPage(); closeMatchPanel(); useMatchRowById(x); };
+        }
+
+        const page = document.getElementById("listingPage");
+        if (page) page.classList.add("on");
       }
+
+      // 详情页的返回/关闭/点遮罩关闭，只绑一次
+      (function bindListingPage() {
+        const back = document.getElementById("lpBack");
+        if (back) back.onclick = closeListingPage;
+        const close = document.getElementById("lpClose");
+        if (close) close.onclick = closeListingPage;
+        const page = document.getElementById("listingPage");
+        if (page) {
+          page.addEventListener("click", (e) => { if (e.target === page) closeListingPage(); });
+        }
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape") closeListingPage();
+        });
+      })();
 
       function useMatchRowById(x) {
         const priceEl = $("houseTotalWan");
@@ -8665,7 +8912,7 @@
         const ha = window.HousingApp || {};
         const city = ha.currentCity || null;
         const res = ha.currentResult || null;
-        const ver = ($("appBadge") && $("appBadge").textContent) || "V8.12.0";
+        const ver = ($("appBadge") && $("appBadge").textContent) || "V8.13.0";
 
         const ar = $("anchorRentYear"), al = $("anchorLoanYear"), ad = $("anchorDownStrategy");
         const planned = (ar && ar.value !== "" && al && al.value !== "")
