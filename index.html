@@ -4,9 +4,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="app-version" content="V8.11.2">
+  <meta name="app-version" content="V8.12.0">
   <title>全国房产金融 WebGIS 智能决策仿真系统</title>
-  <!-- 🏠 V8.11.2 本地托管：不依赖任何外部 CDN。
+  <!-- 🏠 V8.12.0 本地托管：不依赖任何外部 CDN。
        起因：jsdelivr 的 echarts（1MB）实测 25~60 秒，loading 卡在首屏，
        用户看到的就是白屏。vendor/ 里的三个文件跟 index.html 一起部署。 -->
   <link rel="stylesheet" href="vendor/leaflet.css">
@@ -333,10 +333,11 @@
     }
     #matchPanel.collapsed .mp-grid,
     #matchPanel.collapsed .mp-more,
-    #matchPanel.collapsed .mp-prefs { display: none !important; }
+    #matchPanel.collapsed .mp-prefs,
+    #matchPanel.collapsed #mpHuxing { display: none !important; }
     #matchPanel {
       pointer-events: auto;
-      width: 100%; max-height: 46vh; overflow: auto;
+      width: 100%; max-height: 54vh; overflow: auto;
       background: linear-gradient(180deg, #fde68a, #fcd34d);
       border-bottom: 3px solid #f59e0b;
       border-radius: 0 0 18px 18px;
@@ -3157,18 +3158,18 @@
 
   <div class="splash-screen" id="splashScreen">
     <h1 class="splash-title">全国房产金融决策仿真系统</h1>
-    <p class="splash-subtitle">V8.11.2 · 把 30 年的账算给你看 ｜ 手机上的买房账本</p>
+    <p class="splash-subtitle">V8.12.0 · 把 30 年的账算给你看 ｜ 手机上的买房账本</p>
     <button class="splash-btn" onclick="enterSystem()">进入全景中国地图</button>
   </div>
 
   <div id="map"></div>
-  <div id="appBadge">V8.11.2</div>
+  <div id="appBadge">V8.12.0</div>
   <div id="errBanner"></div>
   <div class="map-hint" id="mapHint">🛰️ 点省份进去 → 点城市看区县 → 点片区。也可以直接点右上角「换城市」。</div>
 
   <div class="glass-panel" id="leftPanel">
     <div class="panel-head">
-      <h2>仿真参数配置 <span class="ver-chip">V8.11.2</span></h2>
+      <h2>仿真参数配置 <span class="ver-chip">V8.12.0</span></h2>
       <button class="panel-close" onclick="hidePanel('leftPanel')" title="收起面板">✕</button>
     </div>
 
@@ -3621,7 +3622,7 @@
         const el = document.getElementById("errBanner");
         if (!el) return;
         el.style.display = "block";
-        el.textContent = "⚠️ 前端运行错误：" + msg + "（版本 V8.11.2，请把这条发给经纬）";
+        el.textContent = "⚠️ 前端运行错误：" + msg + "（版本 V8.12.0，请把这条发给经纬）";
       }
       window.addEventListener("error", function (e) {
         showErr((e.message || "未知错误") + " @ " + (e.filename || "").split("/").pop() + ":" + (e.lineno || 0));
@@ -3976,7 +3977,7 @@
       countyLayer.addTo(map);
     }
 
-    // 🏗️ V8.11.2 在售楼盘图层：314 个"有均价 + 有坐标"的南宁楼盘（豆包补全 600 个坐标，只画有均价的）。
+    // 🏗️ V8.12.0 在售楼盘图层：314 个"有均价 + 有坐标"的南宁楼盘（豆包补全 600 个坐标，只画有均价的）。
     //    数据是本地保存页解析出来的，没发过网络请求。
     let projectsLayer = null;
     let projectsData = null;
@@ -4068,27 +4069,42 @@
       }
 
       const band = PRICE_BANDS.find((b) => b.key === priceBand) || PRICE_BANDS[0];
-      const items = projectsData.items.filter((p) => band.test(p.price));
+      // price = 0 的是"有户型但页面没给均价"的盘：不画点（否则会被当成 0 元/㎡ 的便宜货）
+      const items = projectsData.items.filter((p) => p.price > 0 && band.test(p.price));
       if (cntEl) cntEl.textContent = String(items.length);
 
       items.forEach((p) => {
         const lo = p.area_min || 60, hi = p.area_max || lo;
-        // 117 个点挤在 10 公里内，半径一大就糊成一团；小一点反而能看出密度
+        // 300+ 个点挤在 10 公里内，半径一大就糊成一团；小一点反而能看出密度
         const r = Math.max(3, Math.min(8, 2.5 + (lo + hi) / 90));
         const m = L.circleMarker([p.lat, p.lng], {
           pane: "markers", radius: r,
           color: projectColor(p.price), weight: 1.5, opacity: 0.9,
           fillColor: projectColor(p.price), fillOpacity: 0.22
         });
+        // 在售户型：只列前 4 个，面积 + 参考总价（没有总价的就不编）
+        const hx = (p.huxing || []).slice(0, 4);
+        const hxRows = hx.map((h) =>
+          '<div style="color:#334155;font-size:12px;line-height:1.6;">· ' +
+          (h.room ? escapeHtml(h.room) + " · " : "") +
+          "<b>" + h.area + " ㎡</b>" +
+          (h.total ? " · 参考 " + h.total + " 万" : "") + "</div>").join("");
+        const hxMore = (p.huxing || []).length > 4
+          ? '<div style="color:#64748b;font-size:11px;">…还有 ' + ((p.huxing || []).length - 4) + " 个户型</div>"
+          : "";
         m.bindPopup(
-          '<div style="color:#1e293b;font-size:13px;min-width:180px;">' +
-          "<b>" + escapeHtml(p.name) + "</b><br>" +
+          '<div style="color:#1e293b;font-size:13px;min-width:190px;max-width:260px;">' +
+          "<b>" + escapeHtml(p.name) + "</b>" +
+          (p.property_type === "别墅" ? ' <span style="color:#b45309;font-size:11px;">别墅</span>' : "") + "<br>" +
           '<span style="color:#0f766e;font-weight:700;">均价 ' + p.price.toLocaleString() + " 元/㎡</span><br>" +
           "建面 " + (p.area_min || "?") + "–" + (p.area_max || "?") + " ㎡" +
           (p.rooms ? " · " + escapeHtml(p.rooms) : "") + "<br>" +
           escapeHtml(p.district || "") + " · " + escapeHtml(p.block || "") + "<br>" +
           '<span style="color:#64748b;font-size:12px;">' + escapeHtml(p.address || "") + "</span>" +
           (p.open_date ? '<br><span style="color:#64748b;font-size:12px;">开盘 ' + escapeHtml(p.open_date) + "</span>" : "") +
+          (p.developer ? '<br><span style="color:#64748b;font-size:12px;">' + escapeHtml(p.developer) + "</span>" : "") +
+          (hxRows ? '<div style="margin-top:6px;border-top:1px dashed #cbd5e1;padding-top:5px;">' +
+            '<div style="color:#0f766e;font-size:12px;font-weight:700;">在售户型</div>' + hxRows + hxMore + "</div>" : "") +
           "</div>"
         );
         m.bindTooltip(p.name, { direction: "top", className: "region-tooltip" });
@@ -4353,7 +4369,7 @@
       refreshSpatialChips();
     }
 
-    // 🏪 V8.11.2 周边设施：数据来自 数据/fetch_poi.py 采的高德 POI 计数。
+    // 🏪 V8.12.0 周边设施：数据来自 数据/fetch_poi.py 采的高德 POI 计数。
     // 没采到就什么都不加——宁可少一行，不拿 0 冒充"周边很荒"。
     let poiNearby = null;
     let poiNearbyState = "idle";
@@ -4401,7 +4417,8 @@
     function projectChipFor(city, zone) {
       if (!projectsData || !city || !zone) return null;
       if (String(city.code) !== String(projectsData.city_code)) return null;
-      const list = (projectsData.items || []).filter((p) => p.district === zone.name);
+      // 只数有均价的（price=0 的是"没给报价"，混进来会把中位数拉低）
+      const list = (projectsData.items || []).filter((p) => p.district === zone.name && p.price > 0);
       if (!list.length) return null;
       const prices = list.map((p) => p.price).sort((a, b) => a - b);
       const mid = prices[Math.floor(prices.length / 2)];
@@ -7035,9 +7052,9 @@
           const src = document.documentElement.dataset.citySource === "db" ? "库" : "内置";
           document.documentElement.dataset.citySourceLabel = src;
           const badge = document.getElementById("appBadge");
-          if (badge) badge.textContent = `V8.11.2 · ${src}`;
+          if (badge) badge.textContent = `V8.12.0 · ${src}`;
           const chip = document.querySelector(".ver-chip");
-          if (chip) chip.textContent = `V8.11.2 · ${src}`;
+          if (chip) chip.textContent = `V8.12.0 · ${src}`;
         })();
 
         const nn = CITY_DB.find(c => c.code === "450100");
@@ -7670,6 +7687,8 @@
       loadListings: loadListings,
       apiHost: API_HOST,
       get listings() { return listingsAll; },
+      // 🏗 V8.12：楼盘 + 在售户型（匹配面板要按预算筛户型，不能只筛二手房）
+      get projects() { return (projectsData && projectsData.items) || []; },
       toast: showToast
     };
   </script>
@@ -8137,7 +8156,7 @@
         }
 
         const localNote = json.__local
-          ? '<div class="m-note" style="color:#94a3b8;">（这批结果是本地按同一套规则算的：后端还没升级到 V8.11.2，部署后会自动改为后端计算。）</div>'
+          ? '<div class="m-note" style="color:#94a3b8;">（这批结果是本地按同一套规则算的：后端还没升级到 V8.12.0，部署后会自动改为后端计算。）</div>'
           : "";
 
         if (list.length) {
@@ -8221,6 +8240,7 @@
           "</div></div>" +
           '<div class="mp-grid" id="mpGrid"></div>' +
           '<button class="mp-more" id="mpMore" type="button" style="display:none;"></button>' +
+          '<div id="mpHuxing"></div>' +
           "</div>";
         document.body.appendChild(ov);
         ov.addEventListener("click", (e) => { if (e.target === ov) closeMatchPanel(); });
@@ -8330,6 +8350,84 @@
           more.style.display = left > 0 ? "block" : "none";
           more.textContent = left > 0 ? "看剩下的 " + left + " 套" : "";
         }
+        paintHuxingMatches();
+      }
+
+      /* 🏗 新房在售户型：把 168 个楼盘 / 852 个在售户型按"你的预算和面积"筛一遍。
+         为什么要它：二手房只有 35 套，用户填 96 万 85㎡ 常常"一套都没对上"，
+         但其实南宁有 177 个在售楼盘、765 个户型带参考总价——这才是能回答
+         "这个预算在这片能买多大"的真实数据。
+         口径：新房是期房，参考总价是页面标价、不是成交价；面积是建面。 */
+      function huxingMatches(p) {
+        const items = (window.HousingApp && window.HousingApp.projects) || [];
+        const budget = Number(p.budget_wan) || 0;
+        const area = Number(p.target_area_sqm) || 0;
+        if (!(budget > 0) && !(area > 0)) return [];
+        const out = [];
+        items.forEach((proj) => {
+          (proj.huxing || []).forEach((h) => {
+            if (!(h.total > 0) || !(h.area > 0)) return;   // 没有参考总价的没法比价
+            let score = 0;
+            if (budget > 0) {
+              const dp = (h.total - budget) / budget * 100;
+              if (Math.abs(dp) > 12) return;
+              score += Math.abs(dp);
+            }
+            if (area > 0) {
+              const da = (h.area - area) / area * 100;
+              if (Math.abs(da) > 18) return;
+              score += Math.abs(da) * 0.6;
+            }
+            out.push({ proj, h, score });
+          });
+        });
+        out.sort((a, b) => a.score - b.score);
+        return out;
+      }
+
+      function paintHuxingMatches() {
+        const box = document.getElementById("mpHuxing");
+        if (!box) return;
+        const p = currentMatchParams();
+        const hits = huxingMatches(p);
+        // 摘要行带上"新房户型有多少个"，否则用户在卡片下面根本不知道还有这一块
+        const sub = document.getElementById("mpSub");
+        if (sub) {
+          const base = sub.textContent.split(" · 新房户型")[0];
+          sub.textContent = hits.length ? base + " · 新房户型 " + hits.length + " 个" : base;
+        }
+        if (!hits.length) { box.innerHTML = ""; return; }
+        const shown = hits.slice(0, 6);
+        const cond = [
+          p.budget_wan > 0 ? wan(p.budget_wan, 0) + " 万" : "",
+          p.target_area_sqm > 0 ? wan(p.target_area_sqm, 0) + " ㎡" : "",
+        ].filter(Boolean).join(" / ");
+        box.innerHTML =
+          '<div style="margin-top:14px;padding-top:10px;border-top:2px dashed rgba(146,64,14,.35);">' +
+          '<div style="font-size:14px;font-weight:800;color:#451a03;">🏗 新房在售户型 · ' +
+          hits.length + " 个对得上" + (cond ? "（按你的 " + cond + "）" : "") + "</div>" +
+          '<div style="font-size:12px;color:#78350f;margin:2px 0 8px;">' +
+          "期房，参考总价是页面标价（不是成交价）；面积是建面，到手要减公摊。</div>" +
+          '<div class="mp-grid" style="margin-top:8px;">' +
+          shown.map((x) =>
+            '<div class="mp-card" style="cursor:default;">' +
+            '<div style="display:flex;justify-content:space-between;gap:8px;">' +
+            "<b>" + esc(x.proj.name) + "</b>" +
+            '<span class="mp-price">' + wan(x.h.total) + " 万</span></div>" +
+            '<div class="mp-meta">' + (x.h.room ? esc(x.h.room) + " · " : "") +
+            "<b>" + wan(x.h.area, 1) + " ㎡</b> 建面" +
+            (x.proj.property_type === "别墅" ? " · 别墅" : "") + "</div>" +
+            '<div class="mp-meta">📍 ' + esc(x.proj.district || "") +
+            (x.proj.block ? " · " + esc(x.proj.block) : "") +
+            (p.budget_wan > 0 ? " · 比预算" + (x.h.total > p.budget_wan ? "贵 " : "便宜 ") +
+              wan(Math.abs((x.h.total - p.budget_wan) / p.budget_wan * 100), 1) + "%" : "") +
+            "</div></div>").join("") +
+          "</div>" +
+          (hits.length > shown.length
+            ? '<div class="m-note" style="margin-top:6px;">还有 ' + (hits.length - shown.length) +
+              " 个对得上——把预算或面积改精确一点，这里会跟着变。</div>"
+            : "") +
+          "</div>";
       }
 
       /* 房源详情：地图定位 + 这套房的全部已知信息（含周边逐项距离） */
@@ -8567,7 +8665,7 @@
         const ha = window.HousingApp || {};
         const city = ha.currentCity || null;
         const res = ha.currentResult || null;
-        const ver = ($("appBadge") && $("appBadge").textContent) || "V8.11.2";
+        const ver = ($("appBadge") && $("appBadge").textContent) || "V8.12.0";
 
         const ar = $("anchorRentYear"), al = $("anchorLoanYear"), ad = $("anchorDownStrategy");
         const planned = (ar && ar.value !== "" && al && al.value !== "")
