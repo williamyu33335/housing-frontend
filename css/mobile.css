@@ -1,0 +1,1133 @@
+
+    /* ============================================================
+       📱 V8.0 移动端 App 骨架（≤760px）
+       ------------------------------------------------------------
+       桌面端一行不改：所有规则都在这条媒体查询里。
+       JS 只负责切换 <body> 上的三个状态：
+         data-mtab    map | sim | list | me
+         data-mscreen params | result      （sim 下的二级屏）
+         .m-compact   结果屏只看结论卡，点“展开”再看全量分析
+       ============================================================ */
+    #mTabBar,
+    .m-screen,
+    #mSummary,
+    #mSchemes,
+    .m-scroll-hint {
+      display: none;
+    }
+
+    @media (max-width: 760px) {
+      :root {
+        --m-tabh: 58px;
+        --m-safe: env(safe-area-inset-bottom, 0px);
+      }
+
+      html,
+      body {
+        height: 100%;
+      }
+
+      body {
+        height: 100dvh;
+        overflow: hidden;
+        font-size: 14px;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      #custom-logo-box {
+        display: none;
+      }
+
+      .mobile-panel-toggle,
+      .panel-reopen {
+        display: none !important;
+      }
+
+      /* 启动页：大标题缩到能一眼读完，不用左右找边界 */
+      .splash-title {
+        font-size: 1.6rem;
+        letter-spacing: 1px;
+        line-height: 1.35;
+        margin-bottom: 14px;
+        padding: 0 16px;
+      }
+
+      .splash-subtitle {
+        font-size: .82rem;
+        letter-spacing: 1px;
+        line-height: 1.9;
+        margin-bottom: 34px;
+        padding: 0 28px;
+      }
+
+      .splash-btn {
+        padding: 14px 30px;
+        font-size: 1rem;
+        letter-spacing: 1px;
+      }
+
+      /* 桌面浮层让位给底部 Tab */
+      #appBadge {
+        left: 10px;
+        bottom: calc(var(--m-tabh) + var(--m-safe) + 8px);
+        font-size: 10px;
+        padding: 2px 6px;
+      }
+
+      #mapHint {
+        top: 12px;
+        bottom: auto;
+        left: 10px;
+        right: 10px;
+        transform: none;
+        height: auto;
+        max-height: none;
+        padding: 8px 12px;
+        border-radius: 12px;
+        font-size: 11px;
+        line-height: 1.5;
+        white-space: normal;
+        opacity: .88;
+        text-align: left;
+      }
+
+      /* 地图上的两个浮层只在「地图」Tab 出现，别压在结果卡上 */
+      body[data-mtab="sim"] #mapHint,
+      body[data-mtab="list"] #mapHint,
+      body[data-mtab="me"] #mapHint,
+      body[data-mtab="sim"] #layerSwitchBtn,
+      body[data-mtab="list"] #layerSwitchBtn,
+      body[data-mtab="me"] #layerSwitchBtn,
+      body[data-mtab="sim"] #appBadge,
+      body[data-mtab="list"] #appBadge,
+      body[data-mtab="me"] #appBadge {
+        display: none !important;
+      }
+
+      #layerSwitchBtn {
+        position: fixed;
+        top: auto;
+        right: 10px;
+        left: auto;
+        bottom: calc(var(--m-tabh) + var(--m-safe) + 36px);
+        transform: none;
+        font-size: 11px;
+        padding: 7px 10px;
+        max-width: 62vw;
+      }
+
+      /* ---------- 左参数 / 右结果：从悬浮面板变成整屏 ---------- */
+      #leftPanel,
+      #rightPanel {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: calc(var(--m-tabh) + var(--m-safe)) !important;
+        width: 100% !important;
+        height: auto !important;
+        max-height: none !important;
+        margin: 0 !important;
+        padding: calc(12px + env(safe-area-inset-top, 0px)) 14px 28px !important;
+        border: 0 !important;
+        border-radius: 0 !important;
+        background: #0b1220 !important;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        box-shadow: none;
+        transform: none !important;
+        opacity: 1 !important;
+        display: none;
+        z-index: 70;
+        overflow-y: auto !important;
+        overflow-x: hidden;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      body[data-mtab] #leftPanel,
+      body[data-mtab] #rightPanel {
+        display: none !important;
+      }
+
+      body[data-mtab="sim"][data-mscreen="params"] #leftPanel {
+        display: block !important;
+      }
+
+      body[data-mtab="sim"][data-mscreen="result"] #rightPanel {
+        display: block !important;
+      }
+
+      #leftPanel .panel-close,
+      #rightPanel .panel-close {
+        display: none;
+      }
+
+      .panel-head {
+        padding: 6px 0 10px;
+        margin-bottom: 10px;
+        border-bottom: 1px solid rgba(148, 163, 184, .18);
+      }
+
+      .panel-head h2 {
+        font-size: 16px;
+      }
+
+      /* 结果屏的渐进披露：先给结论卡，再展开全量。
+         V8.10：顶部匹配入口 / 左侧口袋是"导航"，不属于被收起的分析内容 */
+      body.m-compact #rightPanel > *:not(#mSummary):not(#matchDock) {
+        display: none !important;
+      }
+
+      /* V8.10 手机端：入口贴着屏幕顶端（含刘海安全区），滚多久都在 */
+      #rightPanel {
+        --pp: 14px;
+      }
+      body[data-view="result"] #rightPanel {
+        padding-top: 0 !important;
+      }
+      body[data-view="result"] #rightPanel .panel-head {
+        padding-top: calc(12px + env(safe-area-inset-top, 0px));
+      }
+      #matchDock {
+        margin: 0 calc(var(--pp) * -1) 10px;
+        padding: 9px var(--pp);
+        font-size: 14px;
+        border-radius: 0 0 12px 12px;
+      }
+      #paramPocket {
+        top: 42%;
+        padding: 10px 6px 12px;
+      }
+      /* V9.0：只在「结果」屏出现。房源/我的两个 Tab 上它会压住卡片文字 */
+      body[data-mtab="sim"][data-mscreen="result"] #paramPocket {
+        display: flex;
+      }
+
+      /* ---------- 结论卡 ---------- */
+      #mSummary {
+        display: block;
+        margin: 0 0 14px;
+      }
+
+      .m-sum-card {
+        padding: 14px;
+        border-radius: 16px;
+        background: linear-gradient(160deg, rgba(37, 99, 235, .20), rgba(15, 23, 42, .72));
+        border: 1px solid rgba(96, 165, 250, .35);
+        box-shadow: 0 10px 30px rgba(2, 6, 23, .45);
+      }
+
+      .m-sum-eyebrow {
+        font-size: 10.5px;
+        letter-spacing: .16em;
+        color: #7dd3fc;
+      }
+
+      .m-sum-title {
+        font-size: 18px;
+        font-weight: 700;
+        margin: 6px 0 3px;
+        line-height: 1.35;
+      }
+
+      .m-sum-sub {
+        font-size: 12px;
+        color: #94a3b8;
+        line-height: 1.5;
+      }
+
+      .m-sum-verdict {
+        margin: 11px 0 12px;
+        font-size: 13.5px;
+        line-height: 1.68;
+        color: #e2e8f0;
+      }
+
+      .m-sum-verdict b {
+        color: #fbbf24;
+        font-weight: 600;
+      }
+
+      .m-kpis {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      .m-kpi {
+        background: rgba(15, 23, 42, .72);
+        border: 1px solid rgba(148, 163, 184, .2);
+        border-radius: 12px;
+        padding: 9px 10px;
+      }
+
+      .m-kpi .k {
+        font-size: 10.5px;
+        color: #94a3b8;
+      }
+
+      .m-kpi .v {
+        margin-top: 3px;
+        font-size: 17px;
+        font-weight: 700;
+        color: #f8fafc;
+      }
+
+      .m-kpi .u {
+        margin-left: 2px;
+        font-size: 10px;
+        font-weight: 400;
+        color: #64748b;
+      }
+
+      .m-kpi.good .v {
+        color: #34d399;
+      }
+
+      .m-kpi.bad .v {
+        color: #f87171;
+      }
+
+      .m-dims {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        margin-top: 11px;
+        padding-top: 10px;
+        border-top: 1px dashed rgba(148, 163, 184, .22);
+      }
+
+      .m-dim {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        font-size: 12px;
+        color: #cbd5e1;
+      }
+
+      .m-dim .who {
+        font-size: 10.5px;
+        color: #94a3b8;
+      }
+
+      .m-sum-note {
+        margin-top: 10px;
+        font-size: 10.5px;
+        line-height: 1.6;
+        color: #64748b;
+      }
+
+      .m-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 10px;
+      }
+
+      .m-chip {
+        padding: 3px 9px;
+        border-radius: 999px;
+        font-size: 11px;
+        background: rgba(16, 185, 129, .14);
+        border: 1px solid rgba(16, 185, 129, .3);
+        color: #6ee7b7;
+      }
+
+      .m-chip.warn {
+        background: rgba(251, 191, 36, .12);
+        border-color: rgba(251, 191, 36, .3);
+        color: #fcd34d;
+      }
+
+      .m-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      .m-actions.stack {
+        flex-direction: column;
+      }
+
+      .m-btn {
+        flex: 1;
+        padding: 11px 8px;
+        border-radius: 12px;
+        border: 1px solid rgba(96, 165, 250, .45);
+        background: rgba(37, 99, 235, .92);
+        color: #fff;
+        font-size: 13.5px;
+        font-weight: 600;
+        font-family: inherit;
+        cursor: pointer;
+      }
+
+      .m-btn.ghost {
+        background: rgba(37, 99, 235, .08);
+        color: #93c5fd;
+      }
+
+      .m-btn.plain {
+        background: rgba(148, 163, 184, .12);
+        border-color: rgba(148, 163, 184, .28);
+        color: #cbd5e1;
+      }
+
+      /* ---------- 房源 / 我的 两个新屏 ---------- */
+      .m-screen {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: calc(var(--m-tabh) + var(--m-safe));
+        z-index: 66;
+        padding: 14px 14px 28px;
+        background: #0b1220;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+      }
+
+      body[data-mtab="list"] #mScreenList,
+      body[data-mtab="me"] #mScreenMe {
+        display: block;
+      }
+
+      .m-screen-head {
+        font-size: 18px;
+        font-weight: 700;
+        margin: 4px 0 4px;
+      }
+
+      .m-screen-sub {
+        font-size: 12px;
+        line-height: 1.65;
+        color: #94a3b8;
+        margin-bottom: 12px;
+      }
+
+      .m-note {
+        margin: 10px 0;
+        padding: 9px 11px;
+        border-radius: 10px;
+        font-size: 11.5px;
+        line-height: 1.6;
+        color: #fcd34d;
+        background: rgba(251, 191, 36, .08);
+        border: 1px solid rgba(251, 191, 36, .22);
+      }
+
+      .m-lcard {
+        padding: 11px 12px;
+        margin-bottom: 9px;
+        border-radius: 13px;
+        background: rgba(30, 41, 59, .55);
+        border: 1px solid rgba(148, 163, 184, .18);
+      }
+
+      .m-lcard-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 10px;
+      }
+
+      .m-lcard-top b {
+        font-size: 14px;
+        color: #f1f5f9;
+      }
+
+      .m-price {
+        font-size: 16px;
+        font-weight: 700;
+        color: #fbbf24;
+        white-space: nowrap;
+      }
+
+      .m-lcard-sub {
+        margin-top: 4px;
+        font-size: 12px;
+        color: #94a3b8;
+      }
+
+      .m-lcard-foot {
+        margin-top: 5px;
+        display: flex;
+        justify-content: space-between;
+        font-size: 11px;
+        color: #64748b;
+      }
+
+      .m-empty {
+        padding: 28px 10px;
+        text-align: center;
+        color: #94a3b8;
+        font-size: 13px;
+      }
+
+      /* V9.0：房源屏分区标题——二手 / 新房各一段，别再混成一张长列表 */
+      .m-sect {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 10px;
+        margin: 20px 0 8px;
+        padding-left: 9px;
+        border-left: 3px solid #fbbf24;
+      }
+
+      .m-sect span {
+        font-size: 14px;
+        font-weight: 800;
+        color: #f8fafc;
+      }
+
+      .m-sect em {
+        font-style: normal;
+        font-size: 11.5px;
+        color: #94a3b8;
+      }
+
+      .m-hx {
+        cursor: pointer;
+        border-color: rgba(251, 191, 36, .28);
+      }
+
+      .m-hx:active {
+        background: rgba(251, 191, 36, .12);
+      }
+
+      .m-hx-go {
+        margin-top: 7px;
+        display: inline-block;
+        padding: 5px 10px;
+        border-radius: 8px;
+        font-size: 11.5px;
+        font-weight: 700;
+        color: #451a03;
+        background: #fbbf24;
+      }
+
+      /* V9.0：二手 / 新房 分段开关 */
+      .m-seg {
+        display: flex;
+        gap: 8px;
+        margin: 0 0 12px;
+      }
+
+      .m-seg button {
+        flex: 1;
+        padding: 9px 6px;
+        border-radius: 11px;
+        border: 1px solid rgba(148, 163, 184, .22);
+        background: rgba(30, 41, 59, .55);
+        color: #cbd5e1;
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      .m-seg button em {
+        font-style: normal;
+        font-size: 11px;
+        color: #94a3b8;
+        margin-left: 2px;
+      }
+
+      .m-seg button.on {
+        background: #fbbf24;
+        border-color: #fbbf24;
+        color: #451a03;
+      }
+
+      .m-seg button.on em {
+        color: #78350f;
+      }
+
+      .m-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        padding: 11px 2px;
+        font-size: 13px;
+        color: #cbd5e1;
+        border-bottom: 1px solid rgba(148, 163, 184, .12);
+      }
+
+      .m-row .t {
+        color: #94a3b8;
+      }
+
+      .m-card {
+        padding: 13px;
+        margin-bottom: 10px;
+        border-radius: 14px;
+        background: rgba(30, 41, 59, .5);
+        border: 1px solid rgba(148, 163, 184, .18);
+      }
+
+      .m-card h4 {
+        margin: 0 0 8px;
+        font-size: 13.5px;
+        color: #e2e8f0;
+      }
+
+      .m-card p {
+        margin: 0 0 6px;
+        font-size: 12px;
+        line-height: 1.7;
+        color: #94a3b8;
+      }
+
+      .m-card p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* 手机屏上比例尺让位给版本徽标 */
+      .leaflet-control-scale,
+      .leaflet-control-zoom {
+        display: none;
+      }
+
+      /* 版本号在「我的」里能看，地图上不占地方 */
+      #appBadge {
+        display: none;
+      }
+
+      /* ---------- 地图 Tab 的手动控件 ---------- */
+      #mMapChrome {
+        display: none;
+      }
+
+      body[data-mtab="map"] #mMapChrome {
+        display: block;
+      }
+
+      #mCityBtn {
+        position: fixed;
+        top: 92px;
+        right: 10px;
+        z-index: 950;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 9px 13px;
+        border-radius: 999px;
+        border: 1px solid rgba(96, 165, 250, .5);
+        background: rgba(9, 14, 26, .88);
+        color: #e2e8f0;
+        font-size: 13px;
+        font-family: inherit;
+        backdrop-filter: blur(8px);
+      }
+
+      #mZoomBtns {
+        position: fixed;
+        left: 10px;
+        bottom: calc(var(--m-tabh) + var(--m-safe) + 12px);
+        z-index: 950;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      #mZoomBtns button {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        border: 1px solid rgba(148, 163, 184, .35);
+        background: rgba(9, 14, 26, .88);
+        color: #e2e8f0;
+        font-size: 20px;
+        line-height: 1;
+        font-family: inherit;
+        backdrop-filter: blur(8px);
+      }
+
+      /* ---------- 城市选择底部弹层 ---------- */
+      #mSheetMask {
+        position: fixed;
+        inset: 0;
+        z-index: 1200;
+        display: none;
+        background: rgba(2, 6, 23, .62);
+      }
+
+      #mSheetMask.on {
+        display: block;
+      }
+
+      #mCitySheet {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 1201;
+        display: none;
+        flex-direction: column;
+        max-height: 76vh;
+        padding: 8px 14px calc(14px + env(safe-area-inset-bottom, 0px));
+        border-radius: 18px 18px 0 0;
+        background: #0d1524;
+        border-top: 1px solid rgba(148, 163, 184, .22);
+      }
+
+      #mCitySheet.on {
+        display: flex;
+      }
+
+      .m-sheet-grip {
+        width: 38px;
+        height: 4px;
+        margin: 4px auto 10px;
+        border-radius: 2px;
+        background: rgba(148, 163, 184, .4);
+      }
+
+      .m-sheet-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 15px;
+        color: #f1f5f9;
+      }
+
+      .m-sheet-head button {
+        width: 32px;
+        height: 32px;
+        border-radius: 10px;
+        border: 1px solid rgba(148, 163, 184, .3);
+        background: transparent;
+        color: #94a3b8;
+        font-size: 14px;
+      }
+
+      .m-sheet-sub {
+        margin: 4px 0 10px;
+        font-size: 11.5px;
+        line-height: 1.6;
+        color: #94a3b8;
+      }
+
+      #mCitySearch {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid rgba(148, 163, 184, .3);
+        background: rgba(15, 23, 42, .9);
+        color: #f1f5f9;
+        font-size: 14px;
+        font-family: inherit;
+        outline: none;
+      }
+
+      #mCityList {
+        margin-top: 8px;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .m-city-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 4px;
+        border-bottom: 1px solid rgba(148, 163, 184, .12);
+        font-size: 14px;
+        color: #e2e8f0;
+      }
+
+      .m-city-row small {
+        color: #64748b;
+        font-size: 11px;
+      }
+
+      /* ---------- 先给 7 套方案卡，表格收起来 ---------- */
+      body[data-mscreen="result"] #mSchemes {
+        display: block;
+        margin: 0 0 10px;
+      }
+
+      .m-scheme {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        margin-bottom: 8px;
+        padding: 11px 12px;
+        border-radius: 12px;
+        border: 1px solid rgba(148, 163, 184, .18);
+        background: rgba(30, 41, 59, .5);
+        color: #e2e8f0;
+        font-family: inherit;
+        text-align: left;
+      }
+
+      .m-scheme .rank {
+        flex: 0 0 22px;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        color: #7dd3fc;
+        background: rgba(56, 189, 248, .14);
+      }
+
+      .m-scheme .main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .m-scheme .main b {
+        display: block;
+        font-size: 13.5px;
+        font-weight: 600;
+      }
+
+      .m-scheme .main small {
+        display: block;
+        margin-top: 2px;
+        font-size: 11.5px;
+        color: #94a3b8;
+      }
+
+      .m-scheme .score {
+        font-size: 16px;
+        font-weight: 700;
+        color: #34d399;
+      }
+
+      .m-scheme .score span {
+        margin-left: 1px;
+        font-size: 10px;
+        font-weight: 400;
+        color: #64748b;
+      }
+
+      .m-show-all {
+        width: 100%;
+        margin: 2px 0 12px;
+        padding: 11px;
+        border-radius: 12px;
+        border: 1px dashed rgba(148, 163, 184, .35);
+        background: transparent;
+        color: #93c5fd;
+        font-size: 13px;
+        font-family: inherit;
+      }
+
+      /* 大表默认收起来，点「看全部」才出现 */
+      body[data-mscreen="result"] #tabContents {
+        display: none;
+      }
+
+      body.m-show-all #tabContents {
+        display: block !important;
+      }
+
+      body:not(.m-show-all) .m-scroll-hint {
+        display: none;
+      }
+
+      /* 参数页很长：给我一个回顶、一个到底的小按钮 */
+      .m-scroll-jump {
+        display: none;
+      }
+
+      body[data-mscreen="params"] .m-scroll-jump {
+        display: flex;
+        position: fixed;
+        right: 10px;
+        bottom: calc(var(--m-tabh) + var(--m-safe) + 12px);
+        z-index: 9;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .m-scroll-jump button {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        border: 1px solid rgba(148, 163, 184, .35);
+        background: rgba(9, 14, 26, .88);
+        color: #cbd5e1;
+        font-size: 16px;
+        font-family: inherit;
+        backdrop-filter: blur(8px);
+      }
+
+      /* ---------- 报告默认只给一小段，想看再点 ---------- */
+      .m-report-toggle {
+        display: none;
+      }
+
+      #rightPanel .ai-report-content {
+        max-height: 16em;
+        overflow: hidden;
+        -webkit-mask-image: linear-gradient(180deg, #000 60%, transparent 100%);
+        mask-image: linear-gradient(180deg, #000 60%, transparent 100%);
+      }
+
+      body.m-report-open #rightPanel .ai-report-content {
+        max-height: none;
+        overflow: visible;
+        -webkit-mask-image: none;
+        mask-image: none;
+      }
+
+      .m-report-toggle {
+        display: block;
+        align-self: stretch;
+        width: 100%;
+        margin-top: 8px;
+        padding: 10px;
+        border-radius: 10px;
+        border: 1px dashed rgba(148, 163, 184, .35);
+        background: transparent;
+        color: #93c5fd;
+        font-size: 12.5px;
+        font-family: inherit;
+      }
+
+      /* ---------- 卡片上的一句话人话 -------------------------- */
+      .card-sub {
+        margin: -2px 0 8px;
+        font-size: 11.5px;
+        color: #64748b;
+      }
+
+      /* Leaflet 的版权/比例尺别被 Tab 压住 */
+      .leaflet-bottom {
+        bottom: calc(var(--m-tabh) + var(--m-safe));
+      }
+
+      /* toast 挪到底部，结果刚出来时不要盖住标题 */
+      .toast {
+        top: auto;
+        bottom: calc(var(--m-tabh) + var(--m-safe) + 16px);
+        max-width: 86vw;
+        text-align: center;
+        font-size: 13px;
+        padding: 10px 16px;
+      }
+
+      /* ---------- 底部 Tab ---------- */
+      #mTabBar {
+        display: flex;
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 1002;
+        height: calc(var(--m-tabh) + var(--m-safe));
+        padding-bottom: var(--m-safe);
+        background: rgba(9, 13, 24, .97);
+        border-top: 1px solid rgba(148, 163, 184, .22);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+      }
+
+      .m-tab {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        padding: 0;
+        background: none;
+        border: 0;
+        font-family: inherit;
+        font-size: 10.5px;
+        color: #8ea0b8;
+        cursor: pointer;
+      }
+
+      .m-tab .ic {
+        font-size: 19px;
+        line-height: 1.1;
+        filter: grayscale(.45);
+        transition: transform .15s;
+      }
+
+      .m-tab.on {
+        color: #38bdf8;
+      }
+
+      .m-tab.on .ic {
+        filter: none;
+        transform: translateY(-1px);
+      }
+
+      /* ---------- 既有看板在窄屏下的可读性 ---------- */
+      #rightPanel .dr-wrap,
+      #rightPanel .cmp-grid,
+      #rightPanel .metrics {
+        grid-template-columns: 1fr 1fr !important;
+      }
+
+      .m-scroll-hint {
+        display: block;
+        margin: 8px 0 2px;
+        font-size: 11px;
+        color: #64748b;
+      }
+
+      #tabContents .tab-content {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      #tabContents table {
+        min-width: 540px;
+        font-size: 11px;
+      }
+
+      #chartDom {
+        height: 280px;
+      }
+
+      .modal-overlay {
+        align-items: flex-end;
+      }
+
+      .modal-content {
+        width: 100% !important;
+        max-width: 100% !important;
+        max-height: 92dvh;
+        border-radius: 16px 16px 0 0;
+      }
+
+      .modal-body {
+        padding: 14px !important;
+      }
+
+      .loading-text {
+        font-size: 13px;
+      }
+    }
+  
+
+      /* V9.1 安全区：手机整屏视图 / 面板 / 底部弹层让出状态栏 */
+      .m-screen {
+        padding-top: calc(14px + var(--safe-top, 0px));
+      }
+
+      body[data-mtab="sim"] #leftPanel,
+      body[data-mtab="sim"] #rightPanel {
+        padding-top: var(--safe-top, 0px);
+      }
+
+      #mCitySheet {
+        padding-bottom: calc(12px + var(--safe-bottom, 0px));
+      }
+
+
+      /* V9.1 「我的」里的引导入口与匿名开关 */
+      .m-link {
+        background: none;
+        border: 0;
+        padding: 0 2px;
+        color: #38bdf8;
+        font: inherit;
+        text-decoration: underline;
+        cursor: pointer;
+      }
+
+      .m-switch {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        margin: 10px 0 4px;
+        font-size: 13px;
+        color: #e2e8f0;
+        line-height: 1.65;
+      }
+
+      .m-switch input {
+        width: 20px;
+        height: 20px;
+        margin: 2px 0 0;
+        accent-color: #fbbf24;
+      }
+
+      .m-sub {
+        margin: 6px 0 0;
+        font-size: 11.5px;
+        line-height: 1.7;
+        color: #94a3b8;
+      }
+
+
+      /* ============================================================
+         V9.1 视觉微调：不换风格，只把"早期 Demo 感"压下去
+         —— 更稳的层级、更清楚的选中态、更轻的卡片
+         ============================================================ */
+      body {
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+      }
+
+      .m-tab {
+        position: relative;
+      }
+
+      .m-tab.on::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 26px;
+        height: 3px;
+        border-radius: 0 0 3px 3px;
+        background: linear-gradient(90deg, #38bdf8, #818cf8);
+      }
+
+      .m-tab.on .ic {
+        transform: translateY(-1px) scale(1.06);
+      }
+
+      .m-screen {
+        animation: mScreenIn .18s ease-out;
+      }
+
+      @keyframes mScreenIn {
+        from { opacity: 0; transform: translateY(4px); }
+        to { opacity: 1; transform: none; }
+      }
+
+      .m-card {
+        border-radius: 16px;
+        border: 1px solid rgba(148, 163, 184, .16);
+        background: linear-gradient(180deg, rgba(30, 41, 59, .72), rgba(15, 23, 42, .6));
+        box-shadow: 0 8px 24px rgba(0, 0, 0, .18);
+      }
+
+      .m-lcard {
+        background: linear-gradient(180deg, rgba(30, 41, 59, .72), rgba(15, 23, 42, .55));
+        transition: border-color .15s, transform .1s;
+      }
+
+      .m-lcard:active {
+        transform: scale(.995);
+      }
+
+      .m-sect span {
+        letter-spacing: .4px;
+      }
+
+      .m-btn {
+        border-radius: 12px;
+        transition: transform .1s, filter .15s;
+      }
+
+      .m-btn:active {
+        transform: scale(.985);
+      }
