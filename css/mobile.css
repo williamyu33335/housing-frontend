@@ -868,7 +868,7 @@
       }
 
       #rightPanel .ai-report-content {
-        max-height: 16em;
+        max-height: 9.5em;
         overflow: hidden;
         -webkit-mask-image: linear-gradient(180deg, #000 60%, transparent 100%);
         mask-image: linear-gradient(180deg, #000 60%, transparent 100%);
@@ -1130,4 +1130,134 @@
 
       .m-btn:active {
         transform: scale(.985);
+      }
+
+
+      /* ============================================================
+         V9.2 「我的」：从一张说明卡，变成能用的个人中心
+         ============================================================ */
+      .m-prof {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px;
+        margin-bottom: 12px;
+        border-radius: 18px;
+        background: linear-gradient(135deg, #13203a, #0b1220);
+        border: 1px solid rgba(148, 163, 184, .18);
+      }
+
+      .m-avatar {
+        width: 50px;
+        height: 50px;
+        flex: 0 0 auto;
+        display: grid;
+        place-items: center;
+        font-size: 22px;
+        border-radius: 50%;
+        background: rgba(251, 191, 36, .14);
+        border: 1px solid rgba(251, 191, 36, .38);
+      }
+
+      .m-prof-main { flex: 1; min-width: 0; }
+      .m-prof-name { font-size: 17px; font-weight: 800; color: #f8fafc; }
+      .m-prof-sub { margin-top: 2px; font-size: 12px; color: #94a3b8; }
+      .m-prof-btn { flex: 0 0 auto; width: auto !important; padding: 8px 12px !important; font-size: 12px !important; }
+
+      .m-stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+
+      .m-stat {
+        text-align: center;
+        padding: 10px 4px;
+        border-radius: 12px;
+        background: rgba(30, 41, 59, .5);
+        border: 1px solid rgba(148, 163, 184, .14);
+      }
+
+      .m-stat b { display: block; font-size: 18px; color: #fbbf24; }
+      .m-stat span { font-size: 11px; color: #94a3b8; }
+
+      .m-tools {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin-top: 8px;
+      }
+
+      .m-tool {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        padding: 12px 4px;
+        border-radius: 14px;
+        border: 1px solid rgba(148, 163, 184, .16);
+        background: rgba(30, 41, 59, .45);
+        color: #cbd5e1;
+        font-size: 11.5px;
+        font-family: inherit;
+        cursor: pointer;
+      }
+
+      .m-tool i { font-style: normal; font-size: 20px; }
+      .m-tool:active { transform: scale(.98); }
+
+      .m-saved {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 0;
+        border-bottom: 1px dashed rgba(148, 163, 184, .16);
+      }
+
+      .m-saved:last-child { border-bottom: 0; }
+      .m-saved-main { flex: 1; min-width: 0; }
+      .m-saved-main b {
+        display: block;
+        font-size: 14px;
+        color: #f1f5f9;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .m-saved-main span { font-size: 11.5px; color: #94a3b8; }
+
+      .m-saved-use {
+        flex: 0 0 auto;
+        padding: 7px 10px;
+        border-radius: 9px;
+        border: 1px solid rgba(251, 191, 36, .45);
+        background: rgba(251, 191, 36, .12);
+        color: #fbbf24;
+        font-size: 11.5px;
+        font-weight: 700;
+        font-family: inherit;
+        cursor: pointer;
+      }
+
+      .m-h4-sub { margin-left: 6px; font-size: 11px; font-weight: 400; color: #94a3b8; }
+
+      .m-details summary {
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 800;
+        color: #e2e8f0;
+        list-style: none;
+      }
+
+      .m-details summary::-webkit-details-marker { display: none; }
+      .m-details summary::after { content: "＋"; float: right; color: #64748b; }
+      .m-details[open] summary::after { content: "－"; }
+      .m-details p { margin: 8px 0 0; font-size: 12.5px; line-height: 1.75; color: #cbd5e1; }
+      .m-details p b { color: #e2e8f0; }
+
+
+      /* 房源详情打开时，左侧"改参数"口袋会压住内容，直接收起 */
+      body.listing-open #paramPocket {
+        display: none !important;
       }

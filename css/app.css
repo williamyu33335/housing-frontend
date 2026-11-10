@@ -2395,3 +2395,105 @@
       line-height: 1.6;
       color: #64748b;
     }
+
+
+    /* V9.2：手机端地图文字标签——没有鼠标，名字必须常显且够清楚 */
+    @media (max-width: 760px) {
+      .map-label-province {
+        font-size: 12px;
+        letter-spacing: 1px;
+        color: #a5f3fc;
+      }
+
+      .map-label-city {
+        font-size: 11.5px;
+        color: #f1f5f9;
+      }
+    }
+
+
+    /* ============================================================
+       V9.2 房源详情：不再整屏盖住底部导航
+       —— 手机上详情页停在 Tab 条上方，随时能切走；
+       —— 底部主操作从"用这套推演"改成"收藏 / 分享"，推演降为文字入口。
+       ============================================================ */
+    .lp-actions {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+    }
+
+    .lp-btn {
+      flex: 1;
+      cursor: pointer;
+      padding: 11px 8px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 800;
+      border: 1px solid rgba(148, 163, 184, .35);
+      background: rgba(148, 163, 184, .14);
+      color: #cbd5e1;
+      font-family: inherit;
+    }
+
+    .lp-btn.fav.on {
+      color: #fbbf24;
+      border-color: rgba(251, 191, 36, .65);
+      background: rgba(251, 191, 36, .12);
+    }
+
+    .lp-link-use {
+      display: block;
+      width: 100%;
+      margin-top: 9px;
+      padding: 4px;
+      background: none;
+      border: 0;
+      color: #93c5fd;
+      font-size: 13px;
+      font-family: inherit;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .lp-quick {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin: 14px 0 4px;
+      padding: 12px;
+      border-radius: 14px;
+      background: rgba(56, 189, 248, .07);
+      border: 1px solid rgba(56, 189, 248, .18);
+    }
+
+    .lp-quick .q { text-align: center; }
+    .lp-quick .q b { display: block; font-size: 15px; color: #e2e8f0; }
+    .lp-quick .q span { font-size: 11px; color: #94a3b8; }
+
+    @media (max-width: 760px) {
+      .listing-page {
+        bottom: calc(var(--m-tabh, 58px) + var(--m-safe, 0px));
+        z-index: 900;
+      }
+
+      .lp-card {
+        height: 100%;
+        max-height: none;
+      }
+
+      .lp-foot {
+        flex-direction: column;
+        padding: 10px 14px 12px;
+      }
+    }
+
+
+    /* V9.2：原生壳已经给 WebView 让出了状态栏/手势条，CSS 这边不再重复留白 */
+    html.native-safe {
+      --safe-top: 0px;
+      --safe-bottom: 0px;
+      --m-safe: 0px !important;
+    }

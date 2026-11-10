@@ -203,8 +203,10 @@
             try { feature.__bounds = layer.getBounds(); } catch (_) { }
             const name = feature.properties.name || "未知省份";
             const adcode = feature.properties.adcode;
+            // V9.2：手机上没有鼠标悬浮，省名必须常显，用户才知道往哪点。
+            // 全国也就 34 个省名，常显不会像几百个市名那样糊成一片。
             layer.bindTooltip(name, {
-              permanent: false, direction: 'center', className: 'region-tooltip'
+              permanent: true, direction: 'center', className: 'map-label-province', opacity: 0.9
             });
             layer.on('click', (e) => {
               L.DomEvent.stopPropagation(e);

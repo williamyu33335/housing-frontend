@@ -202,15 +202,14 @@
           const adaptTxt = Number(b.adapt_score) < 1
             ? "贴线（可行方案都卡在 70% 红线）"
             : "<b>" + wan(b.adapt_score) + "</b>";
-          verdict = "五维综合最优：抗风险 " + adaptTxt + "、舒适 <b>" +
-            wan(b.comfort_score) + "</b>、结余 <b>" + wan(b.surplus_happiness) + "</b>、时间 <b>" +
-            wan(b.time_efficiency) + "</b>。";
+          verdict = "综合 " + wan(b.comprehensive_score, 1) + " 分 · 抗风险 " + adaptTxt +
+            " · 住得舒服 " + wan(b.comfort_score) + " · 时间效率 " + wan(b.time_efficiency) + "。";
         }
 
         // 普通人最先问的是“每月要还多少”，所以这一格必须有。
         // 有逐月明细（锚点接口）就用真实自付；没有就退到月供口径并说明。
         // 和报告里“实际自付月供”用同一套口径，避免一屏两个数打架
-        let payVal = null, payUnit = "元", payLabel = "每月自付房贷";
+        let payVal = null, payUnit = "元", payLabel = "每月自付";
         try {
           const sm = schemeMonthly(b);
           const fundM = Number(nv("monthIncomeNet") || 0) * Number(nv("housingFundPct") || 0) / 100;
@@ -221,7 +220,7 @@
           kpi("综合得分", wan(b.comprehensive_score, 1), "分") +
           kpi("30 年后家底", wan(b.net_worth_end_wan), "万") +
           kpi(payLabel, payVal == null ? "—" : Number(payVal).toLocaleString(), payUnit) +
-          kpi("30 年总利息", wan(b.total_interest_wan), "万") +
+          kpi("总利息", wan(b.total_interest_wan), "万") +
           kpi("首付", wan(b.down_payment_wan), "万") +
           kpi("最低现金", wan(b.min_cash_wan), "万", Number(b.buffer_months) < Number(b.buffer_required) ? "bad" : "good");
 
@@ -234,7 +233,7 @@
           '<div class="m-sum-sub">' + sub + "</div>" +
           '<div class="m-sum-verdict">' + verdict + "</div>" +
           '<div class="m-kpis">' + kpis + "</div>" +
-          '<div class="m-sum-note">家底 = 现金 + 房子 − 剩余房贷；车不计入资产。</div>' +
+          '<div class="m-sum-note">家底=现金+房−房贷；车不算资产。</div>' +
           (() => {
             const am = res.spatial && res.spatial.area_match;
             if (!am || am.status !== "over") return "";
@@ -248,7 +247,7 @@
           '<button class="m-btn" data-mact="compare">逐项对比</button>' +
           '<button class="m-btn plain" data-mact="params">改参数</button>' +
           "</div>" +
-          '<div class="m-actions"><button class="m-btn ghost" data-mact="expand">展开全部明细（图表 / 全部方案 / 报告）</button></div>' +
+          '<div class="m-actions"><button class="m-btn ghost" data-mact="expand">看图表与全部方案</button></div>' +
           "</div>";
         setCompact(compact);
       }
@@ -729,6 +728,7 @@
       function closeListingPage() {
         const page = document.getElementById("listingPage");
         if (page) page.classList.remove("on");
+        document.body.classList.remove("listing-open");
         clearHighlight(true);
         // 是从匹配面板点进来的，就回到面板；否则什么都不做
         if (lpReturnToMatch) {
@@ -736,6 +736,102 @@
           if (ov) ov.classList.add("on");
           lpReturnToMatch = false;
         }
+      }
+
+      /* ---------- V9.2 收藏 / 浏览历史 / 分享（都存在本机，不上传） ---------- */
+      const LS_FAV = "jw_favs";
+      const LS_HIS = "jw_history";
+
+      function readList(key) {
+        try { const v = JSON.parse(localStorage.getItem(key) || "[]"); return Array.isArray(v) ? v : []; }
+        catch (_) { return []; }
+      }
+
+      function writeList(key, arr) {
+        try { localStorage.setItem(key, JSON.stringify((arr || []).slice(0, 60))); } catch (_) { }
+      }
+
+      function listingKey(x) {
+        return [x.city_code || "", x.community || x.title || "", x.price_wan || 0, x.area_sqm || 0].join("|");
+      }
+
+      function slimListing(x) {
+        return {
+          key: listingKey(x),
+          community: x.community || x.title || "未命名小区",
+          price_wan: x.price_wan,
+          area_sqm: x.area_sqm,
+          live_area_sqm: x.live_area_sqm,
+          district_name: x.district_name || "",
+          at: Date.now()
+        };
+      }
+
+      function isFav(x) {
+        const k = listingKey(x);
+        return readList(LS_FAV).some((it) => it.key === k);
+      }
+
+      function toggleFav(x) {
+        const k = listingKey(x);
+        const list = readList(LS_FAV);
+        const i = list.findIndex((it) => it.key === k);
+        if (i >= 0) { list.splice(i, 1); writeList(LS_FAV, list); return false; }
+        list.unshift(slimListing(x));
+        writeList(LS_FAV, list);
+        return true;
+      }
+
+      function pushHistory(x) {
+        const list = readList(LS_HIS).filter((it) => it.key !== listingKey(x));
+        list.unshift(slimListing(x));
+        writeList(LS_HIS, list);
+      }
+
+      function shareListing(x) {
+        const text = (x.community || "这套房") + " · " + wan(x.price_wan) + " 万 · " +
+          wan(x.live_area_sqm || x.area_sqm, 0) + "㎡ · " + (x.district_name || "");
+        const done = (msg) => {
+          if (window.HousingApp && window.HousingApp.toast) window.HousingApp.toast(msg);
+        };
+        try {
+          if (navigator.share) {
+            navigator.share({ title: "经纬置业", text: text }).catch(() => { });
+            return;
+          }
+        } catch (_) { }
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(() => done("已复制房源信息")).catch(() => done(text));
+            return;
+          }
+        } catch (_) { }
+        done(text);
+      }
+
+      function quickPayHtml(x) {
+        const price = Number(x.price_wan) || 0;
+        if (!price) return "";
+        let rate = 3.9;
+        try {
+          const el = document.getElementById("loanRatePct");
+          if (el && Number(el.value) > 0) rate = Number(el.value);
+        } catch (_) { }
+        const down = price * 0.3;
+        const loanYuan = price * 0.7 * 10000;
+        let m30 = 0, m20 = 0;
+        try {
+          const r30 = calcMonthlyMortgage(loanYuan, rate, 30, "equal_principal_interest");
+          const r20 = calcMonthlyMortgage(loanYuan, rate, 20, "equal_principal_interest");
+          m30 = r30 && r30.monthly;
+          m20 = r20 && r20.monthly;
+        } catch (_) { }
+        const cell = (v, unit, label) => '<div class="q"><b>' + v + unit + '</b><span>' + label + "</span></div>";
+        return '<div class="lp-quick">' +
+          cell(wan(down), " 万", "首付 3 成") +
+          cell(m30 ? Math.round(m30).toLocaleString() : "—", " 元", "商贷 30 年月供") +
+          cell(m20 ? Math.round(m20).toLocaleString() : "—", " 元", "商贷 20 年月供") +
+          "</div>";
       }
 
       function openListingDetail(i) {
@@ -761,6 +857,8 @@
         }
         highlightListing(x);
 
+        pushHistory(x);
+
         const pref = currentPref;
         const info = window.__amenityInfoFor ? window.__amenityInfoFor(x, pref) : null;
         const pps = x.price_sqm ? Math.round(x.price_sqm) : null;
@@ -784,6 +882,9 @@
           ["建成", x.built_year],
           ["电梯", x.elevator],
           ["房号", x.unit_no],
+          ["装修", x.decoration === "rough" ? "毛坯" : (x.decoration === "finished" ? "已装修" : x.decoration)],
+          ["来源", x.source],
+          ["挂牌", x.listed_at],
         ].filter(([, v]) => v != null && v !== "");
 
         const title = document.getElementById("lpTitle");
@@ -803,25 +904,41 @@
           '<div><div class="k">便利分</div><div class="v">' + (info && info.score != null ? info.score + " 分" : "—") + "</div></div>" +
           unitCells.map(([k, v]) => '<div><div class="k">' + k + '</div><div class="v">' + esc(v) + "</div></div>").join("") +
           "</div>" +
+          quickPayHtml(x) +
           (poiRows ? '<div class="lp-sec">周边（直线距离）</div><div class="lp-poi">' + poiRows + "</div>" : "") +
           '<div class="lp-note">' + poiSource + "</div>" +
           (unitCells.length ? "" :
             '<div class="lp-note">这套房只有楼盘级信息（小区、总价、面积），没有「哪层哪套」：楼层、朝向、建成年代还不清楚。</div>') +
           '<div class="lp-note">位置精度：' + (exact ? "精确到小区" : "只到区（区位中心近似，不是楼栋）") + "。价格是挂牌价，不是成交价。</div>";
 
+        const fav = isFav(x);
         const foot = document.getElementById("lpFoot");
         if (foot) {
           foot.innerHTML =
-            '<button type="button" class="lp-ghost" id="lpBack2">← 返回列表</button>' +
-            '<button type="button" class="lp-use" id="lpUse2">用这套去推演</button>';
-          const b = document.getElementById("lpBack2");
-          if (b) b.onclick = closeListingPage;
+            '<div class="lp-actions">' +
+            '<button type="button" class="lp-btn fav' + (fav ? " on" : "") + '" id="lpFav2">' +
+            (fav ? "★ 已收藏" : "☆ 收藏") + "</button>" +
+            '<button type="button" class="lp-btn" id="lpShare2">↗ 分享</button>' +
+            "</div>" +
+            '<button type="button" class="lp-link-use" id="lpUse2">用这套去推演 →</button>';
+          const f = document.getElementById("lpFav2");
+          if (f) f.onclick = () => {
+            const on = toggleFav(x);
+            f.classList.toggle("on", on);
+            f.textContent = on ? "★ 已收藏" : "☆ 收藏";
+            if (window.HousingApp && window.HousingApp.toast) {
+              window.HousingApp.toast(on ? "已收藏，可在「我的」里找到" : "已取消收藏");
+            }
+          };
+          const sh = document.getElementById("lpShare2");
+          if (sh) sh.onclick = () => shareListing(x);
           const u = document.getElementById("lpUse2");
           if (u) u.onclick = () => { closeListingPage(); closeMatchPanel(); useMatchRowById(x); };
         }
 
         const page = document.getElementById("listingPage");
         if (page) page.classList.add("on");
+        document.body.classList.add("listing-open");
       }
 
       // 详情页的返回/关闭/点遮罩关闭，只绑一次
@@ -1132,7 +1249,10 @@
         const ha = window.HousingApp || {};
         const city = ha.currentCity || null;
         const res = ha.currentResult || null;
-        const ver = ($("appBadge") && $("appBadge").textContent) || "V9.1.0";
+        const ver = ($("appBadge") && $("appBadge").textContent) || "V9.2.0";
+        const favs = readList(LS_FAV);
+        const his = readList(LS_HIS);
+        const runs = Number(localStorage.getItem("jw_runs") || 0) || 0;
 
         const ar = $("anchorRentYear"), al = $("anchorLoanYear"), ad = $("anchorDownStrategy");
         const planned = (ar && ar.value !== "" && al && al.value !== "")
@@ -1142,13 +1262,11 @@
         const anyScheme = res && (res.best || (res.top_comprehensive || [])[0]);
         const typeLabel = anyScheme && anyScheme.house_type === "new"
           ? "新房（含维修基金）" : "二手房（含个税与中介费）";
-
         const bestLine = (res && res.top_comprehensive && res.top_comprehensive[0])
           ? ("租 " + res.top_comprehensive[0].rent_year + " 年 · 贷 " + res.top_comprehensive[0].loan_year +
             " 年，家底 " + wan(res.top_comprehensive[0].net_worth_end_wan) + " 万")
           : "";
 
-        // V8.10：数据到哪一层，这里就说哪一层——比任何"智能"都值钱
         const ds = document.documentElement.dataset;
         const zoneSrc = ds.zoneSource || "";
         const zoneLine = zoneSrc === "real"
@@ -1158,45 +1276,80 @@
         const amCount = Number(ds.listingAmenities);
         const amenityLine = amCount > 0
           ? ("周边设施已采到 " + amCount + " 个房源坐标；没采到的房源只说“片区级”，" +
-             "不拿区均值的空白冒充这套房的楼下")
+             "不拿区均值的空白冒充这套楼的楼下")
           : "周边设施只有片区级数据（以区中心为圆心），房源级的还没采到";
 
+        const item = (it, kind) =>
+          '<div class="m-saved" data-saved="' + esc(it.key) + '" data-kind="' + kind + '">' +
+          '<div class="m-saved-main"><b>' + esc(it.community) + "</b>" +
+          '<span>' + wan(it.price_wan) + " 万 · " + wan(it.live_area_sqm || it.area_sqm, 0) + " ㎡" +
+          (it.district_name ? " · " + esc(it.district_name) : "") + "</span></div>" +
+          '<button type="button" class="m-saved-use" data-use-saved="' + esc(it.key) + '">去推演</button>' +
+          "</div>";
+
         box.innerHTML =
-          '<div class="m-card"><h4>当前状态</h4>' +
-          '<div class="m-row"><span class="t">版本</span><span>' + esc(ver) + "</span></div>" +
-          '<div class="m-row"><span class="t">城市</span><span>' + esc(city ? city.name : "未选择（中国全景）") + "</span></div>" +
-          '<div class="m-row"><span class="t">房屋类型</span><span>' + typeLabel + "</span></div>" +
+          '<div class="m-prof">' +
+          '<div class="m-avatar">🏠</div>' +
+          '<div class="m-prof-main"><div class="m-prof-name">本地用户</div>' +
+          '<div class="m-prof-sub">' + esc(city ? city.name : "未选城市") + " · " + esc(ver) + "</div></div>" +
+          '<button type="button" class="m-btn plain m-prof-btn" data-mact="go-sim">去推演</button>' +
+          "</div>" +
+
+          '<div class="m-stats">' +
+          '<div class="m-stat"><b>' + his.length + "</b><span>浏览</span></div>" +
+          '<div class="m-stat"><b>' + favs.length + "</b><span>收藏</span></div>" +
+          '<div class="m-stat"><b>' + runs + "</b><span>推演</span></div>" +
+          '<div class="m-stat"><b>' + (bestLine ? "1" : "0") + "</b><span>已出方案</span></div>" +
+          "</div>" +
+
+          '<div class="m-card"><h4>我的工具</h4><div class="m-tools">' +
+          '<button type="button" class="m-tool" data-mact="go-anchor"><i>📊</i><span>我的打算</span></button>' +
+          '<button type="button" class="m-tool" data-mact="go-map"><i>🗺️</i><span>地图选城</span></button>' +
+          '<button type="button" class="m-tool" data-mact="go-list"><i>🏠</i><span>找房</span></button>' +
+          '<button type="button" class="m-tool" data-mact="guide"><i>🧭</i><span>新手引导</span></button>' +
+          '<button type="button" class="m-tool" data-mact="go-collect"><i>📈</i><span>匿名数据</span></button>' +
+          '<button type="button" class="m-tool" data-mact="reset"><i>↺</i><span>重置参数</span></button>' +
+          "</div></div>" +
+
+          '<div class="m-card"><h4>我的收藏 <span class="m-h4-sub">' + favs.length + " 套</span></h4>" +
+          (favs.length ? favs.slice(0, 5).map((it) => item(it, "fav")).join("") +
+            (favs.length > 5 ? '<p class="m-sub">还有 ' + (favs.length - 5) + " 套，先在「找房」里看" + "</p>" : "")
+            : '<p class="m-sub">还没收藏。在房源详情里点「☆ 收藏」，这里就会留下。</p>') +
+          "</div>" +
+
+          '<div class="m-card"><h4>浏览历史 <span class="m-h4-sub">' + his.length + " 条</span></h4>" +
+          (his.length ? his.slice(0, 5).map((it) => item(it, "his")).join("")
+            : '<p class="m-sub">还没看过房源。去「房源」里点一套看看。</p>') +
+          "</div>" +
+
+          '<div class="m-card"><h4>我的方案</h4>' +
           '<div class="m-row"><span class="t">上次推荐</span><span>' + (bestLine || "还没跑过推演") + "</span></div>" +
           '<div class="m-row"><span class="t">我的打算</span><span>' + (planned || "还没填") + "</span></div>" +
-          '<div class="m-actions"><button class="m-btn" data-mact="go-sim">去推演</button>' +
+          '<div class="m-row"><span class="t">房屋类型</span><span>' + typeLabel + "</span></div>" +
+          '<div class="m-actions"><button class="m-btn" data-mact="go-sim">继续推演</button>' +
           '<button class="m-btn plain" data-mact="go-anchor">' + (planned ? "改我的打算" : "填我的打算") + "</button></div></div>" +
 
-          '<div class="m-card"><h4>我们守的四条线</h4>' +
+          '<div class="m-card"><h4>匿名数据</h4>' +
+          '<label class="m-switch"><input type="checkbox" id="jwCollectToggle">' +
+          '<span>参与《年轻人买房压力报告》</span></label>' +
+          '<p class="m-sub">只收城市、职业、行业、收入区间、目标房价这类统计口径；不收姓名、手机号、IP、精确位置。关掉后一次都不发。</p></div>' +
+
+          '<details class="m-card m-details"><summary>我们守的四条线</summary>' +
           "<p><b>50% 小康线</b>：扣掉生存成本，每月还能剩一半，才算有余地。</p>" +
           "<p><b>70% 红线</b>：月供加开销不超过收入的 70%，剩下的留给“万一”。</p>" +
           "<p><b>0.9% 活期</b>：不给你编 3% 的收益，降息年代就这么点。</p>" +
-          "<p><b>2.5% 通胀</b>：30 年后的一万块，不是今天的一万块。</p></div>" +
+          "<p><b>2.5% 通胀</b>：30 年后的一万块，不是今天的一万块。</p></details>" +
 
-          '<div class="m-card"><h4>数据与口径</h4>' +
+          '<details class="m-card m-details"><summary>数据与口径</summary>' +
           "<p>42 城基准 + 2890 个区县；" + zoneLine + "</p>" +
           "<p>" + amenityLine + "</p>" +
           "<p>房源只到区的会标“区位中心近似”，不假装定位到楼栋。</p>" +
-          "<p>公积金不算现金：租房只累积，还贷只抵月供。</p>" +
-          "<p>新房和二手房还共用一套基准价，这是下一版要还的债。</p></div>" +
+          "<p>公积金不算现金：租房只累积，还贷只抵月供。</p></details>" +
 
-          '<div class="m-card"><h4>帮助与匿名数据</h4>' +
-          '<p>第一次用没看懂？<button type="button" class="m-link" data-mact="guide">再看一遍新手引导</button></p>' +
-          '<label class="m-switch"><input type="checkbox" id="jwCollectToggle">' +
-          '<span>匿名数据：参与《年轻人买房压力报告》</span></label>' +
-          '<p class="m-sub">只收城市、职业、行业、收入区间、目标房价这类统计口径；' +
-          '不收姓名、手机号、IP、精确位置。关掉后一次都不发。</p></div>' +
+          '<details class="m-card m-details"><summary>免责声明</summary>' +
+          "<p>决策参考，不是投资建议。利率会变、收入会变，模型只帮你把账算清楚，不替你签字。</p></details>";
 
-          '<div class="m-card"><h4>免责</h4>' +
-          "<p>决策参考，不是投资建议。利率会变、收入会变，模型只帮你把账算清楚，不替你签字。</p></div>" +
-
-          '<div class="m-actions stack"><button class="m-btn plain" data-mact="reset">重置为默认参数</button></div>';
-
-        // V9.1：引导重看 + 匿名数据开关（默认开，关掉就不发）
+        // 引导重看 + 匿名数据开关
         const gbtn = box.querySelector('[data-mact="guide"]');
         if (gbtn) gbtn.onclick = function () {
           if (window.JWOnboarding) window.JWOnboarding.open();
@@ -1211,6 +1364,30 @@
             }
           };
         }
+
+        // 收藏 / 历史里的「去推演」：把价格与面积填回参数
+        box.querySelectorAll("[data-use-saved]").forEach((btn) => {
+          btn.onclick = function () {
+            const key = btn.getAttribute("data-use-saved");
+            const all = readList(LS_FAV).concat(readList(LS_HIS));
+            const it = all.find((x) => x.key === key);
+            if (!it) return;
+            const priceEl = $("houseTotalWan"), areaEl = $("targetAreaSqm");
+            if (priceEl) {
+              priceEl.value = it.price_wan;
+              priceEl.dispatchEvent(new Event("input", { bubbles: true }));
+            }
+            if (areaEl) {
+              areaEl.value = Math.round(it.live_area_sqm || it.area_sqm || 0);
+              areaEl.dispatchEvent(new Event("input", { bubbles: true }));
+            }
+            setTab("sim");
+            setScreen("params");
+            if (window.HousingApp && window.HousingApp.toast) {
+              window.HousingApp.toast("已填好：" + wan(it.price_wan) + " 万，点开始推演");
+            }
+          };
+        });
       }
 
       /* ---------- 前 7 套方案（默认只给这些，大表收起来） ---------- */
@@ -1412,6 +1589,10 @@
 
       function onResult(res) {
         if (!res) return;
+        try {
+          const n = Number(localStorage.getItem("jw_runs") || 0) + 1;
+          localStorage.setItem("jw_runs", String(n));
+        } catch (_) { }
         if (!isMobile()) { arrangeResult(false); return; }
         renderSummary(res);
         buildSchemeLists(res);
@@ -1458,6 +1639,20 @@
             if (on) bumpViz();
           }
           else if (act === "go-sim") { setTab("sim"); setScreen("params"); }
+          else if (act === "go-map") { setTab("map"); }
+          else if (act === "go-list") { setTab("list"); }
+          else if (act === "go-collect") {
+            const ct = document.getElementById("jwCollectToggle");
+            if (ct) {
+              ct.scrollIntoView({ behavior: "smooth", block: "center" });
+              const card = ct.closest(".m-card");
+              if (card) {
+                card.style.transition = "box-shadow .3s";
+                card.style.boxShadow = "0 0 0 2px rgba(251,191,36,.55)";
+                setTimeout(() => { card.style.boxShadow = ""; }, 1400);
+              }
+            }
+          }
           else if (act === "go-anchor") {
             setTab("sim"); setScreen("params");
             setTimeout(() => {
