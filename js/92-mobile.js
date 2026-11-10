@@ -699,6 +699,8 @@
       function highlightListing(x) {
         clearHighlight(false);
         if (!map) return;
+        // 没有坐标的房源（只到区的 4 套）不画呼吸点：硬画会落到 (undefined, undefined)
+        if (!isFinite(Number(x.lat)) || !isFinite(Number(x.lng)) || !Number(x.lat) || !Number(x.lng)) return;
         const ll = (x.geo_approximate || !x.lat)
           ? mapLL(x.lat, x.lng)
           : mapLL(x.lat, x.lng);
@@ -834,13 +836,46 @@
           "</div>";
       }
 
-      function openListingDetail(i) {
-        const x = panelRows[i];
+      function huxingToData(item) {
+        const proj = item.proj || {};
+        const h = item.h || {};
+        const area = Number(h.area) || 0;
+        return {
+          city_code: proj.city_code,
+          community: proj.name || "未命名楼盘",
+          price_wan: Number(h.total) || 0,
+          area_sqm: area,
+          live_area_sqm: Math.round(area * 0.78 * 10) / 10,
+          price_sqm: area > 0 ? (Number(h.total) || 0) * 10000 / area : 0,
+          bedrooms: h.room || "",
+          district_name: proj.district || "",
+          block: proj.block || "",
+          property_type: proj.property_type || "",
+          source: "安居客新房 · 参考价",
+          house_type: "new",
+          lat: proj.lat, lng: proj.lng,
+          geo_level: "exact", geo_approximate: false,
+          _huxing: true
+        };
+      }
+
+      function openListingCard(x) {
         if (!x) return;
-        // 打开详情时先把匹配面板收起来：不然左边还是那张黄表，地图被盖住，
-        // "这套在哪"根本看不到（用户原话：旁边一堆房源，我都不知道选的是哪套）。
         const ov = document.getElementById("matchOverlay");
         if (ov) { lpReturnToMatch = ov.classList.contains("on"); ov.classList.remove("on"); }
+        openListingDetailByData(x);
+      }
+      window.__openListingCard = openListingCard;   // 验收用：直接喂一个房源对象
+
+      function openListingDetail(i) {
+        const ov = document.getElementById("matchOverlay");
+        if (ov) { lpReturnToMatch = ov.classList.contains("on"); ov.classList.remove("on"); }
+        openListingDetailByData(panelRows[i]);
+      }
+
+      /* V9.3：房源详情改成"吃一个房源对象"，匹配结果 / 二手房列表 / 新房户型都能进 */
+      function openListingDetailByData(x) {
+        if (!x) return;
 
         // 📍 只有"精确坐标"才飞过去；区中心近似的房源飞过去等于骗人
         const exact = !x.geo_approximate && x.geo_level && x.geo_level !== "district";
@@ -899,16 +934,21 @@
           '<div class="lp-facts">' +
           '<div><div class="k">建面</div><div class="v">' + wan(x.area_sqm, 1) + " ㎡</div></div>" +
           '<div><div class="k">套内</div><div class="v">' + wan(x.live_area_sqm, 1) + " ㎡</div></div>" +
-          '<div><div class="k">户型</div><div class="v">' + (x.bedrooms ? x.bedrooms + " 室" : "—") + "</div></div>" +
+          '<div><div class="k">户型</div><div class="v">' +
+          (x.bedrooms ? (/室/.test(String(x.bedrooms)) ? x.bedrooms : x.bedrooms + " 室") : "—") + "</div></div>" +
           '<div><div class="k">区位</div><div class="v">' + esc(x.district_name || "—") + "</div></div>" +
           '<div><div class="k">便利分</div><div class="v">' + (info && info.score != null ? info.score + " 分" : "—") + "</div></div>" +
+          (x.property_type ? '<div><div class="k">类型</div><div class="v">' + esc(x.property_type) + "</div></div>" : "") +
+          (x.block ? '<div><div class="k">板块</div><div class="v">' + esc(x.block) + "</div></div>" : "") +
           unitCells.map(([k, v]) => '<div><div class="k">' + k + '</div><div class="v">' + esc(v) + "</div></div>").join("") +
           "</div>" +
           quickPayHtml(x) +
           (poiRows ? '<div class="lp-sec">周边（直线距离）</div><div class="lp-poi">' + poiRows + "</div>" : "") +
           '<div class="lp-note">' + poiSource + "</div>" +
-          (unitCells.length ? "" :
-            '<div class="lp-note">这套房只有楼盘级信息（小区、总价、面积），没有「哪层哪套」：楼层、朝向、建成年代还不清楚。</div>') +
+          (x._huxing
+            ? '<div class="lp-note">这是新房在售户型：参考总价是页面标价，不是成交价；面积是建面，套内按 22% 公摊估算。</div>'
+            : (unitCells.length ? "" :
+              '<div class="lp-note">这套房只有楼盘级信息（小区、总价、面积），没有「哪层哪套」：楼层、朝向、建成年代还不清楚。</div>')) +
           '<div class="lp-note">位置精度：' + (exact ? "精确到小区" : "只到区（区位中心近似，不是楼栋）") + "。价格是挂牌价，不是成交价。</div>";
 
         const fav = isFav(x);
@@ -957,6 +997,13 @@
       })();
 
       function useMatchRowById(x) {
+        if (x.house_type === "new") {
+          const t = document.querySelector('.type-btn[data-htype="new"]');
+          if (t) t.click();
+        } else if (x.house_type === "used") {
+          const t = document.querySelector('.type-btn[data-htype="used"]');
+          if (t) t.click();
+        }
         const priceEl = $("houseTotalWan");
         const areaEl = $("targetAreaSqm");
         if (priceEl) { priceEl.value = Math.round(x.price_wan * 10) / 10; priceEl.dispatchEvent(new Event("input", { bubbles: true })); }
@@ -1051,10 +1098,11 @@
           " 万 · 按总价从低到高";
         usedSubText = $("mListSub").textContent;
 
-        const cards = items.map((x) => {
+        currentListItems = items;
+        const cards = items.map((x, i) => {
           const priceWan = (x.total_price || 0) / 10000;
           const pps = x.price_sqm ? Math.round(x.price_sqm) : null;
-          return '<div class="m-lcard">' +
+          return '<div class="m-lcard" data-li="' + i + '">' +
             '<div class="m-lcard-top"><b>' + esc(x.community || "未命名小区") + "</b>" +
             '<span class="m-price">' + wan(priceWan) + " 万</span></div>" +
             '<div class="m-lcard-sub">' + (x.area_sqm ? esc(x.area_sqm) + " ㎡" : "") +
@@ -1108,6 +1156,23 @@
         renderList(list);
         paintMobileHuxing();
       }
+
+      let currentListItems = [];
+
+      (function bindListClicks() {
+        const box = $("mListBody");
+        if (!box) return;
+        box.addEventListener("click", (e) => {
+          const card = e.target && e.target.closest ? e.target.closest("[data-li]") : null;
+          if (!card) return;
+          const it = currentListItems[Number(card.getAttribute("data-li"))];
+          if (!it) return;
+          openListingCard(Object.assign({}, it, {
+            price_wan: (Number(it.total_price) || 0) / 10000,
+            house_type: "used"
+          }));
+        });
+      })();
 
       /* ---------- 🏗 V9.0 手机端「新房在售户型」 ----------
          桌面端这块在匹配面板底部（#mpHuxing），手机端以前只有二手房列表，
@@ -1168,7 +1233,7 @@
             '<div class="m-lcard-foot"><span>📍 ' + esc(x.proj.district || "") +
             (x.proj.block ? " · " + esc(x.proj.block) : "") + "</span>" +
             "<span>" + (p.budget_wan > 0 ? hxDelta(x.h.total, p.budget_wan) : "共 " + hits.length + " 个") + "</span></div>" +
-            '<span class="m-hx-go">用这套去推演 →</span>' +
+            '<span class="m-hx-go">查看详情 →</span>' +
             "</div>").join("") +
           (hits.length > mHuxingRows.length
             ? '<div class="m-note">还有 ' + (hits.length - mHuxingRows.length) + " 个对得上——把预算或面积改精确一点，这里会跟着变。</div>"
@@ -1228,7 +1293,8 @@
         box.addEventListener("click", (e) => {
           const card = e.target && e.target.closest ? e.target.closest("[data-hx]") : null;
           if (!card) return;
-          useHuxingRow(Number(card.getAttribute("data-hx")));
+          const row = mHuxingRows[Number(card.getAttribute("data-hx"))];
+          if (row) openListingCard(huxingToData(row));
         });
       })();
 
@@ -1243,151 +1309,274 @@
       })();
 
       /* ---------- 我的 ---------- */
+      /* ---------- V9.3 个人资料 / 统计入口 / 设置 ---------- */
+      const LS_PROFILE = "jw_profile";
+
+      function getProfile() {
+        try { return JSON.parse(localStorage.getItem(LS_PROFILE) || "{}") || {}; } catch (_) { return {}; }
+      }
+
+      function setProfile(p) {
+        try { localStorage.setItem(LS_PROFILE, JSON.stringify(p || {})); } catch (_) { }
+      }
+
+      function ensureJwModal() {
+        let m = document.getElementById("jwModal");
+        if (m) return m;
+        m = document.createElement("div");
+        m.id = "jwModal";
+        m.innerHTML = '<div class="jwm-card"><button type="button" class="jw-close" data-jwm="close">✕</button>' +
+          '<div id="jwModalBody"></div></div>';
+        document.body.appendChild(m);
+        m.addEventListener("click", (e) => {
+          if (e.target === m || (e.target.closest && e.target.closest("[data-jwm='close']"))) {
+            m.classList.remove("on");
+          }
+        });
+        return m;
+      }
+
+      function showJwModal(html) {
+        const m = ensureJwModal();
+        document.getElementById("jwModalBody").innerHTML = html;
+        m.classList.add("on");
+      }
+
+      function savedRows(items, emptyText) {
+        if (!items || !items.length) return '<p class="m-sub">' + emptyText + "</p>";
+        return items.map((it) =>
+          '<div class="m-saved"><div class="m-saved-main"><b>' + esc(it.community) + "</b>" +
+          "<span>" + wan(it.price_wan) + " 万 · " + wan(it.live_area_sqm || it.area_sqm, 0) + " ㎡" +
+          (it.district_name ? " · " + esc(it.district_name) : "") + "</span></div>" +
+          '<button type="button" class="m-saved-use" data-modal-use="' + esc(it.key) + '">去推演</button></div>'
+        ).join("");
+      }
+
+      function bindModalUse() {
+        document.querySelectorAll("#jwModal [data-modal-use]").forEach((btn) => {
+          btn.onclick = function () {
+            const key = btn.getAttribute("data-modal-use");
+            const it = readList(LS_FAV).concat(readList(LS_HIS)).find((x) => x.key === key);
+            if (!it) return;
+            const priceEl = $("houseTotalWan"), areaEl = $("targetAreaSqm");
+            if (priceEl) { priceEl.value = it.price_wan; priceEl.dispatchEvent(new Event("input", { bubbles: true })); }
+            if (areaEl) { areaEl.value = Math.round(it.live_area_sqm || it.area_sqm || 0); areaEl.dispatchEvent(new Event("input", { bubbles: true })); }
+            document.getElementById("jwModal").classList.remove("on");
+            setTab("sim"); setScreen("params");
+            if (window.HousingApp && window.HousingApp.toast) window.HousingApp.toast("已填好：" + wan(it.price_wan) + " 万");
+          };
+        });
+      }
+
+      function openStat(kind) {
+        const favs = readList(LS_FAV), his = readList(LS_HIS);
+        const runs = Number(localStorage.getItem("jw_runs") || 0) || 0;
+        if (kind === "history") {
+          showJwModal('<h3>浏览历史</h3>' + savedRows(his, "还没看过房源。去「房源」里点一套看看。"));
+          bindModalUse();
+        } else if (kind === "favs") {
+          showJwModal('<h3>我的收藏</h3>' + savedRows(favs, "还没收藏。在房源详情里点「☆ 收藏」。"));
+          bindModalUse();
+        } else if (kind === "runs") {
+          const res = (window.HousingApp && window.HousingApp.currentResult) || null;
+          const best = res && res.top_comprehensive && res.top_comprehensive[0];
+          showJwModal('<h3>推演次数</h3><p class="m-sub">你一共推演了 <b style="color:#fbbf24">' + runs + "</b> 次。" +
+            (best ? "上一次推荐：租 " + best.rent_year + " 年 · 贷 " + best.loan_year + " 年。" : "") + "</p>" +
+            '<div class="m-actions" style="margin-top:14px;"><button type="button" class="m-btn" data-jwm-close>知道了</button></div>');
+        } else if (kind === "plans") {
+          const res = (window.HousingApp && window.HousingApp.currentResult) || null;
+          const best = res && res.top_comprehensive && res.top_comprehensive[0];
+          showJwModal("<h3>已出方案</h3>" + (best
+            ? '<p class="m-sub">当前有一份推演结果：租 ' + best.rent_year + " 年 · 贷 " + best.loan_year + " 年，30 年后家底 " + wan(best.net_worth_end_wan) + " 万。</p>"
+            : '<p class="m-sub">还没有跑过推演。去「推演」填一次参数，这里就会有结果。</p>'));
+        }
+        const closeBtns = document.querySelectorAll("#jwModal [data-jwm-close]");
+        closeBtns.forEach((b) => b.onclick = () => document.getElementById("jwModal").classList.remove("on"));
+      }
+
+      function openProfileEdit() {
+        const p = getProfile();
+        const avatars = ["🏠", "🐟", "🌊", "🐱", "🚗", "🍊"];
+        showJwModal('<h3>个人资料</h3>' +
+          '<p class="m-sub">只保存在这台手机上，不上传。</p>' +
+          '<div class="jw-avatars">' + avatars.map((a) =>
+            '<button type="button" class="' + (a === (p.avatar || "🏠") ? "on" : "") + '" data-avatar="' + a + '">' + a + "</button>").join("") + "</div>" +
+          '<label class="jw-field">昵称<input id="jwNick" maxlength="12" value="' + esc(p.name || "本地用户") + '"></label>' +
+          '<div class="m-actions" style="margin-top:14px;"><button type="button" class="m-btn" id="jwSaveProfile">保存</button></div>');
+        let picked = p.avatar || "🏠";
+        document.querySelectorAll("#jwModal [data-avatar]").forEach((b) => {
+          b.onclick = () => {
+            picked = b.getAttribute("data-avatar");
+            document.querySelectorAll("#jwModal [data-avatar]").forEach((x) => x.classList.toggle("on", x === b));
+          };
+        });
+        document.getElementById("jwSaveProfile").onclick = () => {
+          const name = (document.getElementById("jwNick").value || "").trim() || "本地用户";
+          setProfile({ name: name, avatar: picked });
+          document.getElementById("jwModal").classList.remove("on");
+          renderMe();
+          if (window.HousingApp && window.HousingApp.toast) window.HousingApp.toast("已保存");
+        };
+      }
+
+      function closeSettings() {
+        const p = document.getElementById("jwSettings");
+        if (p) p.classList.remove("on");
+      }
+
+      function openSettings() {
+        let p = document.getElementById("jwSettings");
+        if (!p) {
+          p = document.createElement("div");
+          p.id = "jwSettings";
+          document.body.appendChild(p);
+        }
+        const ver = ($("appBadge") && $("appBadge").textContent) || "V9.3.0";
+        const collectOn = !(window.JWCollect && !window.JWCollect.enabled());
+        p.innerHTML =
+          '<div class="s-head"><button type="button" class="s-back" data-set="back">‹</button><b>设置</b></div>' +
+          '<div class="s-body">' +
+          '<div class="s-group">' +
+          '<div class="s-row"><span>通知与提醒</span><small>即将开放</small></div>' +
+          '<div class="s-row"><span>账号与安全</span><small>本地用户 · 未登录</small></div>' +
+          '<button type="button" class="s-row s-link" data-set="guide"><span>新手引导</span><small>›</small></button>' +
+          "</div>" +
+          '<div class="s-group">' +
+          '<div class="s-row"><span>隐私管理</span><small>匿名统计</small></div>' +
+          '<label class="s-row s-switch"><span>参与匿名数据统计</span><input type="checkbox" id="sCollect"></label>' +
+          '<p class="s-note">只收城市、职业、行业、收入区间、目标房价等统计口径；不收姓名、手机号、IP、精确位置。关掉后一次都不发。</p>' +
+          '<button type="button" class="s-row s-link" data-set="collected"><span>已收集个人信息清单</span><small>›</small></button>' +
+          "</div>" +
+          '<div class="s-group">' +
+          '<button type="button" class="s-row s-link" data-set="terms"><span>用户服务协议</span><small>›</small></button>' +
+          '<button type="button" class="s-row s-link" data-set="privacy"><span>隐私政策</span><small>›</small></button>' +
+          '<button type="button" class="s-row s-link" data-set="feedback"><span>建议与反馈</span><small>›</small></button>' +
+          "</div>" +
+          '<div class="s-group">' +
+          '<button type="button" class="s-row s-link" data-set="about"><span>关于经纬置业</span><small>' + esc(ver) + "</small></button>" +
+          '<button type="button" class="s-row s-link" data-set="clear"><span>清除本地数据</span><small>›</small></button>' +
+          "</div>" +
+          '<p class="s-ver">当前版本 ' + esc(ver) + "</p>" +
+          "</div>";
+        p.classList.add("on");
+
+        const ct = document.getElementById("sCollect");
+        if (ct) {
+          ct.checked = collectOn;
+          ct.onchange = function () {
+            if (window.JWCollect) window.JWCollect.setEnabled(ct.checked);
+            if (window.HousingApp && window.HousingApp.toast) {
+              window.HousingApp.toast(ct.checked ? "已开启匿名数据" : "已关闭，不再发送任何数据");
+            }
+          };
+        }
+
+        p.querySelectorAll("[data-set]").forEach((btn) => {
+          btn.onclick = function () {
+            const act = btn.getAttribute("data-set");
+            if (act === "back") { closeSettings(); return; }
+            if (act === "guide") {
+              closeSettings();
+              if (window.JWOnboarding) window.JWOnboarding.open();
+              return;
+            }
+            if (act === "collected") {
+              showJwModal("<h3>已收集的个人信息</h3><p class=\"m-sub\">仅当你完成一次推演、且未关闭匿名统计时，收集：</p>" +
+                '<ul class="jw-list"><li>城市编码与城市能级</li><li>家庭人数 / 就业人数</li><li>职业、行业</li>' +
+                "<li>收入区间、支出区间、存款区间（不存精确收入）</li><li>目标房价区间、套内面积</li>" +
+                "<li>推荐租期 / 贷期 / 首付策略、风险姿态、是否有车、新房或二手房</li><li>可行方案数量、App 版本与平台</li></ul>" +
+                '<p class="m-sub">不收集：姓名、手机号、微信、IP、设备号、身份证、精确坐标、小区门牌。</p>');
+              return;
+            }
+            if (act === "terms") {
+              showJwModal("<h3>用户服务协议（摘要）</h3><p class=\"m-sub\">本产品提供的是决策参考，不是投资建议，也不构成任何购房、贷款承诺。模型基于公开数据与你输入的参数计算，结果会随利率、收入、政策变化而失效。你应自行核实房源、价格与贷款条件，并独立做出决定。</p>");
+              return;
+            }
+            if (act === "privacy") {
+              showJwModal("<h3>隐私政策（摘要）</h3><p class=\"m-sub\">我们只收集用于统计报告的最小必要信息，且做区间化处理；不收集可直接识别你身份的信息。匿名统计可在上一页随时关闭。收藏与浏览历史只保存在本机，清除 App 数据即删除。</p>");
+              return;
+            }
+            if (act === "feedback") {
+              showJwModal("<h3>建议与反馈</h3><p class=\"m-sub\">把问题截图、手机型号、Android 版本，以及页面左下角的版本号发到：<b>feedback@jingwei.app</b>（临时邮箱，正式上线前会换成真实地址）。</p>");
+              return;
+            }
+            if (act === "about") {
+              showJwModal("<h3>关于经纬置业</h3><p class=\"m-sub\">" + esc(ver) + " · 一个把 30 年账摊开的决策工具。</p>" +
+                '<p class="m-sub">四条底线：50% 小康线、70% 破产红线、0.9% 真实活期、2.5% 通胀。</p>' +
+                '<p class="m-sub">数据：42 城基准、2890 个区县、327 个楼盘、852 个户型、34 套二手房。</p>' +
+                '<p class="m-sub">免责：决策参考，不是投资建议。模型只帮你把账算清楚，不替你签字。</p>');
+              return;
+            }
+            if (act === "clear") {
+              showJwModal("<h3>清除本地数据</h3><p class=\"m-sub\">会删除收藏、浏览历史、推演次数和个人资料，不影响匿名统计的开关设置。确定吗？</p>" +
+                '<div class="m-actions" style="margin-top:14px;"><button type="button" class="m-btn" id="jwClearYes">确定清除</button></div>');
+              const y = document.getElementById("jwClearYes");
+              if (y) y.onclick = function () {
+                ["jw_favs", "jw_history", "jw_runs", "jw_profile"].forEach((k) => { try { localStorage.removeItem(k); } catch (_) { } });
+                document.getElementById("jwModal").classList.remove("on");
+                renderMe();
+                if (window.HousingApp && window.HousingApp.toast) window.HousingApp.toast("已清除本地数据");
+              };
+              return;
+            }
+          };
+        });
+      }
+
       function renderMe() {
         const box = $("mMeBody");
         if (!box) return;
         const ha = window.HousingApp || {};
         const city = ha.currentCity || null;
         const res = ha.currentResult || null;
-        const ver = ($("appBadge") && $("appBadge").textContent) || "V9.2.0";
+        const ver = ($("appBadge") && $("appBadge").textContent) || "V9.3.0";
+        const prof = getProfile();
         const favs = readList(LS_FAV);
         const his = readList(LS_HIS);
         const runs = Number(localStorage.getItem("jw_runs") || 0) || 0;
+        const best = res && res.top_comprehensive && res.top_comprehensive[0];
 
         const ar = $("anchorRentYear"), al = $("anchorLoanYear"), ad = $("anchorDownStrategy");
         const planned = (ar && ar.value !== "" && al && al.value !== "")
           ? ("租 " + ar.value + " 年 · 贷 " + al.value + " 年 · " + (ad ? ad.options[ad.selectedIndex].text : ""))
           : "";
-
-        const anyScheme = res && (res.best || (res.top_comprehensive || [])[0]);
-        const typeLabel = anyScheme && anyScheme.house_type === "new"
-          ? "新房（含维修基金）" : "二手房（含个税与中介费）";
-        const bestLine = (res && res.top_comprehensive && res.top_comprehensive[0])
-          ? ("租 " + res.top_comprehensive[0].rent_year + " 年 · 贷 " + res.top_comprehensive[0].loan_year +
-            " 年，家底 " + wan(res.top_comprehensive[0].net_worth_end_wan) + " 万")
-          : "";
-
-        const ds = document.documentElement.dataset;
-        const zoneSrc = ds.zoneSource || "";
-        const zoneLine = zoneSrc === "real"
-          ? "片区用的是真实行政区中心，片区价按距市中心衰减估算"
-          : (zoneSrc === "nanning" ? "南宁八区用的是真实片区价"
-            : "片区坐标是估算的（还没有这个城市的真实区县中心）");
-        const amCount = Number(ds.listingAmenities);
-        const amenityLine = amCount > 0
-          ? ("周边设施已采到 " + amCount + " 个房源坐标；没采到的房源只说“片区级”，" +
-             "不拿区均值的空白冒充这套楼的楼下")
-          : "周边设施只有片区级数据（以区中心为圆心），房源级的还没采到";
-
-        const item = (it, kind) =>
-          '<div class="m-saved" data-saved="' + esc(it.key) + '" data-kind="' + kind + '">' +
-          '<div class="m-saved-main"><b>' + esc(it.community) + "</b>" +
-          '<span>' + wan(it.price_wan) + " 万 · " + wan(it.live_area_sqm || it.area_sqm, 0) + " ㎡" +
-          (it.district_name ? " · " + esc(it.district_name) : "") + "</span></div>" +
-          '<button type="button" class="m-saved-use" data-use-saved="' + esc(it.key) + '">去推演</button>' +
-          "</div>";
+        const typeLabel = best && best.house_type === "new" ? "新房（含维修基金）" : "二手房（含个税与中介费）";
 
         box.innerHTML =
           '<div class="m-prof">' +
-          '<div class="m-avatar">🏠</div>' +
-          '<div class="m-prof-main"><div class="m-prof-name">本地用户</div>' +
+          '<button type="button" class="m-avatar" data-edit="profile">' + esc(prof.avatar || "🏠") + "</button>" +
+          '<div class="m-prof-main"><div class="m-prof-name">' + esc(prof.name || "本地用户") + "</div>" +
           '<div class="m-prof-sub">' + esc(city ? city.name : "未选城市") + " · " + esc(ver) + "</div></div>" +
-          '<button type="button" class="m-btn plain m-prof-btn" data-mact="go-sim">去推演</button>' +
+          '<button type="button" class="m-icon-btn" data-open-settings="1" aria-label="设置">⚙️</button>' +
           "</div>" +
 
           '<div class="m-stats">' +
-          '<div class="m-stat"><b>' + his.length + "</b><span>浏览</span></div>" +
-          '<div class="m-stat"><b>' + favs.length + "</b><span>收藏</span></div>" +
-          '<div class="m-stat"><b>' + runs + "</b><span>推演</span></div>" +
-          '<div class="m-stat"><b>' + (bestLine ? "1" : "0") + "</b><span>已出方案</span></div>" +
-          "</div>" +
-
-          '<div class="m-card"><h4>我的工具</h4><div class="m-tools">' +
-          '<button type="button" class="m-tool" data-mact="go-anchor"><i>📊</i><span>我的打算</span></button>' +
-          '<button type="button" class="m-tool" data-mact="go-map"><i>🗺️</i><span>地图选城</span></button>' +
-          '<button type="button" class="m-tool" data-mact="go-list"><i>🏠</i><span>找房</span></button>' +
-          '<button type="button" class="m-tool" data-mact="guide"><i>🧭</i><span>新手引导</span></button>' +
-          '<button type="button" class="m-tool" data-mact="go-collect"><i>📈</i><span>匿名数据</span></button>' +
-          '<button type="button" class="m-tool" data-mact="reset"><i>↺</i><span>重置参数</span></button>' +
-          "</div></div>" +
-
-          '<div class="m-card"><h4>我的收藏 <span class="m-h4-sub">' + favs.length + " 套</span></h4>" +
-          (favs.length ? favs.slice(0, 5).map((it) => item(it, "fav")).join("") +
-            (favs.length > 5 ? '<p class="m-sub">还有 ' + (favs.length - 5) + " 套，先在「找房」里看" + "</p>" : "")
-            : '<p class="m-sub">还没收藏。在房源详情里点「☆ 收藏」，这里就会留下。</p>') +
-          "</div>" +
-
-          '<div class="m-card"><h4>浏览历史 <span class="m-h4-sub">' + his.length + " 条</span></h4>" +
-          (his.length ? his.slice(0, 5).map((it) => item(it, "his")).join("")
-            : '<p class="m-sub">还没看过房源。去「房源」里点一套看看。</p>') +
+          '<button type="button" class="m-stat" data-stat="history"><b>' + his.length + "</b><span>浏览</span></button>" +
+          '<button type="button" class="m-stat" data-stat="favs"><b>' + favs.length + "</b><span>收藏</span></button>" +
+          '<button type="button" class="m-stat" data-stat="runs"><b>' + runs + "</b><span>推演</span></button>" +
+          '<button type="button" class="m-stat" data-stat="plans"><b>' + (best ? "1" : "0") + "</b><span>已出方案</span></button>" +
           "</div>" +
 
           '<div class="m-card"><h4>我的方案</h4>' +
-          '<div class="m-row"><span class="t">上次推荐</span><span>' + (bestLine || "还没跑过推演") + "</span></div>" +
+          '<div class="m-row"><span class="t">上次推荐</span><span>' +
+          (best ? "租 " + best.rent_year + " 年 · 贷 " + best.loan_year + " 年，家底 " + wan(best.net_worth_end_wan) + " 万" : "还没跑过推演") +
+          "</span></div>" +
           '<div class="m-row"><span class="t">我的打算</span><span>' + (planned || "还没填") + "</span></div>" +
           '<div class="m-row"><span class="t">房屋类型</span><span>' + typeLabel + "</span></div>" +
           '<div class="m-actions"><button class="m-btn" data-mact="go-sim">继续推演</button>' +
           '<button class="m-btn plain" data-mact="go-anchor">' + (planned ? "改我的打算" : "填我的打算") + "</button></div></div>" +
 
-          '<div class="m-card"><h4>匿名数据</h4>' +
-          '<label class="m-switch"><input type="checkbox" id="jwCollectToggle">' +
-          '<span>参与《年轻人买房压力报告》</span></label>' +
-          '<p class="m-sub">只收城市、职业、行业、收入区间、目标房价这类统计口径；不收姓名、手机号、IP、精确位置。关掉后一次都不发。</p></div>' +
+          '<button type="button" class="m-card m-set-entry" data-open-settings="1">' +
+          "<span>⚙️ 设置</span><small>隐私 · 协议 · 关于 ›</small></button>";
 
-          '<details class="m-card m-details"><summary>我们守的四条线</summary>' +
-          "<p><b>50% 小康线</b>：扣掉生存成本，每月还能剩一半，才算有余地。</p>" +
-          "<p><b>70% 红线</b>：月供加开销不超过收入的 70%，剩下的留给“万一”。</p>" +
-          "<p><b>0.9% 活期</b>：不给你编 3% 的收益，降息年代就这么点。</p>" +
-          "<p><b>2.5% 通胀</b>：30 年后的一万块，不是今天的一万块。</p></details>" +
-
-          '<details class="m-card m-details"><summary>数据与口径</summary>' +
-          "<p>42 城基准 + 2890 个区县；" + zoneLine + "</p>" +
-          "<p>" + amenityLine + "</p>" +
-          "<p>房源只到区的会标“区位中心近似”，不假装定位到楼栋。</p>" +
-          "<p>公积金不算现金：租房只累积，还贷只抵月供。</p></details>" +
-
-          '<details class="m-card m-details"><summary>免责声明</summary>' +
-          "<p>决策参考，不是投资建议。利率会变、收入会变，模型只帮你把账算清楚，不替你签字。</p></details>";
-
-        // 引导重看 + 匿名数据开关
-        const gbtn = box.querySelector('[data-mact="guide"]');
-        if (gbtn) gbtn.onclick = function () {
-          if (window.JWOnboarding) window.JWOnboarding.open();
-        };
-        const ct = box.querySelector("#jwCollectToggle");
-        if (ct) {
-          ct.checked = !(window.JWCollect && !window.JWCollect.enabled());
-          ct.onchange = function () {
-            if (window.JWCollect) window.JWCollect.setEnabled(ct.checked);
-            if (window.HousingApp && window.HousingApp.toast) {
-              window.HousingApp.toast(ct.checked ? "已开启匿名数据，谢谢" : "已关闭，不再发送任何数据");
-            }
-          };
-        }
-
-        // 收藏 / 历史里的「去推演」：把价格与面积填回参数
-        box.querySelectorAll("[data-use-saved]").forEach((btn) => {
-          btn.onclick = function () {
-            const key = btn.getAttribute("data-use-saved");
-            const all = readList(LS_FAV).concat(readList(LS_HIS));
-            const it = all.find((x) => x.key === key);
-            if (!it) return;
-            const priceEl = $("houseTotalWan"), areaEl = $("targetAreaSqm");
-            if (priceEl) {
-              priceEl.value = it.price_wan;
-              priceEl.dispatchEvent(new Event("input", { bubbles: true }));
-            }
-            if (areaEl) {
-              areaEl.value = Math.round(it.live_area_sqm || it.area_sqm || 0);
-              areaEl.dispatchEvent(new Event("input", { bubbles: true }));
-            }
-            setTab("sim");
-            setScreen("params");
-            if (window.HousingApp && window.HousingApp.toast) {
-              window.HousingApp.toast("已填好：" + wan(it.price_wan) + " 万，点开始推演");
-            }
-          };
+        box.querySelectorAll("[data-stat]").forEach((b) => {
+          b.onclick = () => openStat(b.getAttribute("data-stat"));
         });
+        box.querySelectorAll("[data-open-settings]").forEach((b) => {
+          b.onclick = () => openSettings();
+        });
+        const av = box.querySelector("[data-edit='profile']");
+        if (av) av.onclick = () => openProfileEdit();
       }
 
       /* ---------- 前 7 套方案（默认只给这些，大表收起来） ---------- */

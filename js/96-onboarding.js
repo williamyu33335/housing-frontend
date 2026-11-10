@@ -59,7 +59,7 @@
       '<div class="jw-ob-actions">' +
       '<button type="button" class="jw-ob-next" data-ob="next" id="jwObNext">下一步</button>' +
       "</div>" +
-      '<p class="jw-ob-foot">匿名数据可在「我的 → 匿名数据」里随时关闭</p>' +
+      '<p class="jw-ob-foot">匿名统计可在「我的 → 设置 → 隐私管理」里随时关闭</p>' +
       "</div>";
     document.body.appendChild(box);
 

@@ -250,9 +250,9 @@
           const src = document.documentElement.dataset.citySource === "db" ? "库" : "内置";
           document.documentElement.dataset.citySourceLabel = src;
           const badge = document.getElementById("appBadge");
-          if (badge) badge.textContent = `V9.2.0 · ${src}`;
+          if (badge) badge.textContent = `V9.3.0 · ${src}`;
           const chip = document.querySelector(".ver-chip");
-          if (chip) chip.textContent = `V9.2.0 · ${src}`;
+          if (chip) chip.textContent = `V9.3.0 · ${src}`;
         })();
 
         const nn = CITY_DB.find(c => c.code === "450100");
