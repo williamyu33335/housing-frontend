@@ -47,6 +47,10 @@
       function setTab(name, opts) {
         const ov = document.getElementById("matchOverlay");
         if (ov) ov.classList.remove("on");
+        // V9.4：详情页只属于「房源」Tab，切走就关；设置页同理
+        try { closeListingPage(); } catch (_) { }
+        try { closeSettings(); } catch (_) { }
+        try { const m = document.getElementById("jwModal"); if (m) m.classList.remove("on"); } catch (_) { }
         if (!isMobile()) return;
         if (!name) return;
         tab = name;
@@ -764,7 +768,15 @@
           price_wan: x.price_wan,
           area_sqm: x.area_sqm,
           live_area_sqm: x.live_area_sqm,
+          price_sqm: x.price_sqm,
+          bedrooms: x.bedrooms,
           district_name: x.district_name || "",
+          block: x.block || "",
+          source: x.source || "",
+          house_type: x.house_type || "used",
+          geo_level: x.geo_level,
+          geo_approximate: !!x.geo_approximate,
+          lat: x.lat, lng: x.lng,
           at: Date.now()
         };
       }
@@ -874,6 +886,76 @@
       }
 
       /* V9.3：房源详情改成"吃一个房源对象"，匹配结果 / 二手房列表 / 新房户型都能进 */
+      /* ---------- V9.4 房源对比（最多两套，只在本机） ---------- */
+      const LS_CMP = "jw_compare";
+
+      function compareList() { return readList(LS_CMP); }
+
+      function compareKey(x) { return listingKey(x); }
+
+      function toggleCompare(x) {
+        const list = compareList();
+        const k = compareKey(x);
+        const i = list.findIndex((it) => it.key === k);
+        if (i >= 0) {
+          list.splice(i, 1);
+          writeList(LS_CMP, list);
+          if (window.HousingApp && window.HousingApp.toast) window.HousingApp.toast("已移出对比");
+          return list;
+        }
+        if (list.length >= 2) list.shift();
+        list.push(slimListing(x));
+        writeList(LS_CMP, list);
+        if (window.HousingApp && window.HousingApp.toast) {
+          window.HousingApp.toast(list.length === 2 ? "已选两套，正在对比" : "已加入对比，再选一套");
+        }
+        if (list.length === 2) showCompare();
+        return list;
+      }
+
+      function monthlyOf(x, years) {
+        const price = Number(x.price_wan) || 0;
+        if (!price) return 0;
+        let rate = 3.9;
+        try {
+          const el = document.getElementById("loanRatePct");
+          if (el && Number(el.value) > 0) rate = Number(el.value);
+        } catch (_) { }
+        try {
+          const r = calcMonthlyMortgage(price * 0.7 * 10000, rate, years, "equal_principal_interest");
+          return r && r.monthly ? Math.round(r.monthly) : 0;
+        } catch (_) { return 0; }
+      }
+
+      function showCompare() {
+        const list = compareList();
+        if (list.length < 2) {
+          showJwModal("<h3>房源对比</h3><p class=\"m-sub\">再选一套就能对比。</p>");
+          return;
+        }
+        const [a, b] = list;
+        const row = (label, va, vb) =>
+          '<div class="cmp-row"><span>' + label + "</span><b>" + va + "</b><b>" + vb + "</b></div>";
+        showJwModal(
+          "<h3>两套房对比</h3>" +
+          '<div class="cmp-head"><span></span><b>' + esc(a.community) + "</b><b>" + esc(b.community) + "</b></div>" +
+          row("总价", wan(a.price_wan) + " 万", wan(b.price_wan) + " 万") +
+          row("单价", Math.round(a.price_sqm || 0).toLocaleString() + " 元/㎡", Math.round(b.price_sqm || 0).toLocaleString() + " 元/㎡") +
+          row("建面", wan(a.area_sqm, 1) + " ㎡", wan(b.area_sqm, 1) + " ㎡") +
+          row("套内", wan(a.live_area_sqm, 1) + " ㎡", wan(b.live_area_sqm, 1) + " ㎡") +
+          row("户型", esc(a.bedrooms || "—"), esc(b.bedrooms || "—")) +
+          row("区位", esc(a.district_name || "—"), esc(b.district_name || "—")) +
+          row("首付 3 成", wan((a.price_wan || 0) * 0.3) + " 万", wan((b.price_wan || 0) * 0.3) + " 万") +
+          row("月供 30 年", monthlyOf(a, 30).toLocaleString() + " 元", monthlyOf(b, 30).toLocaleString() + " 元") +
+          '<div class="m-actions" style="margin-top:14px;"><button type="button" class="m-btn" id="cmpClear">清空对比</button></div>'
+        );
+        const c = document.getElementById("cmpClear");
+        if (c) c.onclick = () => {
+          writeList(LS_CMP, []);
+          document.getElementById("jwModal").classList.remove("on");
+        };
+      }
+
       function openListingDetailByData(x) {
         if (!x) return;
 
@@ -959,6 +1041,7 @@
             '<button type="button" class="lp-btn fav' + (fav ? " on" : "") + '" id="lpFav2">' +
             (fav ? "★ 已收藏" : "☆ 收藏") + "</button>" +
             '<button type="button" class="lp-btn" id="lpShare2">↗ 分享</button>' +
+            '<button type="button" class="lp-btn" id="lpCompare2">⚖ 对比</button>' +
             "</div>" +
             '<button type="button" class="lp-link-use" id="lpUse2">用这套去推演 →</button>';
           const f = document.getElementById("lpFav2");
@@ -972,6 +1055,8 @@
           };
           const sh = document.getElementById("lpShare2");
           if (sh) sh.onclick = () => shareListing(x);
+          const cp = document.getElementById("lpCompare2");
+          if (cp) cp.onclick = () => toggleCompare(x);
           const u = document.getElementById("lpUse2");
           if (u) u.onclick = () => { closeListingPage(); closeMatchPanel(); useMatchRowById(x); };
         }
@@ -1348,7 +1433,7 @@
           '<div class="m-saved"><div class="m-saved-main"><b>' + esc(it.community) + "</b>" +
           "<span>" + wan(it.price_wan) + " 万 · " + wan(it.live_area_sqm || it.area_sqm, 0) + " ㎡" +
           (it.district_name ? " · " + esc(it.district_name) : "") + "</span></div>" +
-          '<button type="button" class="m-saved-use" data-modal-use="' + esc(it.key) + '">去推演</button></div>'
+          '<button type="button" class="m-saved-use" data-modal-use="' + esc(it.key) + '">看房源</button></div>'
         ).join("");
       }
 
@@ -1358,12 +1443,9 @@
             const key = btn.getAttribute("data-modal-use");
             const it = readList(LS_FAV).concat(readList(LS_HIS)).find((x) => x.key === key);
             if (!it) return;
-            const priceEl = $("houseTotalWan"), areaEl = $("targetAreaSqm");
-            if (priceEl) { priceEl.value = it.price_wan; priceEl.dispatchEvent(new Event("input", { bubbles: true })); }
-            if (areaEl) { areaEl.value = Math.round(it.live_area_sqm || it.area_sqm || 0); areaEl.dispatchEvent(new Event("input", { bubbles: true })); }
             document.getElementById("jwModal").classList.remove("on");
-            setTab("sim"); setScreen("params");
-            if (window.HousingApp && window.HousingApp.toast) window.HousingApp.toast("已填好：" + wan(it.price_wan) + " 万");
+            // V9.4：记录里点进去是"看房源"，不是"重新推演"
+            if (window.__openListingCard) window.__openListingCard(it);
           };
         });
       }
@@ -1431,7 +1513,7 @@
           p.id = "jwSettings";
           document.body.appendChild(p);
         }
-        const ver = ($("appBadge") && $("appBadge").textContent) || "V9.3.0";
+        const ver = ($("appBadge") && $("appBadge").textContent) || "V9.4.0";
         const collectOn = !(window.JWCollect && !window.JWCollect.enabled());
         p.innerHTML =
           '<div class="s-head"><button type="button" class="s-back" data-set="back">‹</button><b>设置</b></div>' +
@@ -1529,7 +1611,7 @@
         const ha = window.HousingApp || {};
         const city = ha.currentCity || null;
         const res = ha.currentResult || null;
-        const ver = ($("appBadge") && $("appBadge").textContent) || "V9.3.0";
+        const ver = ($("appBadge") && $("appBadge").textContent) || "V9.4.0";
         const prof = getProfile();
         const favs = readList(LS_FAV);
         const his = readList(LS_HIS);
@@ -1566,8 +1648,7 @@
           '<div class="m-actions"><button class="m-btn" data-mact="go-sim">继续推演</button>' +
           '<button class="m-btn plain" data-mact="go-anchor">' + (planned ? "改我的打算" : "填我的打算") + "</button></div></div>" +
 
-          '<button type="button" class="m-card m-set-entry" data-open-settings="1">' +
-          "<span>⚙️ 设置</span><small>隐私 · 协议 · 关于 ›</small></button>";
+          "";
 
         box.querySelectorAll("[data-stat]").forEach((b) => {
           b.onclick = () => openStat(b.getAttribute("data-stat"));

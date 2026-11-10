@@ -2497,3 +2497,93 @@
       --safe-bottom: 0px;
       --m-safe: 0px !important;
     }
+
+
+    /* ============================================================
+       V9.4 开屏：不再要求点击，1.6 秒自动进入；加一点美术
+       ============================================================ */
+    .splash-screen {
+      background: radial-gradient(120% 80% at 50% 12%, rgba(56, 189, 248, .18), transparent 60%),
+                  radial-gradient(90% 70% at 80% 90%, rgba(251, 191, 36, .10), transparent 60%),
+                  #0b1220 !important;
+      padding: 24px;
+    }
+
+    .splash-art {
+      position: relative;
+      width: 190px;
+      height: 190px;
+      display: grid;
+      place-items: center;
+      margin-bottom: 18px;
+    }
+
+    .splash-ring {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 1px solid rgba(56, 189, 248, .35);
+      animation: splashRing 2.4s ease-out infinite;
+    }
+
+    @keyframes splashRing {
+      0% { transform: scale(.72); opacity: .9; }
+      70% { transform: scale(1.08); opacity: 0; }
+      100% { transform: scale(1.08); opacity: 0; }
+    }
+
+    .splash-house {
+      font-size: 78px;
+      line-height: 1;
+      filter: drop-shadow(0 12px 26px rgba(251, 191, 36, .35));
+      animation: splashFloat 2.8s ease-in-out infinite;
+    }
+
+    @keyframes splashFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-7px); }
+    }
+
+    .splash-dot {
+      position: absolute;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #38bdf8;
+      opacity: .7;
+    }
+
+    .splash-dot.d1 { top: 16px; right: 30px; animation: splashTwinkle 2s infinite .2s; }
+    .splash-dot.d2 { bottom: 28px; left: 18px; background: #fbbf24; animation: splashTwinkle 2.4s infinite .6s; }
+    .splash-dot.d3 { bottom: 10px; right: 48px; width: 5px; height: 5px; animation: splashTwinkle 1.8s infinite 1s; }
+
+    @keyframes splashTwinkle {
+      0%, 100% { opacity: .2; }
+      50% { opacity: .95; }
+    }
+
+    .splash-title {
+      font-size: clamp(26px, 7vw, 38px) !important;
+      letter-spacing: 8px !important;
+      margin-bottom: 10px !important;
+    }
+
+    .splash-subtitle {
+      font-size: 14px !important;
+      letter-spacing: 2px !important;
+      margin-bottom: 0 !important;
+      color: #94a3b8 !important;
+    }
+
+    .splash-loading {
+      margin-top: 28px;
+      font-size: 12px;
+      letter-spacing: 2px;
+      color: #64748b;
+      animation: splashPulse 1.4s ease-in-out infinite;
+    }
+
+    @keyframes splashPulse {
+      0%, 100% { opacity: .45; }
+      50% { opacity: 1; }
+    }

@@ -250,12 +250,39 @@
       ctl.addTo(map);
 
       const toggle = box.querySelector("#projToggle");
+      let justDragged = false;
       toggle.onclick = () => {
+        if (justDragged) { justDragged = false; return; }
         showProjects = !showProjects;
         toggle.classList.toggle("on", showProjects);
         box.querySelector("#projBands").style.display = showProjects ? "flex" : "none";
         renderProjects();
       };
+
+      // V9.4：手机端把楼盘开关做成可拖拽的悬浮球（初始在左侧）
+      if (window.innerWidth <= 760) {
+        let dragging = false, sx = 0, sy = 0, ox = 0, oy = 0;
+        toggle.addEventListener("pointerdown", (e) => {
+          const r = box.getBoundingClientRect();
+          ox = r.left; oy = r.top;
+          sx = e.clientX; sy = e.clientY;
+          dragging = true;
+          justDragged = false;
+          try { toggle.setPointerCapture(e.pointerId); } catch (_) { }
+        });
+        toggle.addEventListener("pointermove", (e) => {
+          if (!dragging) return;
+          const dx = e.clientX - sx, dy = e.clientY - sy;
+          if (Math.abs(dx) + Math.abs(dy) > 8) justDragged = true;
+          if (!justDragged) return;
+          const left = Math.max(6, Math.min(window.innerWidth - 80, ox + dx));
+          const top = Math.max(60, Math.min(window.innerHeight - 140, oy + dy));
+          box.style.left = left + "px";
+          box.style.top = top + "px";
+        });
+        toggle.addEventListener("pointerup", () => { dragging = false; });
+        toggle.addEventListener("pointercancel", () => { dragging = false; });
+      }
       box.querySelectorAll(".band-btn").forEach((btn) => {
         btn.onclick = () => {
           priceBand = btn.getAttribute("data-band");
@@ -425,6 +452,13 @@
       });
     }
 
+    // V9.4：参数面板里的"显示房源"开关已删，进城市后自动把二手房源画到地图上
+    function autoShowListings() {
+      setTimeout(function () {
+        if (!listingsLayer || !map.hasLayer(listingsLayer)) toggleListings(true);
+      }, 800);
+    }
+
     function toggleListings(on) {
       if (!map) return;
       if (on) {
@@ -484,9 +518,8 @@
       //    而且点它会再次触发 applyCity，把视角拽回"城市最佳视角"。
       setTimeout(() => { try { window.hideCityPolygon && window.hideCityPolygon(city.name); } catch (_) { } }, 260);
       syncCountyLayer();
-      if (document.getElementById("showListings") && document.getElementById("showListings").checked) {
-        loadListings(city.code);
-      }
+      // V9.4：房源图层默认跟着城市走（参数面板的开关已删）
+      autoShowListings();
       const citySel = document.getElementById("citySel");
       if (citySel) citySel.value = city.code;
       if (map) {
@@ -545,7 +578,7 @@
         btn.onclick = (e) => {
           L.DomEvent.stopPropagation(e);
           e.stopPropagation();
-          selectAndFly(r.name, r.lat, r.lng);
+          selectAndGo(r.name, r.lat, r.lng);
           m.closePopup();
         };
         popupDom.appendChild(btn);

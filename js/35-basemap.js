@@ -78,6 +78,11 @@
           const sp = document.getElementById('splashScreen');
           if (sp) { sp.classList.add('hide'); sp.style.display = 'none'; }
         }, 30);
+      } else {
+        // V9.4：开屏不再等用户点，1.6 秒后自动进入（第一次会接引导页）
+        setTimeout(() => {
+          try { enterSystem(); } catch (_) { }
+        }, 1600);
       }
 
       // ?view=22.82,108.37,9 可直接定位到某个视角（分享/验收用）

@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="app-version" content="V9.3.0">
+  <meta name="app-version" content="V9.4.0">
   <title>全国房产金融 WebGIS 智能决策仿真系统</title>
   <!-- 🏠 V8.13.0 本地托管：不依赖任何外部 CDN。
        起因：jsdelivr 的 echarts（1MB）实测 25~60 秒，loading 卡在首屏，
@@ -36,19 +36,26 @@
   </button>
 
   <div class="splash-screen" id="splashScreen">
-    <h1 class="splash-title">全国房产金融决策仿真系统</h1>
-    <p class="splash-subtitle">V9.3.0 · 把 30 年的账算给你看 ｜ 手机上的买房账本</p>
-    <button class="splash-btn" onclick="enterSystem()">进入全景中国地图</button>
+    <div class="splash-art">
+      <div class="splash-ring"></div>
+      <div class="splash-house">🏠</div>
+      <div class="splash-dot d1"></div>
+      <div class="splash-dot d2"></div>
+      <div class="splash-dot d3"></div>
+    </div>
+    <h1 class="splash-title">经纬置业</h1>
+    <p class="splash-subtitle">把 30 年的账，算给你看</p>
+    <p class="splash-loading">正在进入…</p>
   </div>
 
   <div id="map"></div>
-  <div id="appBadge">V9.3.0</div>
+  <div id="appBadge">V9.4.0</div>
   <div id="errBanner"></div>
   <div class="map-hint" id="mapHint">🛰️ 点省份进去 → 点城市看区县 → 点片区。也可以直接点右上角「换城市」。</div>
 
   <div class="glass-panel" id="leftPanel">
     <div class="panel-head">
-      <h2>仿真参数配置 <span class="ver-chip">V9.3.0</span></h2>
+      <h2>仿真参数配置 <span class="ver-chip">V9.4.0</span></h2>
       <button class="panel-close" onclick="hidePanel('leftPanel')" title="收起面板">✕</button>
     </div>
 
@@ -360,11 +367,6 @@
       </div>
     </details>
 
-    <label style="display:flex;align-items:center;gap:8px;margin:10px 0 4px;font-size:13px;cursor:pointer;">
-      <input type="checkbox" id="showListings" style="width:16px;height:16px;">
-      🏠 在地图上显示本区真实房源
-    </label>
-    <div class="form-hint" style="margin:0 0 10px;">当前库里有 34 套南宁真实在售房源，按总价分档着色。</div>
 
     <div class="m-scroll-jump">
       <button type="button" data-scrolljump="top" aria-label="回到顶部">↑</button>
@@ -590,7 +592,7 @@
     <script src="js/92-mobile.js"></script>
 
     <script src="js/94-config-accent.js"></script>
-  <script src="js/96-onboarding.js"></script>
+  <script type="module">import { initOnboarding } from "./src/onboarding.js"; initOnboarding();</script>
   <script src="js/98-collect.js"></script>
 
   <!-- 撒花特效画布 -->

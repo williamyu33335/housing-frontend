@@ -1472,3 +1472,105 @@
         line-height: 1.9;
         color: #cbd5e1;
       }
+
+
+      /* ============================================================
+         V9.4 悬浮球 + 吸顶标题
+         匹配入口从"顶部横条"改成右侧红色圆球（拇指大小）；
+         楼盘开关改成左侧可拖拽圆球；标题滚动时吸顶。
+         ============================================================ */
+      @media (max-width: 760px) {
+        #matchDock {
+          position: fixed !important;
+          right: 12px;
+          top: 44%;
+          left: auto;
+          width: 58px;
+          height: 58px;
+          margin: 0 !important;
+          padding: 0 !important;
+          border-radius: 50%;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 1px;
+          background: #ef4444;
+          color: #fff;
+          border: 2px solid rgba(255, 255, 255, .8);
+          box-shadow: 0 10px 26px rgba(239, 68, 68, .45);
+          font-size: 20px;
+          line-height: 1;
+          z-index: 850;
+        }
+
+        #matchDock small {
+          margin: 0;
+          font-size: 9px;
+          color: #fff;
+          opacity: .95;
+          letter-spacing: 0;
+          display: block;
+        }
+
+        .project-layer-ctl {
+          position: fixed !important;
+          left: 12px;
+          top: 30%;
+          z-index: 760;
+          align-items: flex-start;
+          gap: 8px;
+          margin: 0 !important;
+          touch-action: none;
+        }
+
+        .proj-toggle {
+          padding: 10px 12px;
+          font-size: 14px;
+          border-radius: 14px;
+          gap: 6px;
+        }
+
+        .proj-toggle span { font-size: 13px; }
+        .proj-toggle b { font-size: 12px; padding: 0 6px; }
+
+        .m-screen-head {
+          position: sticky;
+          top: 0;
+          z-index: 6;
+          margin: -6px 0 0;
+          padding: 8px 0 8px;
+          background: #0b1220;
+        }
+
+        .panel-head {
+          position: sticky;
+          top: 0;
+          z-index: 20;
+          background: #0b1220;
+        }
+      }
+
+
+      /* V9.4 两套房对比表 */
+      .cmp-head,
+      .cmp-row {
+        display: grid;
+        grid-template-columns: 76px 1fr 1fr;
+        gap: 8px;
+        padding: 8px 0;
+        border-bottom: 1px dashed rgba(148, 163, 184, .16);
+        font-size: 12.5px;
+      }
+
+      .cmp-head b {
+        font-size: 13px;
+        color: #f8fafc;
+        text-align: right;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .cmp-row span { color: #94a3b8; }
+      .cmp-row b { color: #e2e8f0; font-weight: 600; text-align: right; }

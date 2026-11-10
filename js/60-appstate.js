@@ -43,7 +43,11 @@
       const dock = document.createElement("button");
       dock.id = "matchDock";
       dock.type = "button";
-      dock.innerHTML = "🔎 进入推荐房源匹配<small>按你算出来的条件，挑出最适合的房子</small>";
+      const isMob = window.innerWidth <= 760;
+      dock.innerHTML = isMob
+        ? "🔎<small>匹配</small>"
+        : "🔎 进入推荐房源匹配<small>按你算出来的条件，挑出最适合的房子</small>";
+      dock.title = "推荐房源匹配";
       dock.onclick = function () {
         if (window.MApp && window.MApp.openMatchPanel) window.MApp.openMatchPanel();
         else showToast("房源匹配还没准备好，稍后再试");
@@ -250,9 +254,9 @@
           const src = document.documentElement.dataset.citySource === "db" ? "库" : "内置";
           document.documentElement.dataset.citySourceLabel = src;
           const badge = document.getElementById("appBadge");
-          if (badge) badge.textContent = `V9.3.0 · ${src}`;
+          if (badge) badge.textContent = `V9.4.0 · ${src}`;
           const chip = document.querySelector(".ver-chip");
-          if (chip) chip.textContent = `V9.3.0 · ${src}`;
+          if (chip) chip.textContent = `V9.4.0 · ${src}`;
         })();
 
         const nn = CITY_DB.find(c => c.code === "450100");
@@ -303,7 +307,12 @@
       syncZoneToForm(true);
       if (map) map.flyTo(mapLL(lat, lng), 12, { duration: 1.2 });
       revealPanels();
-      showToast(`已切换至【${name}】，去「推演」填数字`);
+      showToast(`已选【${name}】，点图钉里的「以此片区推演」再进参数`);
+    }
+
+    /** 只有用户明确点「以此片区推演」时才跳转 */
+    function selectAndGo(name, lat, lng) {
+      selectAndFly(name, lat, lng);
       maybeJumpToSim();
     }
 
@@ -316,7 +325,7 @@
       syncZoneToForm(true);
       revealPanels();
       if (map) map.flyTo(mapLL(find.lat, find.lng), 12, { duration: 1.2 });
-      maybeJumpToSim();
+      // V9.4：下拉选择只切片区，不再把手机用户从地图上拽走
     };
 
     document.getElementById("leftPanel").addEventListener("keydown", (e) => {
